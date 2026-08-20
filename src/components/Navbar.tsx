@@ -249,7 +249,12 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             </button>
           )}
 
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setViewMode?.('home')}
+            className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity focus:outline-none"
+            title="Go to Home Overview"
+          >
             <div
               className="w-7 h-7 rounded-lg text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0"
               style={{ backgroundColor: currentAccent.colorHex }}
@@ -259,7 +264,9 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             <span className="hidden sm:inline text-sm font-semibold tracking-tight text-stone-900 dark:text-stone-100">
               Journal
             </span>
+          </button>
 
+          <div className="flex items-center gap-2">
             {/* Subtle Visual Sync Indicator */}
             <button
               type="button"

@@ -14,10 +14,14 @@ import {
   HeartHandshake,
   HelpCircle,
   History,
+  Home,
   MessageCircle,
   MessageSquare,
   MessageSquareText,
   MoreVertical,
+  Pencil,
+  Pin,
+  PinOff,
   Plus,
   Search,
   ShoppingBag,
@@ -32,6 +36,7 @@ import { CurrentUserProfile } from '../lib/firebase';
 import { AccentTheme, CoreCategoryConfig, CoreCategoryId, ViewMode, WeeklyBlock } from '../types';
 import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
+import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
 
 interface SidebarProps {
   weeks: WeeklyBlock[];
@@ -49,8 +54,11 @@ interface SidebarProps {
   onSelectCoreCategory?: (catId: CoreCategoryId) => void;
   setActiveCoreCategory?: (catId: CoreCategoryId) => void;
   onAddCoreCategory?: (category: CoreCategoryConfig) => void;
+  onUpdateCoreCategory?: (catId: CoreCategoryId, updated: Partial<CoreCategoryConfig>) => void;
   onDeleteCoreCategory?: (catId: CoreCategoryId) => void;
   onReorderCoreCategories?: (categories: CoreCategoryConfig[]) => void;
+  pinnedCategoryIds?: string[];
+  onTogglePinCategory?: (categoryId: string) => void;
   isSidebarOpen?: boolean;
   onToggleSidebar?: () => void;
   isOpenMobile?: boolean;
@@ -96,11 +104,15 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   onSelectCoreCategory,
   setActiveCoreCategory,
   onAddCoreCategory,
+  onUpdateCoreCategory,
   onDeleteCoreCategory,
   onReorderCoreCategories,
+  pinnedCategoryIds = [],
+  onTogglePinCategory,
   isSidebarOpen = true,
   isOpenMobile = false,
   setIsOpenMobile,
+  coreItems = [],
 }) => {
   const [showAddWeekModal, setShowAddWeekModal] = useState(false);
   const [newWeekTitle, setNewWeekTitle] = useState('');
@@ -109,6 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   const [weekSearchQuery, setWeekSearchQuery] = useState('');
 
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CoreCategoryConfig | null>(null);
   const [newCatTitle, setNewCatTitle] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('Folder');
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
@@ -269,9 +282,23 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       <div className="flex bg-black/5 dark:bg-white/10 p-0.5 rounded-xl mb-3 shrink-0">
         <button
           onClick={() => {
+            setViewMode('home');
+            if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
+          }}
+          className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
+            viewMode === 'home'
+              ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
+              : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+          }`}
+        >
+          <Home className="w-3.5 h-3.5" />
+          <span>Home</span>
+        </button>
+        <button
+          onClick={() => {
             setViewMode('weekly');
           }}
-          className={`flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'weekly'
               ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
               : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
@@ -284,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           onClick={() => {
             setViewMode('core');
           }}
-          className={`flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'core'
               ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
               : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
@@ -297,7 +324,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           onClick={() => {
             setViewMode('media');
           }}
-          className={`flex-1 min-h-[38px] py-1.5 px-2 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'media'
               ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
               : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
@@ -307,6 +334,74 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           <span>Media</span>
         </button>
       </div>
+
+      {/* View Mode 0: Home Quick Overview Panel */}
+      {viewMode === 'home' && (
+        <div className="flex-1 flex flex-col min-h-0 space-y-3 text-xs">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-semibold text-stone-400">Quick Navigation</span>
+          </div>
+
+          <div className="space-y-1.5 overflow-y-auto pr-0.5 flex-1">
+            <button
+              onClick={() => {
+                setViewMode('weekly');
+                if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
+              }}
+              className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-xs">Weekly Journal</p>
+                  <p className="text-[11px] text-stone-400">{weeks.length} total entries</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+
+            <button
+              onClick={() => {
+                setViewMode('core');
+                if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
+              }}
+              className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <FolderOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-xs">Topic Folders</p>
+                  <p className="text-[11px] text-stone-400">{coreCategories.length} categories</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+
+            <button
+              onClick={() => {
+                setViewMode('media');
+                if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
+              }}
+              className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                  <Film className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-xs">Media Hub</p>
+                  <p className="text-[11px] text-stone-400">Photos & Attachments</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* View Mode 1: Weekly Entries List */}
       {viewMode === 'weekly' && (
@@ -446,10 +541,10 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             </div>
           )}
 
-          {/* 2-Column Responsive Grid with Horizontal Pill Cards */}
-          <div className="grid grid-cols-2 gap-2 overflow-y-auto p-1 pr-1.5 flex-1 content-start auto-rows-fr">
+          {/* Full-Width Single-Column List Rows with Horizontal Card Structure */}
+          <div className="flex flex-col gap-2 w-full overflow-y-auto p-1 pr-1 pb-16 sm:pb-6 flex-1 content-start">
             {filteredCategories.length === 0 ? (
-              <div className="col-span-2 py-8 text-center">
+              <div className="py-8 text-center w-full">
                 <Folder className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 mb-2 stroke-[1.5]" />
                 <p className="text-xs text-stone-400">No topic folders</p>
               </div>
@@ -458,6 +553,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 const IconComp = ICON_MAP[config.iconName] || Folder;
                 const isSelected = activeCoreCategory === config.id;
                 const isDragged = draggedCatIndex === index;
+                const itemCount = Array.isArray(coreItems)
+                  ? coreItems.filter((item: any) => item.categoryId === config.id).length
+                  : 0;
 
                 return (
                   <div
@@ -486,54 +584,66 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                       });
                     }}
                     onClick={() => handleSelectCategory(config.id)}
-                    className={`group relative flex items-center gap-3 p-2.5 rounded-xl h-14 min-h-[56px] transition-all duration-150 ease-out cursor-pointer select-none text-left border ${
+                    className={`group relative w-full h-auto min-h-[52px] p-3 rounded-xl transition-all duration-150 ease-out cursor-pointer select-none text-left border flex items-center justify-between ${
                       isSelected
                         ? 'border-amber-500/60 bg-amber-500/15 dark:bg-amber-500/25 shadow-2xs ring-1 ring-amber-500/40 text-stone-900 dark:text-stone-100'
                         : 'bg-stone-100/80 hover:bg-stone-200/80 active:bg-stone-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:active:bg-white/[0.12] border-stone-200/80 dark:border-white/5 text-stone-700 dark:text-stone-300'
                     } ${isDragged ? 'opacity-30' : ''} ${dragOverCatIndex === index ? 'ring-2 ring-amber-500' : ''}`}
                   >
-                    {/* Single Clean Left Icon */}
-                    <div
-                      className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
-                        isSelected
-                          ? 'bg-amber-500/25 text-amber-600 dark:text-amber-400'
-                          : 'bg-black/5 dark:bg-white/5 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/15'
-                      }`}
-                    >
-                      <IconComp className="w-4 h-4 shrink-0" />
+                    {/* Left Section: Icon + Title */}
+                    <div className="flex items-center min-w-0 flex-1 mr-2">
+                      <div
+                        className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mr-3 transition-colors ${
+                          isSelected
+                            ? 'bg-amber-500/25 text-amber-600 dark:text-amber-400'
+                            : 'bg-amber-400/10 dark:bg-amber-400/15 text-amber-500 dark:text-amber-400 group-hover:bg-amber-500/20'
+                        }`}
+                      >
+                        <IconComp className="w-4 h-4 shrink-0" />
+                      </div>
+
+                      <p
+                        className={`text-sm font-medium text-left leading-snug flex-1 break-words ${
+                          isSelected
+                            ? 'text-stone-900 dark:text-stone-100 font-semibold'
+                            : 'text-stone-700 dark:text-neutral-200 group-hover:text-stone-900 dark:group-hover:text-stone-100'
+                        }`}
+                        title={config.title}
+                      >
+                        {config.title}
+                      </p>
                     </div>
 
-                    {/* Right: Title Container */}
-                    <p
-                      className={`text-xs font-medium truncate flex-1 text-left leading-snug ${
-                        isSelected
-                          ? 'text-stone-900 dark:text-stone-100 font-semibold'
-                          : 'text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100'
-                      }`}
-                      title={config.title}
-                    >
-                      {config.title}
-                    </p>
+                    {/* Right Section: Item Counter / Actions / Chevron */}
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      {itemCount > 0 && (
+                        <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                          {itemCount} {itemCount === 1 ? 'note' : 'notes'}
+                        </span>
+                      )}
 
-                    {/* Discreet options button */}
-                    {isOwner && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setContextMenu({
-                            catId: config.id,
-                            title: config.title,
-                            x: rect.right,
-                            y: rect.bottom,
-                          });
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity shrink-0"
-                        title="Folder options"
-                      >
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                      {/* Discreet options button */}
+                      {isOwner && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setContextMenu({
+                              catId: config.id,
+                              title: config.title,
+                              x: rect.right,
+                              y: rect.bottom,
+                            });
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
+                          title="Folder options"
+                        >
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
+                      <ChevronRight className="w-4 h-4 text-stone-400 dark:text-neutral-500 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </div>
                   </div>
                 );
               })
@@ -722,6 +832,46 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             <div className="px-3 py-1.5 font-semibold text-stone-500 dark:text-stone-400 text-[11px] truncate border-b border-black/5 dark:border-white/10 mb-1">
               {contextMenu.title}
             </div>
+
+            {onTogglePinCategory && (
+              <button
+                onClick={() => {
+                  const target = contextMenu;
+                  setContextMenu(null);
+                  onTogglePinCategory(target.catId);
+                }}
+                className="w-full px-3 py-2 text-left rounded-xl text-stone-700 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 font-medium transition-colors"
+              >
+                {pinnedCategoryIds.includes(contextMenu.catId) ? (
+                  <>
+                    <PinOff className="w-4 h-4 text-amber-500" />
+                    <span>Unpin from Home</span>
+                  </>
+                ) : (
+                  <>
+                    <Pin className="w-4 h-4 text-amber-500" />
+                    <span>Pin to Home</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {canEdit && (
+              <button
+                onClick={() => {
+                  const target = contextMenu;
+                  setContextMenu(null);
+                  const foundCat = coreCategories.find((c) => c.id === target.catId);
+                  if (foundCat) {
+                    setEditingCategory(foundCat);
+                  }
+                }}
+                className="w-full px-3 py-2 text-left rounded-xl text-stone-700 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 font-medium transition-colors"
+              >
+                <Pencil className="w-4 h-4 text-amber-500" />
+                <span>Rename / Edit</span>
+              </button>
+            )}
             {isOwner && (
               <button
                 onClick={() => {
@@ -742,6 +892,18 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             )}
           </div>
         </>
+      )}
+
+      {/* Edit Core Category Modal */}
+      {editingCategory && (
+        <EditCoreCategoryModal
+          isOpen={!!editingCategory}
+          category={editingCategory}
+          onClose={() => setEditingCategory(null)}
+          onSave={(catId, updated) => {
+            onUpdateCoreCategory?.(catId as CoreCategoryId, updated);
+          }}
+        />
       )}
     </>
   );

@@ -147,6 +147,9 @@ export function loadAppState(): AppState {
           accentTheme: parsed.accentTheme || 'blue',
           comments: Array.isArray(parsed.comments) ? parsed.comments : INITIAL_COMMENTS,
           coreCategories: mergedCategories,
+          pinnedCategoryIds: Array.isArray(parsed.pinnedCategoryIds)
+            ? parsed.pinnedCategoryIds
+            : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
         };
       }
     }
@@ -162,6 +165,7 @@ export function loadAppState(): AppState {
     theme: 'light',
     accentTheme: 'blue',
     coreCategories: CORE_CATEGORIES_CONFIG,
+    pinnedCategoryIds: ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
     comments: INITIAL_COMMENTS,
     filters: {
       searchQuery: '',

@@ -1,4 +1,4 @@
-export type ViewMode = 'weekly' | 'core' | 'media' | 'shared';
+export type ViewMode = 'home' | 'weekly' | 'core' | 'media' | 'shared';
 export type AccentTheme = 'blue' | 'emerald' | 'amber' | 'violet' | 'rose';
 export type UserRole = 'owner' | 'editor' | 'commenter' | 'viewer';
 
@@ -173,6 +173,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   accentTheme: AccentTheme;
   coreCategories: CoreCategoryConfig[];
+  pinnedCategoryIds?: string[];
   filters: FilterOptions;
   comments?: CommentItem[];
 }

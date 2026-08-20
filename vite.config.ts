@@ -22,8 +22,12 @@ export default defineConfig(() => {
     },
     server: {
       host: true,
-      hmr: process.env.DISABLE_HMR === 'true' ? false : { clientPort: 443 },
-      watch: process.env.DISABLE_HMR === 'true' ? null : { usePolling: true },
+      hmr: {
+        clientPort: 443,
+      },
+      watch: {
+        usePolling: true,
+      },
     },
   };
 });

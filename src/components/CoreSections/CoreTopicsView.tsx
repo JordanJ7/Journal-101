@@ -19,6 +19,9 @@ import {
   MessageCircle,
   MessageSquare,
   MessageSquareText,
+  Pencil,
+  Pin,
+  PinOff,
   Plus,
   ShieldAlert,
   ShoppingBag,
@@ -46,6 +49,7 @@ import { HighlightText } from '../HighlightText';
 import { AddCoreCategoryModal } from './AddCoreCategoryModal';
 import { BulletedNoteEditor } from './BulletedNoteEditor';
 import { DeepQuestionsView } from './DeepQuestionsView';
+import { EditCoreCategoryModal } from './EditCoreCategoryModal';
 import { TopicCategoryCard } from './TopicCategoryCard';
 import { TopicItemModal } from './TopicItemModal';
 
@@ -80,6 +84,8 @@ interface CoreTopicsViewProps {
   accentTheme: AccentTheme;
   filters: FilterOptions;
   currentUser: CurrentUserProfile;
+  pinnedCategoryIds?: string[];
+  onTogglePinCategory?: (categoryId: string) => void;
   comments?: CommentItem[];
   onOpenCommentSection?: (sectionTag: string) => void;
   activeCommentSectionTag?: string;
@@ -98,6 +104,8 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   accentTheme,
   filters,
   currentUser,
+  pinnedCategoryIds = [],
+  onTogglePinCategory,
   comments = [],
   onOpenCommentSection,
   activeCommentSectionTag,
@@ -114,6 +122,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   const [showItemModal, setShowItemModal] = useState(false);
   const [editingItem, setEditingItem] = useState<CoreTopicItem | null>(null);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
 
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
 
@@ -410,6 +419,36 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               </button>
             )}
 
+            {/* Pin / Unpin Folder from Home */}
+            {onTogglePinCategory && (
+              <button
+                onClick={() => onTogglePinCategory(activeCategory)}
+                title={pinnedCategoryIds.includes(activeCategory) ? "Unpin folder from Home" : "Pin folder to Home"}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  pinnedCategoryIds.includes(activeCategory)
+                    ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
+                    : 'text-stone-400 hover:text-amber-500 hover:bg-black/5 dark:hover:bg-white/10'
+                }`}
+              >
+                {pinnedCategoryIds.includes(activeCategory) ? (
+                  <Pin className="w-4 h-4 fill-amber-500" />
+                ) : (
+                  <Pin className="w-4 h-4" />
+                )}
+              </button>
+            )}
+
+            {/* Rename / Edit Folder Settings */}
+            {canEdit && activeCategoryConfig && (
+              <button
+                onClick={() => setShowEditCategoryModal(true)}
+                title="Rename & Edit Folder"
+                className="p-1.5 rounded-lg text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              >
+                <Pencil className="w-4 h-4 text-amber-500" />
+              </button>
+            )}
+
             {canEdit && (
               <button
                 onClick={handleOpenAddEntryModal}
@@ -461,10 +500,21 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
             <div className="p-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
               <CurrentTopicIcon className="w-5 h-5" />
             </div>
-            <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
-                <HighlightText text={activeCategoryConfig?.title} highlight={filters.searchQuery} />
-              </h2>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+                  <HighlightText text={activeCategoryConfig?.title} highlight={filters.searchQuery} />
+                </h2>
+                {canEdit && (
+                  <button
+                    onClick={() => setShowEditCategoryModal(true)}
+                    title="Rename Folder"
+                    className="p-1 rounded-lg text-stone-400 hover:text-amber-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
               {activeCategoryConfig?.description && (
                 <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                   <HighlightText text={activeCategoryConfig.description} highlight={filters.searchQuery} />
@@ -568,6 +618,18 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
             setShowAddCategoryModal(false);
           }}
           onClose={() => setShowAddCategoryModal(false)}
+        />
+      )}
+
+      {/* Modal 3: Rename & Edit Topic Folder Modal */}
+      {showEditCategoryModal && activeCategoryConfig && (
+        <EditCoreCategoryModal
+          isOpen={showEditCategoryModal}
+          category={activeCategoryConfig}
+          onClose={() => setShowEditCategoryModal(false)}
+          onSave={(catId, updated) => {
+            onUpdateCoreCategory?.(catId, updated);
+          }}
         />
       )}
     </div>

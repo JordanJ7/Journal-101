@@ -1,7 +1,8 @@
 import React, { lazy, Suspense, useCallback, useEffect, useTransition } from 'react';
-import { Calendar, Film, FolderOpen, Menu, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-react';
+import { Calendar, Film, FolderOpen, Home, Menu, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { CoreTopicsView } from './components/CoreSections/CoreTopicsView';
+import { HomeDashboard } from './components/HomeDashboard';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { WeeklyTimeline } from './components/WeeklyJournal/WeeklyTimeline';
@@ -18,6 +19,7 @@ import {
   useCoreItems,
   useActiveCoreCategory,
   useCoreCategories,
+  usePinnedCategoryIds,
   useFilters,
   useTheme,
   useAccentTheme,
@@ -60,6 +62,7 @@ export default function App() {
   const coreItems = useCoreItems();
   const activeCoreCategory = useActiveCoreCategory();
   const coreCategories = useCoreCategories();
+  const pinnedCategoryIds = usePinnedCategoryIds();
   const filters = useFilters();
   const theme = useTheme();
   const accentTheme = useAccentTheme();
@@ -96,6 +99,8 @@ export default function App() {
     deleteComment,
     editComment,
     togglePinTakeaway,
+    setPinnedCategoryIds,
+    togglePinCategory,
     setIsExportModalOpen,
     setIsAccessManagementOpen,
     setIsCommentsSidebarOpen,
@@ -137,6 +142,8 @@ export default function App() {
       deleteComment: s.deleteComment,
       editComment: s.editComment,
       togglePinTakeaway: s.togglePinTakeaway,
+      setPinnedCategoryIds: s.setPinnedCategoryIds,
+      togglePinCategory: s.togglePinCategory,
       setIsExportModalOpen: s.setIsExportModalOpen,
       setIsAccessManagementOpen: s.setIsAccessManagementOpen,
       setIsCommentsSidebarOpen: s.setIsCommentsSidebarOpen,
@@ -435,6 +442,7 @@ export default function App() {
             setActiveCoreCategory={handleSetActiveCoreCategory}
             onAddWeek={addWeek}
             onAddCoreCategory={addCoreCategory}
+            onUpdateCoreCategory={updateCoreCategory}
             onDeleteCoreCategory={deleteCoreCategory}
             onReorderWeeks={reorderWeeks}
             onReorderCoreCategories={reorderCoreCategories}
@@ -444,6 +452,8 @@ export default function App() {
             currentUser={currentUser}
             filters={filters}
             coreItems={coreItems}
+            pinnedCategoryIds={pinnedCategoryIds}
+            onTogglePinCategory={togglePinCategory}
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={toggleSidebar}
           />
@@ -468,7 +478,31 @@ export default function App() {
                 : 'p-3 sm:p-5 md:p-6 lg:p-8'
             } ${isPending ? 'opacity-70' : 'opacity-100'}`}
           >
-            {viewMode === 'weekly' ? (
+            {viewMode === 'home' ? (
+              <HomeDashboard
+                weeks={weeks}
+                coreItems={coreItems}
+                coreCategories={coreCategories}
+                pinnedCategoryIds={pinnedCategoryIds}
+                accentTheme={accentTheme}
+                onNavigateToWeek={(wId) => {
+                  handleSetActiveWeekId(wId);
+                  handleSetViewMode('weekly');
+                }}
+                onNavigateToCoreCategory={(cId) => {
+                  handleSetActiveCoreCategory(cId);
+                  handleSetViewMode('core');
+                }}
+                onNavigateToView={(mode) => {
+                  handleSetViewMode(mode);
+                }}
+                onAddNewWeek={() => {
+                  handleSetViewMode('weekly');
+                }}
+                onUpdatePinnedCategoryIds={setPinnedCategoryIds}
+                onTogglePinCategory={togglePinCategory}
+              />
+            ) : viewMode === 'weekly' ? (
               <WeeklyTimeline
                 weeks={weeks}
                 setWeeks={setWeeks}
@@ -496,6 +530,8 @@ export default function App() {
                 accentTheme={accentTheme}
                 filters={filters}
                 currentUser={currentUser}
+                pinnedCategoryIds={pinnedCategoryIds}
+                onTogglePinCategory={togglePinCategory}
                 comments={comments}
                 onOpenCommentSection={handleOpenCommentSection}
                 activeCommentSectionTag={activeCommentSectionTag}
@@ -527,8 +563,19 @@ export default function App() {
         {/* Authentic iOS Bottom Tab Bar (Only on mobile < md) */}
         <nav
           aria-label="Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7]/95 dark:bg-[#000000]/95 backdrop-blur-xl border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-2 shadow-lg"
+          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7]/95 dark:bg-[#000000]/95 backdrop-blur-xl border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
         >
+          <button
+            onClick={() => handleSetViewMode('home')}
+            className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
+              viewMode === 'home' ? 'font-bold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
+            }`}
+            style={{ color: viewMode === 'home' ? currentAccent.colorHex : undefined }}
+          >
+            <Home className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] tracking-tight">Home</span>
+          </button>
+
           <button
             onClick={() => handleSetViewMode('weekly')}
             className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${

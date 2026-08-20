@@ -49,6 +49,7 @@ export interface JournalStoreState {
   activeCoreCategory: CoreCategoryId;
   activeCoreSubCategory?: string;
   coreCategories: CoreCategoryConfig[];
+  pinnedCategoryIds: string[];
   theme: 'light' | 'dark';
   accentTheme: AccentTheme;
   filters: FilterOptions;
@@ -109,6 +110,10 @@ export interface JournalStoreState {
   deleteSubCategory: (categoryId: string, subCategoryId: string) => void;
   reorderSubCategories: (categoryId: string, subCategories: CoreSubCategoryConfig[]) => void;
   moveCoreItemToSubCategory: (itemId: string, targetCategoryId: string, targetSubCategoryId?: string) => void;
+
+  setPinnedCategoryIds: (ids: string[]) => void;
+  togglePinCategory: (categoryId: string) => void;
+  reorderPinnedCategories: (ids: string[]) => void;
 
   setTheme: (theme: 'light' | 'dark') => void;
   setAccentTheme: (accent: AccentTheme) => void;
@@ -192,6 +197,7 @@ const executeSave = async (get: () => JournalStoreState) => {
       theme: s.theme,
       accentTheme: s.accentTheme,
       coreCategories: s.coreCategories,
+      pinnedCategoryIds: s.pinnedCategoryIds,
       filters: s.filters,
       comments: s.comments,
     };
@@ -252,6 +258,9 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   coreCategories: initialLoaded.coreCategories && initialLoaded.coreCategories.length > 0
     ? initialLoaded.coreCategories
     : CORE_CATEGORIES_CONFIG,
+  pinnedCategoryIds: Array.isArray(initialLoaded.pinnedCategoryIds) && initialLoaded.pinnedCategoryIds.length > 0
+    ? initialLoaded.pinnedCategoryIds
+    : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
   theme: initialLoaded.theme || 'light',
   accentTheme: initialLoaded.accentTheme || 'blue',
   filters: initialLoaded.filters || {
@@ -622,6 +631,27 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     schedulePersistence(get);
   },
 
+  setPinnedCategoryIds: (ids) => {
+    set({ pinnedCategoryIds: ids });
+    schedulePersistence(get);
+  },
+
+  togglePinCategory: (categoryId) => {
+    set((state) => {
+      const isPinned = state.pinnedCategoryIds.includes(categoryId);
+      const updated = isPinned
+        ? state.pinnedCategoryIds.filter((id) => id !== categoryId)
+        : [...state.pinnedCategoryIds, categoryId];
+      return { pinnedCategoryIds: updated };
+    });
+    schedulePersistence(get);
+  },
+
+  reorderPinnedCategories: (ids) => {
+    set({ pinnedCategoryIds: ids });
+    schedulePersistence(get);
+  },
+
   addSubCategory: (categoryId, subCategory) => {
     set((state) => {
       const updatedCats = state.coreCategories.map((c) => {
@@ -916,15 +946,17 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     const incomingWeeks = cloudData.weeks && Array.isArray(cloudData.weeks) ? cloudData.weeks : state.weeks;
     const incomingCoreItems = cloudData.coreItems && Array.isArray(cloudData.coreItems) ? cloudData.coreItems : state.coreItems;
     const incomingCoreCategories = cloudData.coreCategories && Array.isArray(cloudData.coreCategories) ? cloudData.coreCategories : state.coreCategories;
+    const incomingPinnedCategoryIds = cloudData.pinnedCategoryIds && Array.isArray(cloudData.pinnedCategoryIds) ? cloudData.pinnedCategoryIds : state.pinnedCategoryIds;
     const incomingComments = cloudData.comments && Array.isArray(cloudData.comments) ? cloudData.comments : state.comments;
 
     // Quick structural equality check
     const isWeeksEqual = incomingWeeks.length === state.weeks.length && JSON.stringify(incomingWeeks) === JSON.stringify(state.weeks);
     const isCoreItemsEqual = incomingCoreItems.length === state.coreItems.length && JSON.stringify(incomingCoreItems) === JSON.stringify(state.coreItems);
     const isCategoriesEqual = incomingCoreCategories.length === state.coreCategories.length && JSON.stringify(incomingCoreCategories) === JSON.stringify(state.coreCategories);
+    const isPinnedEqual = incomingPinnedCategoryIds.length === state.pinnedCategoryIds.length && JSON.stringify(incomingPinnedCategoryIds) === JSON.stringify(state.pinnedCategoryIds);
     const isCommentsEqual = (incomingComments?.length || 0) === (state.comments?.length || 0) && JSON.stringify(incomingComments) === JSON.stringify(state.comments);
 
-    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isCommentsEqual) {
+    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isCommentsEqual) {
       return;
     }
 
@@ -963,6 +995,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         weeks: nextWeeks,
         coreItems: incomingCoreItems,
         coreCategories: nextCoreCategories,
+        pinnedCategoryIds: incomingPinnedCategoryIds,
         comments: incomingComments,
         activeWeekId,
         activeCoreCategory,
@@ -981,6 +1014,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         theme: s.theme,
         accentTheme: s.accentTheme,
         coreCategories: s.coreCategories,
+        pinnedCategoryIds: s.pinnedCategoryIds,
         filters: s.filters,
         comments: s.comments,
       });
@@ -1016,6 +1050,7 @@ export const useActiveWeek = () =>
 export const useCoreItems = () => useJournalStore((s) => s.coreItems);
 export const useActiveCoreCategory = () => useJournalStore((s) => s.activeCoreCategory);
 export const useCoreCategories = () => useJournalStore((s) => s.coreCategories);
+export const usePinnedCategoryIds = () => useJournalStore((s) => s.pinnedCategoryIds);
 export const useFilters = () => useJournalStore((s) => s.filters);
 export const useTheme = () => useJournalStore((s) => s.theme);
 export const useAccentTheme = () => useJournalStore((s) => s.accentTheme);
