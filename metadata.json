@@ -1,0 +1,6 @@
+{
+  "name": "Personal Journal & Therapy Tracker",
+  "description": "Weekly journaling engine and persistent therapy notebook for tracking thoughts, homework, Q&As with therapist Des, and life topics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

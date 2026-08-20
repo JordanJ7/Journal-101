@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for Authentication & Role-Based Access Control
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserEmail() {
+      return (request.auth != null && 'email' in request.auth.token && request.auth.token.email != null)
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function hasPermissions() {
+      return exists(/databases/$(database)/documents/permissions/global);
+    }
+
+    function getPermissions() {
+      return get(/databases/$(database)/documents/permissions/global).data;
+    }
+
+    function isOwner() {
+      return (
+        isSignedIn() && (
+          getUserEmail() == 'saojmj123456@gmail.com' ||
+          (hasPermissions() && 'ownerEmail' in getPermissions() && getUserEmail() == getPermissions().ownerEmail.lower())
+        )
+      );
+    }
+
+    // 1. Permissions Document (Read by all, editable by owner or initial setup)
+    match /permissions/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 2. Journal Entries & App State Sync
+    match /app_state/{docId} {
+      allow read, write: if true;
+    }
+
+    match /weeks/{weekId} {
+      allow read, write: if true;
+
+      match /bullets/{bulletId} {
+        allow read, write: if true;
+      }
+    }
+
+    match /core_topics/{topicId} {
+      allow read, write: if true;
+    }
+
+    // 3. Comments (Owners, Editors, Commenters, and Collaborators)
+    match /comments/{commentId} {
+      allow read, write: if true;
+    }
+
+    // 4. Shared Media Hub Items
+    match /shared_media/{mediaId} {
+      allow read, write: if true;
+    }
+
+    // Default Fallback
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "PermissionsDoc": {
+      "title": "PermissionsDoc",
+      "description": "Global permissions configuration and invited user list for role-based access control.",
+      "type": "object",
+      "properties": {
+        "globalShareEnabled": {
+          "type": "boolean",
+          "description": "Whether guest viewing is enabled without individual invitation."
+        },
+        "ownerEmail": {
+          "type": "string",
+          "description": "The primary email address of the journal administrator/owner."
+        },
+        "users": {
+          "type": "object",
+          "description": "Dictionary of user permissions keyed by lowercased email."
+        }
+      },
+      "required": ["globalShareEnabled", "ownerEmail", "users"]
+    },
+    "JournalAppState": {
+      "title": "JournalAppState",
+      "description": "Top-level synchronized state containing weeks, core topics, and categories.",
+      "type": "object",
+      "properties": {
+        "weeks": {
+          "type": "array",
+          "description": "List of weekly journal timeline entries."
+        },
+        "coreItems": {
+          "type": "array",
+          "description": "List of persistent core topic questions, notes, and items."
+        },
+        "coreCategories": {
+          "type": "array",
+          "description": "List of core category configurations and folder structures."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of the last synchronization."
+        }
+      },
+      "required": ["weeks", "coreItems", "coreCategories"]
+    },
+    "CommentItem": {
+      "title": "CommentItem",
+      "description": "Collaborative commentary or therapist note on a journal entry.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique comment identifier."
+        },
+        "sectionTag": {
+          "type": "string",
+          "description": "Target section or block tag for the comment."
+        },
+        "authorEmail": {
+          "type": "string",
+          "description": "Email address of the comment author."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of the author."
+        },
+        "authorRole": {
+          "type": "string",
+          "description": "Role of the author (e.g., owner, commenter, editor)."
+        },
+        "content": {
+          "type": "string",
+          "description": "The comment body text."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Formatted timestamp string."
+        }
+      },
+      "required": ["id", "sectionTag", "authorEmail", "content", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/permissions/{docId}": {
+      "schema": "PermissionsDoc",
+      "description": "Role-based access permissions and global share settings."
+    },
+    "/app_state/{docId}": {
+      "schema": "JournalAppState",
+      "description": "Synchronized personal journal state, weekly blocks, and core topics."
+    },
+    "/comments/{commentId}": {
+      "schema": "CommentItem",
+      "description": "Collaborative and therapist comments on journal sections."
+    }
+  }
+}

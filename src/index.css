@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  @apply bg-[#F2F2F7] text-stone-900;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+html.dark body {
+  @apply bg-black text-[#F2F2F7];
+}
+
+/* Apple Journal styled form controls */
+html.dark select,
+html.dark option {
+  background-color: #1C1C1E;
+  color: #F2F2F7;
+}
+
+html.dark input,
+html.dark textarea {
+  color: #F2F2F7;
+}
+
+/* Subtle Apple-style scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Search Highlights */
+mark.search-highlight-mark {
+  transition: all 0.15s ease-in-out;
+  border-radius: 3px;
+}
+
+mark.search-mark-active {
+  background-color: #F59E0B !important;
+  color: #000000 !important;
+  outline: 2px solid #007AFF !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3) !important;
+}
+
+/* GPU Acceleration & Performance Enhancements */
+.gpu-accelerated,
+.ambient-glow,
+.blur-sphere {
+  will-change: transform;
+  pointer-events: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Eliminate layout shifts on images and previews */
+img {
+  content-visibility: auto;
+}
