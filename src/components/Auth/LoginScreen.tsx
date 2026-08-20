@@ -16,19 +16,24 @@ import {
   loginWithEmail, 
   signInWithGoogle 
 } from '../../lib/firebase';
+import { AccentTheme } from '../../types';
+import { ACCENT_THEMES } from '../../utils/theme';
 
 interface LoginScreenProps {
   permissions: PermissionsDoc;
   onLoginSuccess: (user: CurrentUserProfile) => void;
+  accentTheme?: AccentTheme;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   permissions,
   onLoginSuccess,
+  accentTheme = 'amber',
 }) => {
   const [emailInput, setEmailInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,12 +86,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-stone-100 via-stone-50 to-blue-50/30 dark:from-stone-950 dark:via-stone-900 dark:to-blue-950/20 text-stone-900 dark:text-stone-100 flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
+    <div className="min-h-screen w-full bg-[#f8f9fa] dark:bg-[#0f0f11] text-stone-900 dark:text-stone-100 flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
       <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-3xl shadow-xl border border-stone-200/80 dark:border-stone-800 p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Brand & Security Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800/80 text-blue-600 dark:text-blue-400 mb-2 shadow-xs">
+          <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl ${currentAccent.iconBox} mb-2 shadow-xs`}>
             <Lock className="w-7 h-7" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 dark:text-white">
@@ -155,7 +160,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-2.5 bg-stone-50 dark:bg-stone-800/80 border border-stone-300 dark:border-stone-700 rounded-2xl text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-medium"
+              className={`w-full pl-10 pr-4 py-2.5 bg-stone-50 dark:bg-stone-800/80 border border-stone-300 dark:border-stone-700 rounded-2xl text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 ${currentAccent.ring} font-medium`}
             />
           </div>
 
@@ -163,7 +168,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             id="auth-email-submit-btn"
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xs disabled:opacity-50"
+            className={`w-full py-2.5 ${currentAccent.buttonPrimary} text-white font-semibold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xs disabled:opacity-50`}
           >
             <span>Verify & Enter Journal</span>
             <ArrowRight className="w-4 h-4" />
@@ -184,9 +189,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <button
               type="button"
               onClick={() => handleQuickSignIn(permissions.ownerEmail)}
-              className="p-2.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-left transition-colors flex flex-col"
+              className={`p-2.5 rounded-xl border ${currentAccent.calloutBorder} ${currentAccent.calloutBg} hover:opacity-90 text-left transition-colors flex flex-col`}
             >
-              <span className="font-bold text-blue-900 dark:text-blue-200">Owner</span>
+              <span className={`font-bold ${currentAccent.textPrimary}`}>Owner</span>
               <span className="text-[10px] text-stone-500 dark:text-stone-400 truncate">{permissions.ownerEmail}</span>
             </button>
 

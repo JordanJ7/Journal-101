@@ -138,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     y: number;
   } | null>(null);
 
-  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const isOwner = currentUser.role === 'owner';
   const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
   const { confirmDelete } = useConfirmDelete();
@@ -351,7 +351,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
               className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div>
@@ -370,7 +370,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
               className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                   <FolderOpen className="w-4 h-4" />
                 </div>
                 <div>
@@ -389,7 +389,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
               className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                   <Film className="w-4 h-4" />
                 </div>
                 <div>
@@ -462,7 +462,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                       isSelected
                         ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
-                    } ${isDragged ? 'opacity-30' : ''} ${dragOverWeekIndex === index ? 'border-t-2 border-blue-500' : ''}`}
+                    } ${isDragged ? 'opacity-30' : ''} ${dragOverWeekIndex === index ? `border-t-2 ${currentAccent.activeBorder}` : ''}`}
                     onClick={() => handleSelectWeek(week.id)}
                   >
                     <div className="min-w-0 flex-1">
@@ -519,7 +519,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             {isOwner && (
               <button
                 onClick={() => setShowAddCategoryModal(true)}
-                className="w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-amber-500 transition-colors shadow-2xs"
+                className={`w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-600 dark:text-stone-300 transition-colors shadow-2xs ${currentAccent.hoverText}`}
                 title="New Folder (+)"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -586,17 +586,17 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                     onClick={() => handleSelectCategory(config.id)}
                     className={`group relative w-full h-auto min-h-[52px] p-3 rounded-xl transition-all duration-150 ease-out cursor-pointer select-none text-left border flex items-center justify-between ${
                       isSelected
-                        ? 'border-amber-500/60 bg-amber-500/15 dark:bg-amber-500/25 shadow-2xs ring-1 ring-amber-500/40 text-stone-900 dark:text-stone-100'
+                        ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} shadow-2xs text-stone-900 dark:text-stone-100`
                         : 'bg-stone-100/80 hover:bg-stone-200/80 active:bg-stone-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:active:bg-white/[0.12] border-stone-200/80 dark:border-white/5 text-stone-700 dark:text-stone-300'
-                    } ${isDragged ? 'opacity-30' : ''} ${dragOverCatIndex === index ? 'ring-2 ring-amber-500' : ''}`}
+                    } ${isDragged ? 'opacity-30' : ''} ${dragOverCatIndex === index ? `ring-2 ${currentAccent.ring}` : ''}`}
                   >
                     {/* Left Section: Icon + Title */}
                     <div className="flex items-center min-w-0 flex-1 mr-2">
                       <div
                         className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mr-3 transition-colors ${
                           isSelected
-                            ? 'bg-amber-500/25 text-amber-600 dark:text-amber-400'
-                            : 'bg-amber-400/10 dark:bg-amber-400/15 text-amber-500 dark:text-amber-400 group-hover:bg-amber-500/20'
+                            ? currentAccent.iconBoxSelected
+                            : `${currentAccent.iconBox} ${currentAccent.iconBoxHover}`
                         }`}
                       >
                         <IconComp className="w-4 h-4 shrink-0" />
@@ -665,7 +665,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
               className="w-full text-left px-3 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold flex items-center justify-between"
             >
               <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-purple-500" />
+                <Film className={`w-4 h-4 ${currentAccent.textPrimary}`} />
                 <span>All Media</span>
               </div>
               <ChevronRight className="w-4 h-4 text-stone-400" />
@@ -844,12 +844,12 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
               >
                 {pinnedCategoryIds.includes(contextMenu.catId) ? (
                   <>
-                    <PinOff className="w-4 h-4 text-amber-500" />
+                    <PinOff className={`w-4 h-4 ${currentAccent.textPrimary}`} />
                     <span>Unpin from Home</span>
                   </>
                 ) : (
                   <>
-                    <Pin className="w-4 h-4 text-amber-500" />
+                    <Pin className={`w-4 h-4 ${currentAccent.textPrimary}`} />
                     <span>Pin to Home</span>
                   </>
                 )}
@@ -868,7 +868,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 }}
                 className="w-full px-3 py-2 text-left rounded-xl text-stone-700 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 font-medium transition-colors"
               >
-                <Pencil className="w-4 h-4 text-amber-500" />
+                <Pencil className={`w-4 h-4 ${currentAccent.textPrimary}`} />
                 <span>Rename / Edit</span>
               </button>
             )}

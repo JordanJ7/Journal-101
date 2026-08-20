@@ -97,7 +97,7 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
           onClick={onToggleExpand}
           className="flex-1 min-w-[240px] flex items-start sm:items-center gap-3 text-left group"
         >
-          <div className="p-2 rounded-2xl bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-950/80 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mt-0.5 sm:mt-0 flex-shrink-0">
+          <div className={`p-2 rounded-2xl bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300 group-hover:bg-black/10 dark:group-hover:bg-white/10 ${currentAccent.groupHoverText} transition-colors mt-0.5 sm:mt-0 flex-shrink-0`}>
             {isExpanded ? (
               <ChevronDown className="w-5 h-5 transition-transform" />
             ) : (
@@ -109,16 +109,16 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100 flex items-center gap-2">
                 {isExpanded ? (
-                  <FolderOpen className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <FolderOpen className={`w-4 h-4 flex-shrink-0 ${currentAccent.textPrimary}`} />
                 ) : (
-                  <Folder className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <Folder className="w-4 h-4 text-stone-400 flex-shrink-0" />
                 )}
                 <HighlightText text={category.title} highlight={searchQuery} />
               </span>
 
               {/* Badges */}
               {subCategories.length > 0 ? (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${currentAccent.tagBadge}`}>
                   {subCategories.length} Sub-Folders
                 </span>
               ) : null}
@@ -143,7 +143,7 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
             title="Export as PDF"
             className="p-2 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-800 rounded-xl transition-colors text-xs font-semibold flex items-center gap-1"
           >
-            <FileDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <FileDown className={`w-4 h-4 ${currentAccent.textPrimary}`} />
             <span className="hidden md:inline">PDF</span>
           </button>
 
@@ -152,7 +152,7 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
             <button
               onClick={() => onAddSubFolder(category)}
               title="Add a new sub-folder to this category"
-              className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/80 hover:bg-blue-100 dark:hover:bg-blue-900 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs"
+              className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs ${currentAccent.tagBadge}`}
             >
               <FolderPlus className="w-3.5 h-3.5" />
               <span>+ Add Sub-Folder</span>
@@ -294,9 +294,9 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
                             {canEdit && (
                               <button
                                 onClick={() => onAddEntry(category.id, sub.id)}
-                                className="mt-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                                className={`mt-2 text-xs font-bold ${currentAccent.textPrimary} hover:underline inline-flex items-center gap-1`}
                               >
-                                <Plus className="w-3 h-3" />
+                                <Plus className="w-3.5 h-3.5" />
                                 <span>Add the first entry</span>
                               </button>
                             )}
@@ -306,6 +306,7 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
                             <TopicCategoryCard
                               key={item.id}
                               item={item}
+                              accentTheme={accentTheme}
                               onEdit={onEditEntry}
                               onDelete={onDeleteEntry}
                               onToggleComplete={onToggleComplete}
@@ -340,6 +341,7 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
                 <TopicCategoryCard
                   key={item.id}
                   item={item}
+                  accentTheme={accentTheme}
                   onEdit={onEditEntry}
                   onDelete={onDeleteEntry}
                   onToggleComplete={onToggleComplete}
@@ -366,7 +368,7 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
                 <div className="flex items-center justify-center gap-2 mt-3">
                   <button
                     onClick={() => onAddEntry(category.id)}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs"
+                    className={`px-3 py-1.5 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs ${currentAccent.buttonPrimary}`}
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Entry</span>

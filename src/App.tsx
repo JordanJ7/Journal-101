@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useCallback, useEffect, useTransition } from 're
 import { Calendar, Film, FolderOpen, Home, Menu, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { CoreTopicsView } from './components/CoreSections/CoreTopicsView';
+import { EntranceOverlay } from './components/EntranceOverlay';
 import { HomeDashboard } from './components/HomeDashboard';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -340,13 +341,22 @@ export default function App() {
     [setActiveCommentSectionTag, setIsCommentsSidebarOpen]
   );
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+
   // Check URL params for shareId
   const urlParams = new URLSearchParams(window.location.search);
   const shareId = urlParams.get('shareId');
 
   if (shareId) {
     return (
-      <Suspense fallback={<div className="p-8 text-center text-sm font-semibold text-stone-500">Loading Shared Journal...</div>}>
+      <Suspense fallback={<div className="p-8 text-center text-sm font-semibold text-neutral-500">Loading Shared Journal...</div>}>
         <SharedView
           shareId={shareId}
           onExitSharedView={() => {
@@ -366,6 +376,7 @@ export default function App() {
         onLoginSuccess={(user) => {
           setCurrentUser(user);
         }}
+        accentTheme={accentTheme}
       />
     );
   }
@@ -387,9 +398,7 @@ export default function App() {
   return (
     <ConfirmDeleteProvider>
       <div
-        className={`w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-stone-100/60 ${
-          ACCENT_THEMES[accentTheme]?.darkAppBg || ACCENT_THEMES.blue.darkAppBg
-        } text-stone-900 dark:text-stone-100 font-sans antialiased flex flex-col`}
+        className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#f8f9fa] dark:bg-[#0f0f11] text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
       >
         {/* Top Navigation Bar with Dynamic Safe Area */}
         <Navbar
@@ -463,9 +472,9 @@ export default function App() {
             <button
               onClick={toggleSidebar}
               title="Expand Sidebar (Ctrl+B / ⌘B)"
-              className="hidden md:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white/95 dark:bg-stone-900/95 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold backdrop-blur-md animate-in fade-in zoom-in-95 duration-150"
+              className={`hidden md:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white/95 dark:bg-stone-900/95 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold backdrop-blur-md animate-in fade-in zoom-in-95 duration-150`}
             >
-              <PanelLeftOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <PanelLeftOpen className={`w-4 h-4 ${currentAccent.textPrimary}`} />
               <span>Sidebar</span>
             </button>
           )}
@@ -547,6 +556,7 @@ export default function App() {
                 currentUser={currentUser}
                 onUpdateWeeks={setWeeks}
                 onUpdateCoreItems={setCoreItems}
+                accentTheme={accentTheme}
                 onNavigateToWeek={(wId) => {
                   handleSetActiveWeekId(wId);
                   handleSetViewMode('weekly');
@@ -635,6 +645,7 @@ export default function App() {
             activeSectionTag={activeCommentSectionTag}
             onSelectActiveSectionTag={(tag) => setActiveCommentSectionTag(tag)}
             onClearActiveSectionTag={() => setActiveCommentSectionTag(undefined)}
+            accentTheme={accentTheme}
           />
         </Suspense>
 
@@ -662,6 +673,9 @@ export default function App() {
             />
           </Suspense>
         )}
+
+        {/* Minimalist Cinematic Entrance & Typewriter Intro Screen */}
+        <EntranceOverlay />
       </div>
     </ConfirmDeleteProvider>
   );

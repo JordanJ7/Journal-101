@@ -60,6 +60,19 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
     const [localValue, setLocalValue] = useState(value);
     const [isFocused, setIsFocused] = useState(false);
 
+    // Auto-resize textarea to fit content dynamically (no inner scrollbars)
+    const adjustTextareaHeight = useCallback(() => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.max(textarea.scrollHeight, minRows * 24)}px`;
+    }, [minRows]);
+
+    // Adjust height on value changes or resize
+    useEffect(() => {
+      adjustTextareaHeight();
+    }, [localValue, adjustTextareaHeight]);
+
     // Sync external value changes only when not actively focused to prevent cursor jump / rubber-banding
     useEffect(() => {
       if (!isFocused) {
@@ -382,7 +395,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
                   <span
                     className={`mt-1 w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
                       isChecked
-                        ? 'bg-amber-500 border-amber-500 text-white'
+                        ? 'bg-blue-600 border-blue-600 text-white'
                         : 'border-stone-400 dark:border-stone-600 bg-transparent'
                     }`}
                   >
@@ -392,7 +405,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
                   <span
                     className={`shrink-0 select-none ${
                       indentLevel === 0
-                        ? 'text-amber-500 font-bold text-base leading-none mt-1'
+                        ? 'text-blue-600 dark:text-blue-400 font-bold text-base leading-none mt-1'
                         : indentLevel === 1
                         ? 'text-stone-400 dark:text-stone-500 text-sm leading-none mt-1'
                         : 'text-stone-300 dark:text-stone-600 text-xs leading-none mt-1.5'
@@ -427,7 +440,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
               className="px-2 py-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-medium transition-colors"
               title="Insert bullet point"
             >
-              <span className="text-amber-500 font-bold">•</span>
+              <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
               <span className="text-[11px]">Bullet</span>
             </button>
 
@@ -485,11 +498,16 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
           </div>
         </div>
 
-        {/* Textarea with Apple Typography & Fluid Auto-Expanding Height */}
+        {/* Textarea with Fluid Auto-Expanding Height & Clean Typography */}
         <textarea
           ref={textareaRef}
           value={localValue}
           onChange={handleTextChange}
+          onInput={(e) => {
+            const target = e.currentTarget;
+            target.style.height = 'auto';
+            target.style.height = `${target.scrollHeight}px`;
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
@@ -499,7 +517,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
           placeholder={placeholder}
           rows={minRows}
           autoFocus={autoFocus}
-          className="w-full bg-transparent border-0 resize-y p-1 text-sm sm:text-base leading-relaxed text-stone-900 dark:text-stone-100 placeholder-stone-400/80 focus:outline-none font-normal selection:bg-amber-500/20"
+          className="w-full h-auto min-h-[350px] resize-none overflow-hidden bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-stone-900 dark:text-neutral-100 placeholder:text-neutral-500 font-normal selection:bg-blue-500/20 py-2 px-1"
         />
 
         {/* Keyboard Tip Footer */}

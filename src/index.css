@@ -1,10 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: "Cinzel", Georgia, serif;
+  --font-grotesk: "Space Grotesk", "Plus Jakarta Sans", -apple-system, sans-serif;
+  --font-jakarta: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-outfit: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 html {
   color-scheme: light dark;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
@@ -15,7 +24,7 @@ html {
 }
 
 body {
-  @apply bg-[#F2F2F7] text-stone-900;
+  @apply bg-[#f8f9fa] text-neutral-900;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -30,19 +39,19 @@ body {
 }
 
 html.dark body {
-  @apply bg-black text-[#F2F2F7];
+  @apply bg-[#0f0f11] text-neutral-100;
 }
 
 /* Apple Journal styled form controls */
 html.dark select,
 html.dark option {
-  background-color: #1C1C1E;
-  color: #F2F2F7;
+  background-color: #18181b;
+  color: #f4f4f5;
 }
 
 html.dark input,
 html.dark textarea {
-  color: #F2F2F7;
+  color: #f4f4f5;
 }
 
 /* Subtle Apple-style scrollbars */

@@ -74,7 +74,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
   onTogglePinCategory,
 }) => {
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
-  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   // Format today's date cleanly (e.g. Wednesday, August 19, 2026)
   const todayFormatted = useMemo(() => {
@@ -203,14 +203,14 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
       {/* 1. Greeting & Quick Overview Header */}
       <section className="space-y-1.5 pt-1 sm:pt-2">
-        <span className="text-[11px] font-semibold tracking-wider text-neutral-500 uppercase">
+        <span className={`text-[11px] font-semibold tracking-wider uppercase ${currentAccent.textPrimary}`}>
           Overview
         </span>
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 dark:text-neutral-100">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Welcome Back
           </h1>
-          <p className="text-xs sm:text-sm font-medium text-neutral-400 dark:text-neutral-500">
+          <p className="text-xs sm:text-sm font-medium text-neutral-500 dark:text-neutral-400">
             {todayFormatted}
           </p>
         </div>
@@ -220,10 +220,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
       <section>
         <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-xs font-medium text-neutral-400 tracking-wide uppercase">
+            <h2 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider uppercase">
               Pinned Topics
             </h2>
-            <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 bg-neutral-200/70 dark:bg-white/10 px-2 py-0.5 rounded-full">
               {pinnedFolders.length}
             </span>
           </div>
@@ -232,7 +232,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
             <button
               type="button"
               onClick={() => setIsCustomizeModalOpen(true)}
-              className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/15 transition-colors font-medium"
+              className={`text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors font-medium ${currentAccent.tagBadge} ${currentAccent.hoverText}`}
               title="Change pinned topics at any time"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -242,7 +242,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
             <button
               type="button"
               onClick={() => onNavigateToView('core')}
-              className="text-xs text-neutral-500 hover:text-stone-900 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors px-2 py-1"
+              className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors px-2 py-1"
             >
               <span>All Folders</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -252,7 +252,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
 
         {/* Dynamic Grid: 2 columns on sm/md+, 1 column on mobile */}
         {pinnedFolders.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {pinnedFolders.map((folder) => {
               const IconComponent = FOLDER_ICON_MAP[folder.iconName] || Folder;
 
@@ -260,21 +260,21 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                 <div
                   key={folder.id}
                   onClick={() => onNavigateToCoreCategory(folder.id as CoreCategoryId)}
-                  className="w-full p-3.5 rounded-xl bg-white/70 dark:bg-white/[0.03] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 flex items-center justify-between transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative"
+                  className={`w-full p-4 rounded-xl bg-white dark:bg-[#18181b] hover:bg-neutral-50 dark:hover:bg-white/[0.06] border border-neutral-200 dark:border-white/5 flex items-center justify-between transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative ${currentAccent.hoverBorder}`}
                 >
                   {/* Left side: Matching icon + folder title */}
                   <div className="flex items-center gap-3 min-w-0 pr-2">
-                    <div className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center bg-amber-400/10 dark:bg-amber-400/15 text-amber-500 dark:text-amber-400 group-hover:bg-amber-500/20 transition-colors">
+                    <div className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                       <IconComponent className="w-4 h-4 shrink-0" />
                     </div>
-                    <span className="text-sm font-medium text-stone-800 dark:text-neutral-200 truncate group-hover:text-stone-900 dark:group-hover:text-white transition-colors">
+                    <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
                       {folder.title}
                     </span>
                   </div>
 
                   {/* Right side: Note count badge + Unpin / Chevron */}
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-black/5 dark:bg-white/5 px-2.5 py-0.5 rounded-full">
+                    <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-neutral-200/60 dark:border-white/5">
                       {folder.count} {folder.count === 1 ? 'note' : 'notes'}
                     </span>
 
@@ -282,7 +282,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                     <button
                       type="button"
                       onClick={(e) => handleUnpinSingle(folder.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
                       title="Unpin from Home"
                     >
                       <PinOff className="w-3.5 h-3.5" />
@@ -299,31 +299,31 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
               <button
                 type="button"
                 onClick={() => setIsCustomizeModalOpen(true)}
-                className="w-full p-3.5 rounded-xl border border-dashed border-stone-300 dark:border-white/10 hover:border-amber-500/50 hover:bg-amber-500/5 text-stone-400 hover:text-amber-600 dark:hover:text-amber-400 flex items-center justify-center gap-2 text-xs font-medium transition-all group"
+                className={`w-full p-4 rounded-xl border border-dashed border-neutral-300 dark:border-white/10 text-neutral-500 flex items-center justify-center gap-2 text-xs font-medium transition-all group ${currentAccent.hoverBorder} ${currentAccent.hoverText}`}
               >
-                <Plus className="w-4 h-4 text-stone-400 group-hover:text-amber-500 transition-colors" />
+                <Plus className="w-4 h-4 text-neutral-400 group-hover:currentColor transition-colors" />
                 <span>Add Pinned Topic</span>
               </button>
             )}
           </div>
         ) : (
           /* Empty state for pinned topics */
-          <div className="p-6 rounded-2xl border border-dashed border-stone-300 dark:border-white/10 text-center space-y-3 bg-white/40 dark:bg-white/[0.02]">
-            <div className="w-9 h-9 rounded-full bg-amber-500/10 text-amber-500 mx-auto flex items-center justify-center">
+          <div className="p-6 rounded-2xl border border-dashed border-neutral-300 dark:border-white/10 text-center space-y-3 bg-white dark:bg-[#18181b]">
+            <div className={`w-9 h-9 rounded-full mx-auto flex items-center justify-center ${currentAccent.iconBox}`}>
               <Pin className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-medium text-stone-800 dark:text-stone-200">
+              <p className="text-xs sm:text-sm font-medium text-neutral-800 dark:text-neutral-200">
                 No topics pinned yet
               </p>
-              <p className="text-xs text-stone-400 mt-0.5">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                 Pin your favorite folders to access them directly from Home.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setIsCustomizeModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 transition-colors shadow-xs"
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-xs ${currentAccent.buttonPrimary}`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>Choose Pinned Topics</span>
@@ -335,13 +335,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
       {/* 3. Latest Weekly Entry Section */}
       <section className="pt-2">
         <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-xs font-medium text-neutral-400 tracking-wide uppercase">
+          <h2 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider uppercase">
             Latest Entry
           </h2>
           <button
             type="button"
             onClick={() => onNavigateToView('weekly')}
-            className="text-xs text-neutral-500 hover:text-stone-900 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors"
+            className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors"
           >
             <span>Weekly Timeline</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -351,13 +351,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
         {latestWeeklyData ? (
           <div
             onClick={() => onNavigateToWeek(latestWeeklyData.week.id)}
-            className="w-full rounded-2xl bg-white/70 dark:bg-white/[0.04] border border-stone-200/80 dark:border-white/10 p-5 hover:border-amber-400/40 dark:hover:border-amber-400/30 hover:bg-stone-50 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4"
+            className={`w-full rounded-2xl bg-white dark:bg-[#18181b] border border-neutral-200 dark:border-white/5 p-5 sm:p-6 hover:bg-neutral-50/80 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4 ${currentAccent.hoverBorder}`}
           >
             {/* Header: Entry Title & Time */}
-            <div className="flex items-start justify-between gap-2 border-b border-black/5 dark:border-white/5 pb-3">
+            <div className="flex items-start justify-between gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-semibold tracking-wider text-amber-600 dark:text-amber-400 uppercase bg-amber-400/10 px-2 py-0.5 rounded-md">
+                  <span className={`text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-md ${currentAccent.tagBadge}`}>
                     Week Reflection
                   </span>
                   <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
@@ -365,25 +365,25 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                     <span>{latestWeeklyData.displayTime}</span>
                   </div>
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
+                <h3 className={`text-base sm:text-lg font-bold text-neutral-900 dark:text-neutral-100 transition-colors truncate ${currentAccent.groupHoverText}`}>
                   {latestWeeklyData.week.weekTitle}
                 </h3>
               </div>
 
               <div className="text-right shrink-0">
-                <span className="text-xs text-neutral-500 dark:text-neutral-400 bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full font-medium">
+                <span className="text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-white/5 px-2.5 py-1 rounded-full font-medium border border-neutral-200/60 dark:border-white/5">
                   {latestWeeklyData.totalItems} {latestWeeklyData.totalItems === 1 ? 'bullet' : 'bullets'}
                 </span>
               </div>
             </div>
 
             {/* Body: Reflection Previews or Bullets */}
-            <div className="space-y-2 text-stone-700 dark:text-neutral-300">
+            <div className="space-y-2 text-neutral-700 dark:text-neutral-300">
               {latestWeeklyData.bullets.length > 0 ? (
                 <div className="space-y-2">
                   {latestWeeklyData.bullets.map((bullet, idx) => (
                     <div key={bullet.id || idx} className="flex items-start gap-2.5 text-xs sm:text-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70 mt-1.5 shrink-0" />
+                      <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${currentAccent.bulletDot}`} />
                       <p className="line-clamp-2 leading-relaxed flex-1">
                         {bullet.text}
                       </p>
@@ -402,13 +402,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
             </div>
 
             {/* Action / Footer */}
-            <div className="flex items-center justify-between pt-3 border-t border-black/5 dark:border-white/5 text-xs">
+            <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-white/5 text-xs">
               <span className="text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5" />
                 <span>Jump straight into editor</span>
               </span>
 
-              <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold group-hover:translate-x-0.5 transition-transform">
+              <div className={`flex items-center gap-1 font-semibold group-hover:translate-x-0.5 transition-transform ${currentAccent.textPrimary}`}>
                 <span>Open Full Week</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
@@ -416,15 +416,15 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
           </div>
         ) : (
           /* Empty placeholder */
-          <div className="w-full rounded-2xl bg-white/50 dark:bg-white/[0.03] border border-dashed border-stone-300 dark:border-white/10 p-8 text-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 mx-auto flex items-center justify-center text-neutral-400">
+          <div className="w-full rounded-2xl bg-white dark:bg-[#18181b] border border-dashed border-neutral-300 dark:border-white/10 p-8 text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-white/5 mx-auto flex items-center justify-center text-neutral-400">
               <Calendar className="w-5 h-5" />
             </div>
             <div className="space-y-1">
               <p className="text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-300">
                 No recent entries yet.
               </p>
-              <p className="text-xs text-neutral-400 dark:text-neutral-500 max-w-sm mx-auto">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
                 Tap below to start your first weekly reflection block.
               </p>
             </div>
@@ -432,7 +432,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
               <button
                 type="button"
                 onClick={onAddNewWeek}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-xs transition-colors"
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-xs ${currentAccent.buttonPrimary}`}
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Start This Week's Journal</span>

@@ -152,7 +152,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
         <div className="flex items-start justify-between gap-3 shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${currentAccent.iconBox}`}>
                 <Pin className="w-4 h-4" />
               </div>
               <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100">
@@ -180,7 +180,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
               placeholder="Search topic folders..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-stone-100 dark:bg-white/5 border border-stone-200/80 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className={`w-full pl-9 pr-3 py-2 text-xs bg-stone-100 dark:bg-white/5 border border-stone-200/80 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 ${currentAccent.ring}`}
             />
           </div>
 
@@ -225,7 +225,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                   onClick={() => handleToggle(category.id)}
                   className={`w-full p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group select-none ${
                     isPinned
-                      ? 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/40 text-stone-900 dark:text-stone-100 shadow-2xs'
+                      ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} text-stone-900 dark:text-stone-100 shadow-2xs`
                       : 'bg-stone-50/80 dark:bg-white/[0.02] border-stone-200/80 dark:border-white/5 text-stone-600 dark:text-stone-300 hover:bg-stone-100/90 dark:hover:bg-white/[0.05]'
                   }`}
                 >
@@ -234,8 +234,8 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                     <div
                       className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-colors ${
                         isPinned
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-black/5 dark:bg-white/10 text-stone-500 dark:text-stone-400 group-hover:text-amber-500'
+                          ? `${currentAccent.bg500} text-white shadow-2xs`
+                          : `bg-black/5 dark:bg-white/10 text-stone-500 dark:text-stone-400 ${currentAccent.groupHoverText}`
                       }`}
                     >
                       <IconComp className="w-4 h-4 shrink-0" />
@@ -247,7 +247,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                           {category.title}
                         </p>
                         {isPinned && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${currentAccent.tagBadge}`}>
                             #{pinIndex + 1}
                           </span>
                         )}
@@ -289,7 +289,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                       onClick={() => handleToggle(category.id)}
                       className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
                         isPinned
-                          ? 'bg-amber-500 text-white shadow-2xs'
+                          ? `${currentAccent.bg500} text-white shadow-2xs`
                           : 'bg-black/5 dark:bg-white/10 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200'
                       }`}
                       title={isPinned ? 'Unpin from Home' : 'Pin to Home'}

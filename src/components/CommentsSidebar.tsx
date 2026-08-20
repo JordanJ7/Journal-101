@@ -16,7 +16,8 @@ import {
   X
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { CommentItem, UserRole } from '../types';
+import { AccentTheme, CommentItem, UserRole } from '../types';
+import { ACCENT_THEMES } from '../utils/theme';
 import { formatTimestamp } from '../utils/storage';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 
@@ -39,6 +40,7 @@ interface CommentsSidebarProps {
   activeSectionTag?: string;
   onSelectActiveSectionTag?: (sectionTag: string | undefined) => void;
   onClearActiveSectionTag?: () => void;
+  accentTheme?: AccentTheme;
 }
 
 export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
@@ -56,6 +58,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
   activeSectionTag,
   onSelectActiveSectionTag,
   onClearActiveSectionTag,
+  accentTheme = 'amber',
 }) => {
   const [commentText, setCommentText] = useState('');
   const [selectedSection, setSelectedSection] = useState(activeSectionTag || 'General');
@@ -64,6 +67,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
   const { confirmDelete } = useConfirmDelete();
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   // Sync selectedSection whenever activeSectionTag changes from outside (e.g. user clicked "Comment" on a section)
   React.useEffect(() => {
@@ -116,13 +120,13 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
     switch (role) {
       case 'commenter':
         return (
-          <span className="text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold bg-teal-100 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 px-2 py-0.5 rounded-full">
             Therapist / Commenter
           </span>
         );
       case 'owner':
         return (
-          <span className="text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
+          <span className={`text-[10px] font-bold ${currentAccent.iconBox} ${currentAccent.textPrimary} border ${currentAccent.border} px-2 py-0.5 rounded-full`}>
             Owner
           </span>
         );
@@ -152,11 +156,11 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
           title="Open Comments & Feedback Sidebar"
         >
           <div className="relative">
-            <div className="w-6 h-6 rounded-full bg-sky-50 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className={`w-6 h-6 rounded-full ${currentAccent.iconBox} flex items-center justify-center group-hover:scale-110 transition-transform`}>
               <MessageSquare className="w-3.5 h-3.5" />
             </div>
             {unresolvedCount > 0 && (
-              <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 px-1 bg-amber-500 text-white text-[9px] font-mono rounded-full flex items-center justify-center font-bold shadow-2xs">
+              <span className={`absolute -top-1 -right-1.5 min-w-[16px] h-4 px-1 ${currentAccent.bg500} text-white text-[9px] font-mono rounded-full flex items-center justify-center font-bold shadow-2xs`}>
                 {unresolvedCount}
               </span>
             )}
@@ -178,7 +182,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
         {/* Sidebar Header with Collapsible Arrow */}
         <div className="p-4 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between bg-stone-50/80 dark:bg-stone-950/50">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-lg">
+            <div className={`p-1.5 ${currentAccent.iconBox} rounded-lg`}>
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
@@ -186,7 +190,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 <h3 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">
                   Comments & Feedback
                 </h3>
-                <span className="text-[10px] font-mono bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded-full">
+                <span className={`text-[10px] font-mono ${currentAccent.iconBox} font-bold px-1.5 py-0.5 rounded-full`}>
                   {scopeComments.length}
                 </span>
               </div>
@@ -238,7 +242,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 onClick={() => setFilterMode('all')}
                 className={`px-2 py-1 rounded-lg ${
                   filterMode === 'all'
-                    ? 'font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60'
+                    ? `font-bold ${currentAccent.textPrimary} ${currentAccent.iconBox}`
                     : 'text-stone-500 hover:text-stone-700 dark:text-stone-400'
                 }`}
               >
@@ -248,7 +252,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 onClick={() => setFilterMode('unresolved')}
                 className={`px-2 py-1 rounded-lg ${
                   filterMode === 'unresolved'
-                    ? 'font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60'
+                    ? `font-bold ${currentAccent.textPrimary} ${currentAccent.iconBox}`
                     : 'text-stone-500 hover:text-stone-700 dark:text-stone-400'
                 }`}
               >
@@ -272,7 +276,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {filteredComments.length === 0 ? (
             <div className="text-center py-10 px-4 space-y-2">
-              <div className="w-10 h-10 mx-auto rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <div className={`w-10 h-10 mx-auto rounded-full ${currentAccent.iconBox} flex items-center justify-center`}>
                 <MessageSquarePlus className="w-5 h-5" />
               </div>
               <p className="text-xs font-bold text-stone-700 dark:text-stone-300">
@@ -296,7 +300,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 onClick={() => onSelectActiveSectionTag?.(comment.sectionKey || 'General')}
                 className={`p-3.5 rounded-2xl border transition-all space-y-2.5 cursor-pointer ${
                   activeSectionTag && comment.sectionKey === activeSectionTag
-                    ? 'ring-2 ring-sky-400/80 bg-sky-50/60 dark:bg-blue-950/40 border-sky-300 dark:border-blue-700 shadow-sm'
+                    ? `ring-2 ${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-sm`
                     : comment.resolved
                     ? 'bg-slate-50/70 dark:bg-stone-900/40 border-slate-200 dark:border-stone-800 opacity-75'
                     : 'bg-white dark:bg-stone-900 border-slate-200/90 dark:border-stone-800 shadow-2xs hover:border-slate-300 dark:hover:border-stone-700'
@@ -381,7 +385,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       rows={3}
                       value={editingCommentText}
                       onChange={(e) => setEditingCommentText(e.target.value)}
-                      className="w-full p-2 text-xs bg-white dark:bg-stone-900 border border-blue-400 dark:border-blue-600 rounded-lg text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className={`w-full p-2 text-xs bg-white dark:bg-stone-900 border ${currentAccent.border} rounded-lg text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 ${currentAccent.ring}`}
                       autoFocus
                     />
                     <div className="flex items-center gap-1.5 justify-end">
@@ -398,7 +402,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                             setEditingCommentId(null);
                           }
                         }}
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold shadow-2xs"
+                        className={`px-3 py-1 ${currentAccent.buttonPrimary} rounded-lg text-[11px] font-bold shadow-2xs`}
                       >
                         Save
                       </button>
@@ -468,7 +472,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       handlePost(e);
                     }
                   }}
-                  className="w-full p-2.5 text-xs bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 resize-none font-medium"
+                  className={`w-full p-2.5 text-xs bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 ${currentAccent.ring} resize-none font-medium`}
                 />
               </div>
 
@@ -477,7 +481,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 <button
                   type="submit"
                   disabled={!commentText.trim()}
-                  className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                  className={`px-3.5 py-1.5 ${currentAccent.buttonPrimary} disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer`}
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Post</span>

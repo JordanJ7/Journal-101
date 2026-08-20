@@ -1,6 +1,7 @@
 import { BookOpen, Calendar, Check, Clock, Edit2, Film, HelpCircle, Loader2, MessageSquare, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-import { AssignmentSwitches, DesQuestion } from '../../types';
+import { AccentTheme, AssignmentSwitches, DesQuestion } from '../../types';
+import { ACCENT_THEMES } from '../../utils/theme';
 import { formatTimestamp } from '../../utils/storage';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
@@ -15,6 +16,7 @@ interface AssignmentBoxProps {
   onOpenCommentSection?: (sectionTag: string) => void;
   activeCommentSectionTag?: string;
   searchQuery?: string;
+  accentTheme?: AccentTheme;
 }
 
 export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
@@ -25,10 +27,12 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
   onOpenCommentSection,
   activeCommentSectionTag,
   searchQuery,
+  accentTheme = 'amber',
 }) => {
   const [newQuestionText, setNewQuestionText] = useState('');
   const [activeDateEditingQuestionId, setActiveDateEditingQuestionId] = useState<string | null>(null);
   const saveStatus = useSaveStatus();
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   const isHomeworkHighlighted =
     activeCommentSectionTag === 'Homework' ||
@@ -177,13 +181,13 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
         <div
           className={`p-3.5 rounded-xl border transition-all duration-200 ${
             activeCommentSectionTag?.toLowerCase().includes('book')
-              ? 'bg-blue-50/60 dark:bg-blue-950/60 border-blue-400 dark:border-blue-600 ring-2 ring-blue-500/40'
+              ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder}`
               : 'bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2.5 cursor-pointer text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">
-              <BookOpen className="w-4 h-4 text-[#2563EB]" />
+              <BookOpen className={`w-4 h-4 ${currentAccent.textPrimary}`} />
               <span>Need to read a book before next session?</span>
             </label>
             <input
@@ -191,7 +195,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
               checked={assignments.readBookEnabled}
               onChange={() => toggleSwitch('readBookEnabled')}
               disabled={!canEdit}
-              className="w-4 h-4 rounded text-[#2563EB] focus:ring-[#2563EB] cursor-pointer disabled:opacity-50"
+              className={`w-4 h-4 rounded ${currentAccent.textPrimary} cursor-pointer disabled:opacity-50`}
             />
           </div>
 
@@ -232,13 +236,13 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
         <div
           className={`p-3.5 rounded-xl border transition-all duration-200 ${
             activeCommentSectionTag?.toLowerCase().includes('movie')
-              ? 'bg-blue-50/60 dark:bg-blue-950/60 border-blue-400 dark:border-blue-600 ring-2 ring-blue-500/40'
+              ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder}`
               : 'bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2.5 cursor-pointer text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">
-              <Film className="w-4 h-4 text-[#2563EB]" />
+              <Film className={`w-4 h-4 ${currentAccent.textPrimary}`} />
               <span>Need to watch a movie before next session?</span>
             </label>
             <input
@@ -246,7 +250,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
               checked={assignments.watchMovieEnabled}
               onChange={() => toggleSwitch('watchMovieEnabled')}
               disabled={!canEdit}
-              className="w-4 h-4 rounded text-[#2563EB] focus:ring-[#2563EB] cursor-pointer disabled:opacity-50"
+              className={`w-4 h-4 rounded ${currentAccent.textPrimary} cursor-pointer disabled:opacity-50`}
             />
           </div>
 
@@ -288,13 +292,13 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
         <div
           className={`p-3.5 rounded-xl border transition-all duration-200 ${
             isDesQAHighlighted
-              ? 'bg-blue-50/50 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 ring-2 ring-blue-500/40'
+              ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder}`
               : 'bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2.5 cursor-pointer text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">
-              <HelpCircle className="w-4 h-4 text-[#2563EB]" />
+              <HelpCircle className={`w-4 h-4 ${currentAccent.textPrimary}`} />
               <span>Need to answer questions from Des?</span>
             </label>
             <div className="flex items-center gap-2">
@@ -304,7 +308,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                   onClick={() => onOpenCommentSection('Des Q&A')}
                   className="px-2 py-0.5 text-[11px] font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md flex items-center gap-1 transition-colors"
                 >
-                  <MessageSquare className="w-3 h-3 text-[#2563EB]" />
+                  <MessageSquare className={`w-3 h-3 ${currentAccent.textPrimary}`} />
                   <span>Comment</span>
                 </button>
               )}
@@ -313,7 +317,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                 checked={assignments.answerDesQuestionsEnabled}
                 onChange={() => toggleSwitch('answerDesQuestionsEnabled')}
                 disabled={!canEdit}
-                className="w-4 h-4 rounded text-[#2563EB] focus:ring-[#2563EB] cursor-pointer disabled:opacity-50"
+                className={`w-4 h-4 rounded ${currentAccent.textPrimary} cursor-pointer disabled:opacity-50`}
               />
             </div>
           </div>
@@ -334,9 +338,9 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                         activeDateEditingQuestionId === q.id ? 'z-30' : 'z-0'
                       } ${
                         isThisQuestionActive
-                          ? 'ring-2 ring-blue-500 bg-blue-50/70 dark:bg-blue-950/70 border-blue-400 dark:border-blue-600 shadow-sm'
+                          ? `ring-2 ${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-sm`
                           : q.highlightAnswer
-                          ? 'bg-[#EFF6FF] dark:bg-blue-950/60 border-blue-400 dark:border-blue-700 shadow-2xs'
+                          ? `${currentAccent.iconBoxSelected} ${currentAccent.hoverBorder} shadow-2xs`
                           : 'bg-stone-50 dark:bg-stone-900 border-stone-300 dark:border-stone-700'
                       }`}
                     >
@@ -362,7 +366,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                       onChange={(e) => updateDesQuestion(q.id, e.target.value)}
                       onBlur={() => useJournalStore.getState().flushAutoSave()}
                       readOnly={!canEdit}
-                      className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-[#2563EB]"
+                      className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none"
                       rows={2}
                     />
 
@@ -379,8 +383,8 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                             title="Click to edit timestamp"
                             className="text-stone-600 dark:text-stone-400 font-mono text-[11px] font-semibold flex items-center gap-1.5 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/5 min-h-[44px] px-2.5 py-1.5 rounded-xl cursor-pointer group transition-colors"
                           >
-                            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
-                            <span className="underline decoration-stone-300 dark:decoration-stone-700 underline-offset-2 group-hover:decoration-amber-500">
+                            <Clock className={`w-3.5 h-3.5 ${currentAccent.textPrimary} shrink-0 group-hover:scale-110 transition-transform`} />
+                            <span className="underline decoration-stone-300 dark:decoration-stone-700 underline-offset-2">
                               {q.timestamp}
                             </span>
                             {q.isCustomDate && (
@@ -388,11 +392,11 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                                 Custom
                               </span>
                             )}
-                            <Edit2 className="w-3 h-3 text-stone-400 group-hover:text-amber-500 transition-colors" />
+                            <Edit2 className="w-3 h-3 text-stone-400 transition-colors" />
                           </button>
                         ) : (
                           <span className="text-stone-600 dark:text-stone-400 font-mono text-[11px] font-semibold flex items-center gap-1.5 min-h-[44px] px-2.5 py-1.5">
-                            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                            <Clock className={`w-3.5 h-3.5 ${currentAccent.textPrimary} shrink-0`} />
                             {q.timestamp}
                           </span>
                         )}
@@ -419,7 +423,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                             className="px-2 py-1 rounded-md text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-700 flex items-center gap-1 transition-colors"
                             title="Add comment or feedback on this question"
                           >
-                            <MessageSquare className="w-3 h-3 text-[#2563EB]" />
+                            <MessageSquare className={`w-3 h-3 ${currentAccent.textPrimary}`} />
                             <span className="text-[10px]">Comment</span>
                           </button>
                         )}
@@ -428,7 +432,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                             onClick={() => updateDesQuestion(q.id, q.answer, !q.highlightAnswer)}
                             className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors border ${
                               q.highlightAnswer
-                                ? 'bg-[#2563EB] text-white border-blue-600'
+                                ? `${currentAccent.bg500} text-white ${currentAccent.activeBorder}`
                                 : 'bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:bg-stone-200'
                             }`}
                           >
@@ -451,11 +455,11 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                     value={newQuestionText}
                     onChange={(e) => setNewQuestionText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addDesQuestion()}
-                    className="flex-1 p-2.5 text-xs sm:text-sm bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-[#2563EB]"
+                    className="flex-1 p-2.5 text-xs sm:text-sm bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none"
                   />
                   <button
                     onClick={addDesQuestion}
-                    className="px-4 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs rounded-md flex items-center gap-1 shrink-0 shadow-2xs"
+                    className={`px-4 py-2.5 text-white font-semibold text-xs rounded-md flex items-center gap-1 shrink-0 shadow-2xs ${currentAccent.buttonPrimary}`}
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add Question

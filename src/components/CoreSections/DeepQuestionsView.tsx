@@ -252,7 +252,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-2xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400">
+              <div className="p-2 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50">
                 <MessageCircle className="w-5 h-5" />
               </div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900 dark:text-stone-100">
@@ -374,7 +374,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                 className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-stone-50/70 dark:hover:bg-stone-800/50 transition-colors border-b border-stone-100 dark:border-stone-800/80"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-1.5 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                  <div className="p-1.5 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
                     {isCollapsed ? (
                       <ChevronRight className="w-4 h-4" />
                     ) : (
@@ -386,7 +386,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                       <h2 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100">
                         <HighlightText text={group.name} highlight={searchQuery} />
                       </h2>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                         {group.items.length} {group.items.length === 1 ? 'question' : 'questions'}
                       </span>
                     </div>
@@ -458,9 +458,9 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                               <button
                                 onClick={() => onOpenCommentSection(`Deep Question: "${item.title.slice(0, 25)}"`)}
                                 title="Add comment"
-                                className="px-2 py-1 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 rounded-md text-xs font-semibold flex items-center gap-1"
+                                className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 rounded-md text-xs font-semibold flex items-center gap-1"
                               >
-                                <MessageSquare className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                                <MessageSquare className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                                 <span className="text-[10px]">Comment</span>
                               </button>
                             )}
@@ -511,8 +511,8 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-stone-200 dark:divide-stone-800 p-4 sm:p-5 gap-4 md:gap-6">
                           {/* LEFT PANE: The Deep Question */}
                           <div className="space-y-2">
-                            <div className="flex items-center gap-1.5 text-xs font-extrabold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
-                              <HelpCircle className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                            <div className="flex items-center gap-1.5 text-xs font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                              <HelpCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                               <span>The Deep Question / Prompt</span>
                             </div>
 
@@ -613,7 +613,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
               <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
                   Add Deep Question & My Answer
                 </h3>
@@ -724,7 +724,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
               <div className="flex items-center gap-2">
-                <Pencil className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <Pencil className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
                   Edit Question & Answer Pair
                 </h3>

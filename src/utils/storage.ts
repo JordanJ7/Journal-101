@@ -122,6 +122,16 @@ export function getWeekTitleAndRangeForDate(d: Date): { weekTitle: string; start
 }
 
 export function loadAppState(): AppState {
+  let explicitTheme: 'dark' | 'light' | null = null;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const rawTheme = localStorage.getItem('app_theme');
+      if (rawTheme === 'dark' || rawTheme === 'light') {
+        explicitTheme = rawTheme;
+      }
+    }
+  } catch {}
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -144,7 +154,8 @@ export function loadAppState(): AppState {
 
         return {
           ...parsed,
-          accentTheme: parsed.accentTheme || 'blue',
+          theme: explicitTheme || parsed.theme || 'dark',
+          accentTheme: parsed.accentTheme || 'amber',
           comments: Array.isArray(parsed.comments) ? parsed.comments : INITIAL_COMMENTS,
           coreCategories: mergedCategories,
           pinnedCategoryIds: Array.isArray(parsed.pinnedCategoryIds)
@@ -162,8 +173,8 @@ export function loadAppState(): AppState {
     activeWeekId: INITIAL_WEEKS[0]?.id || '',
     coreItems: INITIAL_CORE_ITEMS,
     activeCoreCategory: 'questions-to-ask-her',
-    theme: 'light',
-    accentTheme: 'blue',
+    theme: explicitTheme || 'dark',
+    accentTheme: 'amber',
     coreCategories: CORE_CATEGORIES_CONFIG,
     pinnedCategoryIds: ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
     comments: INITIAL_COMMENTS,

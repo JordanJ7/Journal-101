@@ -46,7 +46,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
   week,
   onUpdateWeek,
   onDeleteWeek,
-  accentTheme = 'blue',
+  accentTheme = 'amber',
   currentUser,
   commentsCount = 0,
   onOpenCommentSection,
@@ -58,7 +58,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
   const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
   const canDelete = isOwner || currentUser.role === 'editor';
 
-  const themeConfig = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
+  const themeConfig = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const [isJournalOpen, setIsJournalOpen] = useState(true);
   const [newBulletText, setNewBulletText] = useState('');
   const [newBulletCustomTimestamp, setNewBulletCustomTimestamp] = useState<string | null>(null);
@@ -403,6 +403,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                       key={bullet.id}
                       bullet={bullet}
                       weekId={week.id}
+                      accentTheme={accentTheme}
                       onUpdate={handleUpdateBullet}
                       onDelete={() => handleDeleteBullet(bullet.id)}
                       onIndentChange={(newIndent) => handleIndentChange(bullet.id, newIndent)}
@@ -483,7 +484,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 
                     <button
                       onClick={handleAddBullet}
-                      className="min-h-[44px] sm:min-h-[38px] px-3.5 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 shrink-0"
+                      className={`min-h-[44px] sm:min-h-[38px] px-3.5 py-2 active:scale-95 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 shrink-0 ${themeConfig.buttonPrimary}`}
                     >
                       <Plus className="w-4 h-4" />
                       <span className="hidden sm:inline">Add</span>
@@ -500,13 +501,13 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
           id="section-therapist-notes"
           className={`rounded-xl p-3.5 border space-y-3 transition-all ${
             isTherapistHighlighted
-              ? 'bg-blue-50/40 dark:bg-blue-950/20 border-blue-400 dark:border-blue-600'
+              ? `${themeConfig.iconBoxSelected} ${themeConfig.activeBorder}`
               : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5'
           }`}
         >
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-xs font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+              <Sparkles className={`w-3.5 h-3.5 ${themeConfig.textPrimary}`} />
               <span>{week.therapistSection.title || 'Session Notes'}</span>
             </h3>
 
@@ -530,7 +531,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   key={link.id}
                   className="flex items-center gap-1.5 bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 px-2.5 py-1 rounded-lg text-xs"
                 >
-                  <LinkIcon className="w-3 h-3 text-blue-500 shrink-0" />
+                  <LinkIcon className={`w-3 h-3 shrink-0 ${themeConfig.textPrimary}`} />
                   <a
                     href={sanitizeUrl(link.url)}
                     target="_blank"
@@ -602,7 +603,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   key={item.id}
                   className={`p-2 rounded-xl text-xs flex items-center justify-between gap-2 ${
                     item.isHighlightedAnswer
-                      ? 'bg-blue-500/10 text-blue-900 dark:text-blue-200'
+                      ? themeConfig.tagBadge
                       : 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100'
                   }`}
                 >
@@ -615,7 +616,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                         onClick={() => toggleShowItemHighlight(item.id)}
                         className={`text-[10px] px-2 py-1 rounded-lg font-semibold ${
                           item.isHighlightedAnswer
-                            ? 'bg-blue-600 text-white'
+                            ? `${themeConfig.bg500} text-white`
                             : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
                         }`}
                       >
@@ -665,6 +666,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
           onOpenCommentSection={onOpenCommentSection}
           activeCommentSectionTag={activeCommentSectionTag}
           searchQuery={searchQuery}
+          accentTheme={accentTheme}
         />
       </div>
 

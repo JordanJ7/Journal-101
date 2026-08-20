@@ -103,7 +103,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
       >
         <div className="flex items-center justify-between pb-2 border-b border-black/5 dark:border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
               <Pencil className="w-4 h-4" />
             </div>
             <div>
@@ -128,7 +128,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           <div>
             <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
-              Folder Name <span className="text-amber-500">*</span>
+              Folder Name <span className="text-blue-600 dark:text-blue-400">*</span>
             </label>
             <input
               type="text"
@@ -137,7 +137,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
               placeholder="e.g. Life Vision, Book Assignment..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2.5 bg-stone-50 dark:bg-black/40 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-semibold placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-sm"
+              className="w-full min-h-[44px] px-3.5 py-2.5 bg-stone-50 dark:bg-black/40 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-semibold placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
             />
           </div>
 
@@ -150,7 +150,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
               placeholder="Brief summary or context..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2.5 bg-stone-50 dark:bg-black/40 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-sm sm:text-xs"
+              className="w-full min-h-[44px] px-3.5 py-2.5 bg-stone-50 dark:bg-black/40 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm sm:text-xs"
             />
           </div>
 
@@ -170,7 +170,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
                     title={item.label}
                     className={`min-h-[40px] p-2 rounded-xl flex items-center justify-center transition-all ${
                       isSelected
-                        ? 'bg-amber-500 text-white shadow-xs font-semibold scale-105'
+                        ? 'bg-blue-600 text-white shadow-xs font-semibold scale-105'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   >
@@ -192,7 +192,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
             <button
               type="submit"
               disabled={!title.trim()}
-              className="min-h-[44px] px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-95"
+              className="min-h-[44px] px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-95"
             >
               <Check className="w-4 h-4" />
               <span>Save Changes</span>

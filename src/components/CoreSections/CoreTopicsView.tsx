@@ -316,7 +316,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               className="w-full text-left px-3 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/[0.07] dark:hover:bg-white/10 rounded-xl flex items-center justify-between gap-2 transition-colors"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <CurrentTopicIcon className="w-4 h-4 text-amber-500 shrink-0" />
+                <CurrentTopicIcon className={`w-4 h-4 shrink-0 ${currentAccent.textPrimary}`} />
                 <span className="text-sm font-bold text-stone-900 dark:text-stone-100 truncate">
                   {activeCategoryConfig?.title}
                 </span>
@@ -357,7 +357,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <CatIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <CatIcon className={`w-3.5 h-3.5 shrink-0 ${currentAccent.textPrimary}`} />
                           <span className="truncate">{cat.title}</span>
                         </div>
                         <span className="text-[10px] text-stone-400 font-mono ml-2">
@@ -413,7 +413,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               <button
                 onClick={() => setShowAddCategoryModal(true)}
                 title="Create New Folder (+)"
-                className="w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-amber-500 transition-colors shadow-2xs"
+                className={`w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-600 dark:text-stone-300 transition-colors shadow-2xs ${currentAccent.hoverText}`}
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
@@ -426,12 +426,12 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                 title={pinnedCategoryIds.includes(activeCategory) ? "Unpin folder from Home" : "Pin folder to Home"}
                 className={`p-1.5 rounded-lg transition-colors ${
                   pinnedCategoryIds.includes(activeCategory)
-                    ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
-                    : 'text-stone-400 hover:text-amber-500 hover:bg-black/5 dark:hover:bg-white/10'
+                    ? currentAccent.tagBadge
+                    : `text-stone-400 ${currentAccent.hoverText} hover:bg-black/5 dark:hover:bg-white/10`
                 }`}
               >
                 {pinnedCategoryIds.includes(activeCategory) ? (
-                  <Pin className="w-4 h-4 fill-amber-500" />
+                  <Pin className="w-4 h-4 fill-current" />
                 ) : (
                   <Pin className="w-4 h-4" />
                 )}
@@ -443,17 +443,16 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               <button
                 onClick={() => setShowEditCategoryModal(true)}
                 title="Rename & Edit Folder"
-                className="p-1.5 rounded-lg text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                className={`p-1.5 rounded-lg text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${currentAccent.hoverText}`}
               >
-                <Pencil className="w-4 h-4 text-amber-500" />
+                <Pencil className="w-4 h-4" />
               </button>
             )}
 
             {canEdit && (
               <button
                 onClick={handleOpenAddEntryModal}
-                className="ml-1 px-3 py-1.5 text-white font-semibold text-xs rounded-xl flex items-center gap-1 shadow-xs transition-opacity hover:opacity-90"
-                style={{ backgroundColor: currentAccent.colorHex }}
+                className={`ml-1 px-3 py-1.5 text-white font-semibold text-xs rounded-xl flex items-center gap-1 shadow-xs transition-colors ${currentAccent.buttonPrimary}`}
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Entry</span>
@@ -497,7 +496,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
         {/* Topic Title and Description */}
         <div className="border-b border-black/5 dark:border-white/5 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
+            <div className={`p-2 rounded-xl shrink-0 ${currentAccent.iconBox}`}>
               <CurrentTopicIcon className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
@@ -509,7 +508,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                   <button
                     onClick={() => setShowEditCategoryModal(true)}
                     title="Rename Folder"
-                    className="p-1 rounded-lg text-stone-400 hover:text-amber-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    className={`p-1 rounded-lg text-stone-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${currentAccent.hoverText}`}
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
@@ -575,6 +574,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               <TopicCategoryCard
                 key={item.id}
                 item={item}
+                accentTheme={accentTheme}
                 onEdit={(itm) => {
                   setEditingItem(itm);
                   setShowItemModal(true);

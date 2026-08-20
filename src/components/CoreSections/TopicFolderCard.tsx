@@ -184,7 +184,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
             title={`Export ${category.title} to PDF`}
             className="p-2 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-xs font-semibold flex items-center gap-1"
           >
-            <FileDown className="w-4 h-4 text-rose-500" />
+            <FileDown className={`w-4 h-4 ${currentAccent.textPrimary}`} />
             <span className="hidden md:inline">Export PDF</span>
           </button>
 
@@ -245,6 +245,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
                 <TopicCategoryCard
                   key={item.id}
                   item={item}
+                  accentTheme={accentTheme}
                   onEdit={onEditEntry}
                   onDelete={onDeleteEntry}
                   onToggleComplete={onToggleComplete}

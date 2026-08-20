@@ -17,6 +17,7 @@ import {
   Search,
   Share2,
   Shield,
+  Sparkles,
   Sun,
   X,
 } from 'lucide-react';
@@ -420,7 +421,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   className="w-full text-left p-2.5 min-h-[44px] rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+                    <Folder className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                     <span className="text-xs font-medium text-stone-900 dark:text-stone-100 truncate">
                       {item.title}
                     </span>
@@ -462,13 +463,13 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-3 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-100"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between p-1 bg-black/5 dark:bg-white/5 rounded-xl">
+                  <div className="flex items-center justify-between p-1 bg-neutral-200/50 dark:bg-white/5 rounded-xl">
                     <button
                       onClick={() => setTheme('light')}
                       className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                         theme === 'light'
-                          ? 'bg-white text-stone-900 shadow-xs'
-                          : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
+                          ? 'bg-white text-neutral-900 shadow-xs border border-neutral-200/60'
+                          : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                       }`}
                     >
                       <Sun className="w-3.5 h-3.5 text-amber-500" />
@@ -478,11 +479,11 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       onClick={() => setTheme('dark')}
                       className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                         theme === 'dark'
-                          ? 'bg-stone-800 text-white shadow-xs'
-                          : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
+                          ? 'bg-[#18181b] text-neutral-100 shadow-xs border border-white/10'
+                          : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                       }`}
                     >
-                      <Moon className="w-3.5 h-3.5 text-blue-400" />
+                      <Moon className="w-3.5 h-3.5 text-amber-400" />
                       <span>Dark</span>
                     </button>
                   </div>
@@ -513,6 +514,20 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                         );
                       })}
                     </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-black/5 dark:border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsThemeMenuOpen(false);
+                        window.dispatchEvent(new CustomEvent('replay-intro'));
+                      }}
+                      className="w-full py-1.5 px-2.5 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                      <span>Replay Intro Quote</span>
+                    </button>
                   </div>
                 </div>
               </>
@@ -653,13 +668,13 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                 {/* Appearance / Theme Options */}
                 <div className="space-y-2">
                   <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Appearance</span>
-                  <div className="flex bg-black/5 dark:bg-white/10 p-1 rounded-xl">
+                  <div className="flex bg-neutral-200/50 dark:bg-white/10 p-1 rounded-xl">
                     <button
                       onClick={() => setTheme('light')}
                       className={`flex-1 min-h-[36px] py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 ${
                         theme === 'light'
-                          ? 'bg-white text-stone-900 shadow-xs'
-                          : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
+                          ? 'bg-white text-neutral-900 shadow-xs border border-neutral-200/60'
+                          : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                       }`}
                     >
                       <Sun className="w-4 h-4 text-amber-500" />
@@ -669,11 +684,11 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       onClick={() => setTheme('dark')}
                       className={`flex-1 min-h-[36px] py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 ${
                         theme === 'dark'
-                          ? 'bg-stone-800 text-white shadow-xs'
-                          : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
+                          ? 'bg-[#18181b] text-neutral-100 shadow-xs border border-white/10'
+                          : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                       }`}
                     >
-                      <Moon className="w-4 h-4 text-blue-400" />
+                      <Moon className="w-4 h-4 text-amber-400" />
                       <span>Dark</span>
                     </button>
                   </div>

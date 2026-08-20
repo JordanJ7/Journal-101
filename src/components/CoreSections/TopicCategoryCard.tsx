@@ -17,7 +17,8 @@ import {
   Users,
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { CoreTopicItem, ItemActivityStatus } from '../../types';
+import { AccentTheme, CoreTopicItem, ItemActivityStatus } from '../../types';
+import { ACCENT_THEMES } from '../../utils/theme';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 import { HighlightText } from '../HighlightText';
 import { BulletedNoteEditor } from './BulletedNoteEditor';
@@ -35,6 +36,7 @@ interface TopicCategoryCardProps {
   onOpenCommentSection?: (sectionTag: string) => void;
   activeCommentSectionTag?: string;
   searchQuery?: string;
+  accentTheme?: AccentTheme;
 }
 
 export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
@@ -50,9 +52,11 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
   onOpenCommentSection,
   activeCommentSectionTag,
   searchQuery,
+  accentTheme = 'amber',
 }) => {
   const [copied, setCopied] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<LightboxMedia | null>(null);
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   const isHighlighted =
     activeCommentSectionTag &&
@@ -86,7 +90,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
       : item.status === 'To Watch/Read'
       ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300'
       : item.status === 'Done Alone'
-      ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
+      ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
       : item.status === 'Done Together'
       ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
       : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
@@ -97,21 +101,21 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
         isHighlighted
           ? 'bg-sky-50/70 dark:bg-sky-950/60 border-sky-300 dark:border-sky-700 ring-2 ring-sky-400/50 shadow-md'
           : item.isHighlightedAnswer
-          ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800/80 shadow-xs'
+          ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-xs`
           : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'
       }`}
     >
       {/* Pinned From Weekly Journal Header Badge */}
       {item.pinnedFromWeekTitle && (
-        <div className="flex items-center justify-between gap-2 p-2 mb-3 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
+        <div className={`flex items-center justify-between gap-2 p-2 mb-3 rounded-xl text-xs font-bold ${currentAccent.tagBadge}`}>
           <div className="flex items-center gap-1.5">
-            <Pin className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <Pin className={`w-3.5 h-3.5 ${currentAccent.textPrimary}`} />
             <span>Pinned Growth Takeaway from <HighlightText text={item.pinnedFromWeekTitle} highlight={searchQuery} /></span>
           </div>
           {item.pinnedFromWeekId && onNavigateToWeek && (
             <button
               onClick={() => onNavigateToWeek(item.pinnedFromWeekId!)}
-              className="text-[11px] text-amber-700 dark:text-amber-300 hover:underline flex items-center gap-0.5"
+              className={`text-[11px] hover:underline flex items-center gap-0.5 ${currentAccent.textPrimary}`}
             >
               <span>View Week</span>
               <ExternalLink className="w-3 h-3" />
@@ -186,9 +190,9 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             <button
               onClick={() => onOpenCommentSection(`Item: "${item.title.slice(0, 25)}"`)}
               title="Add comment or feedback for this item"
-              className="px-2 py-1 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <MessageSquare className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
               <span className="text-[10px]">Comment</span>
             </button>
           )}
@@ -243,8 +247,8 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             disabled={!canEdit}
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               item.status === 'Done Alone'
-                ? 'bg-purple-600 text-white shadow-2xs scale-102'
-                : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-purple-50 border border-stone-200 dark:border-stone-700'
+                ? 'bg-indigo-600 text-white shadow-2xs scale-102'
+                : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-stone-200 dark:border-stone-700'
             }`}
           >
             <User className="w-3 h-3" />
@@ -283,11 +287,11 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
         <div
           className={`p-3 rounded-xl mb-3 text-xs border ${
             item.isHighlightedAnswer
-              ? 'bg-blue-100/90 dark:bg-blue-900/60 border-blue-300 dark:border-blue-700 text-blue-900 dark:text-blue-100 font-medium'
+              ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} text-stone-900 dark:text-stone-100 font-medium`
               : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-200'
           }`}
         >
-          <div className="flex items-center gap-1.5 font-bold mb-1 text-blue-700 dark:text-blue-300">
+          <div className={`flex items-center gap-1.5 font-bold mb-1 ${currentAccent.textPrimary}`}>
             <MessageSquare className="w-3.5 h-3.5" />
             <span>Therapist Des / Highlight Answer:</span>
           </div>
@@ -349,8 +353,8 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
         </div>
 
         {item.dateTag && (
-          <span className="bg-amber-100/80 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1">
-            <Calendar className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="bg-blue-50 dark:bg-blue-950/80 text-blue-900 dark:text-blue-200 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1">
+            <Calendar className="w-3 h-3 text-blue-600 dark:text-blue-400 shrink-0" />
             <span>Tag: <HighlightText text={item.dateTag} highlight={searchQuery} /></span>
           </span>
         )}

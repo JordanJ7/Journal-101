@@ -1,18 +1,25 @@
 import { ArrowLeft, BookOpen, Calendar, Printer, Sparkles } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { CORE_CATEGORIES_CONFIG } from '../data/initialData';
-import { CoreTopicItem, SharedSnapshotData, WeeklyBlock } from '../types';
+import { AccentTheme, CoreTopicItem, SharedSnapshotData, WeeklyBlock } from '../types';
+import { ACCENT_THEMES } from '../utils/theme';
 
 interface SharedViewProps {
   shareId: string;
   onExitSharedView: () => void;
+  accentTheme?: AccentTheme;
 }
 
-export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedView }) => {
+export const SharedView: React.FC<SharedViewProps> = ({
+  shareId,
+  onExitSharedView,
+  accentTheme = 'amber',
+}) => {
   const [snapshot, setSnapshot] = useState<SharedSnapshotData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'weekly' | 'core'>('weekly');
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   useEffect(() => {
     async function fetchSharedData() {
@@ -38,7 +45,7 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
     return (
       <div className="min-h-screen bg-stone-50 dark:bg-stone-900 flex items-center justify-center p-4">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className={`w-10 h-10 border-4 ${currentAccent.spinnerBorder} border-t-transparent rounded-full animate-spin mx-auto`} />
           <p className="text-sm font-medium text-stone-600 dark:text-stone-300">
             Loading shared journal snapshot...
           </p>
@@ -55,7 +62,7 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
           <p className="text-xs text-stone-500">{error || 'Unable to load snapshot data'}</p>
           <button
             onClick={onExitSharedView}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl"
+            className={`px-4 py-2 ${currentAccent.buttonPrimary} text-white text-xs font-semibold rounded-xl`}
           >
             Back to Journal
           </button>
@@ -90,9 +97,9 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
             <div className="bg-stone-100 dark:bg-stone-800 p-1 rounded-xl flex gap-1">
               <button
                 onClick={() => setActiveTab('weekly')}
-                className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                   activeTab === 'weekly'
-                    ? 'bg-amber-600 text-white font-semibold'
+                    ? `${currentAccent.bg500} text-white font-semibold`
                     : 'text-stone-600 dark:text-stone-400'
                 }`}
               >
@@ -100,9 +107,9 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
               </button>
               <button
                 onClick={() => setActiveTab('core')}
-                className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                   activeTab === 'core'
-                    ? 'bg-amber-600 text-white font-semibold'
+                    ? `${currentAccent.bg500} text-white font-semibold`
                     : 'text-stone-600 dark:text-stone-400'
                 }`}
               >
@@ -126,7 +133,7 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
         {activeTab === 'weekly' ? (
           <div className="space-y-6">
             <h2 className="text-lg font-bold flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-amber-600" />
+              <Calendar className={`w-5 h-5 ${currentAccent.textPrimary}`} />
               <span>Weekly Journal Timeline (Read-Only)</span>
             </h2>
 
@@ -149,12 +156,12 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
                       key={b.id}
                       className={`p-3 rounded-xl border text-xs sm:text-sm ${
                         b.isAnswerHighlight
-                          ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700'
+                          ? `${currentAccent.calloutBg} ${currentAccent.calloutBorder}`
                           : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800'
                       }`}
                     >
                       {b.isAnswerHighlight && (
-                        <span className="inline-block text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full mb-1">
+                        <span className={`inline-block text-[10px] font-bold ${currentAccent.badge} px-2 py-0.5 rounded-full mb-1`}>
                           Therapist Answer / Callout
                         </span>
                       )}
@@ -171,7 +178,7 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
         ) : (
           <div className="space-y-6">
             <h2 className="text-lg font-bold flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-amber-600" />
+              <BookOpen className={`w-5 h-5 ${currentAccent.textPrimary}`} />
               <span>Core Topics Dashboard (Read-Only)</span>
             </h2>
 
@@ -184,7 +191,7 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
                   key={cat.id}
                   className="bg-white dark:bg-stone-850 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-xs space-y-3"
                 >
-                  <h3 className="text-base font-bold text-amber-800 dark:text-amber-300">
+                  <h3 className={`text-base font-bold ${currentAccent.textPrimary}`}>
                     {cat.title}
                   </h3>
 
@@ -194,7 +201,7 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
                         key={item.id}
                         className={`p-4 rounded-2xl border text-xs sm:text-sm ${
                           item.isHighlightedAnswer
-                            ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-300'
+                            ? `${currentAccent.calloutBg} ${currentAccent.calloutBorder}`
                             : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800'
                         }`}
                       >
@@ -205,7 +212,7 @@ export const SharedView: React.FC<SharedViewProps> = ({ shareId, onExitSharedVie
                           {item.content}
                         </p>
                         {item.answers && (
-                          <div className="p-2.5 bg-blue-100/70 dark:bg-blue-900/40 rounded-xl text-blue-900 dark:text-blue-200 text-xs mt-2">
+                          <div className={`p-2.5 ${currentAccent.calloutBg} rounded-xl text-xs mt-2 border ${currentAccent.calloutBorder}`}>
                             <strong>Therapist Des Answer:</strong> {item.answers}
                           </div>
                         )}

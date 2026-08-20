@@ -26,7 +26,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db, saveJournalDataToCloud } from '../../lib/firebase';
 import { useJournalStore } from '../../store/useJournalStore';
-import { BulletPoint } from '../../types';
+import { AccentTheme, BulletPoint } from '../../types';
+import { ACCENT_THEMES } from '../../utils/theme';
 import { formatTimestamp, parseDateFromTimestamp } from '../../utils/storage';
 import { LightboxMedia } from '../MediaLightboxModal';
 import { HighlightText } from '../HighlightText';
@@ -43,6 +44,7 @@ interface BulletItemProps {
   canDelete?: boolean;
   searchQuery?: string;
   weekId?: string;
+  accentTheme?: AccentTheme;
 }
 
 export const BulletItem: React.FC<BulletItemProps> = React.memo(({
@@ -56,8 +58,10 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
   canDelete = true,
   searchQuery,
   weekId,
+  accentTheme = 'amber',
 }) => {
   const { weeks, updateBulletTimestamp, updateEntryTimestamp } = useJournalStore();
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   // Direct Date Update handler with optimistic state and direct Firestore commit
   const handleDateUpdate = async (entryId: string, newDateTimeString: string) => {
@@ -221,7 +225,7 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
           showTimestampPicker ? 'relative z-30' : ''
         } ${
           bullet.isAnswerHighlight
-            ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700/80 shadow-xs'
+            ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-xs`
             : 'bg-white dark:bg-neutral-900 border-stone-200/80 dark:border-white/5 shadow-2xs'
         }`}
       >
@@ -229,7 +233,7 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
         {(bullet.isAnswerHighlight || bullet.pinnedToLearned) && (
           <div className="flex flex-wrap items-center gap-1.5 w-full min-w-0">
             {bullet.isAnswerHighlight && (
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/50 px-2.5 py-0.5 rounded-full w-fit">
+              <div className={`flex items-center gap-1.5 text-xs font-semibold ${currentAccent.iconBox} ${currentAccent.textPrimary} px-2.5 py-0.5 rounded-full w-fit`}>
                 <MessageSquare className="w-3.5 h-3.5 shrink-0" />
                 <span>Therapist Answer / Highlight</span>
               </div>
@@ -250,7 +254,7 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
             onClick={toggleCompleted}
             disabled={!canEdit}
             className={`mt-0.5 transition-colors shrink-0 ${
-              canEdit ? 'text-stone-400 hover:text-amber-600 cursor-pointer' : 'text-stone-400 cursor-default'
+              canEdit ? `text-stone-400 hover:${currentAccent.textPrimary} cursor-pointer` : 'text-stone-400 cursor-default'
             }`}
             title={canEdit ? 'Toggle completed state' : 'Completed status'}
           >
@@ -272,7 +276,7 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className="w-full p-2.5 text-sm leading-relaxed bg-stone-50 dark:bg-neutral-800 border border-stone-300 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40 whitespace-pre-wrap break-words"
+                  className="w-full p-2.5 text-sm leading-relaxed bg-stone-50 dark:bg-neutral-800 border border-stone-300 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none whitespace-pre-wrap break-words"
                   rows={3}
                   autoFocus
                 />
@@ -294,7 +298,7 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
 
                     {/* Computer File Upload Button */}
                     <div className="flex items-center gap-2">
-                      <label className="cursor-pointer px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors">
+                      <label className={`cursor-pointer px-3 py-1.5 ${currentAccent.buttonPrimary} text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors`}>
                         <Upload className="w-3.5 h-3.5" />
                         <span>Upload from Computer</span>
                         <input
@@ -335,7 +339,7 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleTextSubmit}
-                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-2xs transition-colors"
+                      className={`px-3 py-1.5 ${currentAccent.buttonPrimary} text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-2xs transition-colors`}
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>Done</span>
@@ -468,10 +472,10 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
                     setShowTimestampPicker((prev) => !prev);
                   }}
                   title="Click to edit or backdate entry date and time"
-                  className="inline-flex items-center gap-2 cursor-pointer font-mono px-3 py-2 -ml-1 rounded-xl text-xs min-h-[44px] text-stone-700 dark:text-stone-200 bg-stone-100/80 dark:bg-white/[0.06] hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/15 dark:hover:bg-amber-400/15 active:scale-[0.98] transition-all group/time border border-stone-200/80 dark:border-white/10 hover:border-amber-500/30"
+                  className={`inline-flex items-center gap-2 cursor-pointer font-mono px-3 py-2 -ml-1 rounded-xl text-xs min-h-[44px] text-stone-700 dark:text-stone-200 bg-stone-100/80 dark:bg-white/[0.06] hover:${currentAccent.textPrimary} hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all group/time border border-stone-200/80 dark:border-white/10`}
                 >
-                  <Clock className="w-4 h-4 text-amber-500 shrink-0 group-hover/time:scale-110 group-hover/time:rotate-12 transition-transform" />
-                  <span className="font-semibold underline decoration-stone-300 dark:decoration-stone-600 underline-offset-2 group-hover/time:decoration-amber-500">
+                  <Clock className={`w-4 h-4 ${currentAccent.textPrimary} shrink-0 group-hover/time:scale-110 transition-transform`} />
+                  <span className="font-semibold underline decoration-stone-300 dark:decoration-stone-600 underline-offset-2">
                     <HighlightText text={bullet.timestamp || formatTimestamp()} highlight={searchQuery} />
                   </span>
                   {bullet.isCustomDate && (
@@ -479,7 +483,7 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
                       Custom
                     </span>
                   )}
-                  <Edit2 className="w-3.5 h-3.5 text-stone-400 dark:text-stone-400 group-hover/time:text-amber-600 dark:group-hover/time:text-amber-400 ml-0.5 transition-colors" />
+                  <Edit2 className="w-3.5 h-3.5 text-stone-400 dark:text-stone-400 ml-0.5 transition-colors" />
                 </button>
 
                 {/* Timestamp Picker Popover */}
@@ -513,14 +517,14 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
                     {/* Highlight Answer Switch Button */}
                     <button
                       onClick={toggleAnswerHighlight}
-                      title="Highlight as therapist answer (Blue Callout)"
+                      title="Highlight as therapist answer"
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors border shadow-2xs ${
                         bullet.isAnswerHighlight
-                          ? 'bg-blue-600 text-white border-blue-600'
+                          ? `${currentAccent.bg500} text-white ${currentAccent.activeBorder}`
                           : 'bg-stone-100 dark:bg-white/[0.06] text-stone-700 dark:text-stone-200 border-stone-200 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10'
                       }`}
                     >
-                      <MessageSquare className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                      <MessageSquare className={`w-3.5 h-3.5 ${bullet.isAnswerHighlight ? 'text-white' : currentAccent.textPrimary}`} />
                       <span className="text-[11px] font-semibold">Highlight</span>
                     </button>
 
@@ -591,11 +595,11 @@ export const BulletItem: React.FC<BulletItemProps> = React.memo(({
                         onClick={toggleAnswerHighlight}
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 ${
                           bullet.isAnswerHighlight
-                            ? 'bg-blue-600 text-white'
+                            ? `${currentAccent.bg500} text-white`
                             : 'bg-stone-100 dark:bg-white/[0.08] text-stone-700 dark:text-stone-200'
                         }`}
                       >
-                        <MessageSquare className="w-3.5 h-3.5" />
+                        <MessageSquare className={`w-3.5 h-3.5 ${bullet.isAnswerHighlight ? 'text-white' : currentAccent.textPrimary}`} />
                         <span className="text-[11px]">Highlight</span>
                       </button>
                     </div>

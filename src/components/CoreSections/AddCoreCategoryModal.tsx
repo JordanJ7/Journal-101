@@ -73,7 +73,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
       <div className="bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/15 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative animate-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between pb-2 border-b border-black/5 dark:border-white/10">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
+            <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
               <Folder className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
@@ -91,7 +91,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           <div>
             <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1.5">
-              Folder Name <span className="text-amber-500">*</span>
+              Folder Name <span className="text-blue-600 dark:text-blue-400">*</span>
             </label>
             <input
               type="text"
@@ -100,7 +100,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
               placeholder="e.g. Life Vision, Book Assignment..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-black/[0.04] dark:bg-white/[0.06] border border-black/5 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 font-semibold placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 text-sm sm:text-xs"
+              className="w-full px-3 py-2 bg-black/[0.04] dark:bg-white/[0.06] border border-black/5 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 font-semibold placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-sm sm:text-xs"
             />
           </div>
 
@@ -113,7 +113,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
               placeholder="Brief summary or context..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-black/[0.04] dark:bg-white/[0.06] border border-black/5 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 text-sm sm:text-xs"
+              className="w-full px-3 py-2 bg-black/[0.04] dark:bg-white/[0.06] border border-black/5 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-sm sm:text-xs"
             />
           </div>
 
@@ -133,7 +133,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
                     title={item.label}
                     className={`p-2 rounded-xl flex items-center justify-center transition-all ${
                       isSelected
-                        ? 'bg-amber-500 text-white shadow-xs font-semibold'
+                        ? 'bg-blue-600 text-white shadow-xs font-semibold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   >
@@ -155,7 +155,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
             <button
               type="submit"
               disabled={!title.trim()}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-semibold rounded-xl shadow-xs transition-colors"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-xl shadow-xs transition-colors"
             >
               Create Folder
             </button>

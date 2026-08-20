@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { CurrentUserProfile } from '../../lib/firebase';
-import { CoreTopicItem, ExternalLink, ItemActivityStatus, WeeklyBlock } from '../../types';
+import { AccentTheme, CoreTopicItem, ExternalLink, ItemActivityStatus, WeeklyBlock } from '../../types';
+import { ACCENT_THEMES } from '../../utils/theme';
 import { sanitizeUrl } from '../../utils/security';
 import { formatTimestamp } from '../../utils/storage';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
@@ -32,6 +33,7 @@ interface SharedMediaHubProps {
   onUpdateCoreItems: (items: CoreTopicItem[]) => void;
   onNavigateToWeek?: (weekId: string) => void;
   onNavigateToCoreCategory?: (catId: string) => void;
+  accentTheme?: AccentTheme;
 }
 
 export type MediaFilterType = 'all' | 'apple-photos' | 'tiktok' | 'photos' | 'articles' | 'watchlist';
@@ -60,12 +62,14 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
   onUpdateCoreItems,
   onNavigateToWeek,
   onNavigateToCoreCategory,
+  accentTheme = 'amber',
 }) => {
   const [selectedFilter, setSelectedFilter] = useState<MediaFilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<LightboxMedia | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   // Form states
   const [newTitle, setNewTitle] = useState('');
@@ -294,7 +298,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
           {canEdit && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1 shadow-xs transition-colors"
+              className={`px-3 py-1.5 ${currentAccent.buttonPrimary} text-white text-xs font-semibold rounded-xl flex items-center gap-1 shadow-xs transition-colors`}
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Media</span>
@@ -337,7 +341,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
             <div className="pt-2">
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors"
+                className={`px-3.5 py-1.5 ${currentAccent.buttonPrimary} text-white font-semibold text-xs rounded-xl shadow-xs transition-colors`}
               >
                 + Add Media
               </button>
@@ -432,7 +436,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                           target="_blank"
                           rel="noreferrer"
                           title="Open Link"
-                          className="p-1 text-stone-400 hover:text-blue-500"
+                          className={`p-1 text-stone-400 hover:${currentAccent.textPrimary}`}
                         >
                           <LinkIcon className="w-3.5 h-3.5" />
                         </a>
@@ -519,7 +523,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs"
+                  className={`px-3.5 py-1.5 text-xs font-semibold text-white ${currentAccent.buttonPrimary} rounded-xl shadow-xs`}
                 >
                   Add
                 </button>

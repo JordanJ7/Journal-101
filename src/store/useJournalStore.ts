@@ -249,6 +249,15 @@ if (typeof window !== 'undefined') {
 
 const initialLoaded = loadAppState();
 
+// Synchronously sync root DOM class with initial theme
+if (typeof document !== 'undefined') {
+  if (initialLoaded.theme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}
+
 export const useJournalStore = create<JournalStoreState>((set, get) => ({
   weeks: Array.isArray(initialLoaded.weeks) ? initialLoaded.weeks : INITIAL_WEEKS,
   activeWeekId: initialLoaded.activeWeekId || initialLoaded.weeks?.[0]?.id || '',
@@ -261,8 +270,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   pinnedCategoryIds: Array.isArray(initialLoaded.pinnedCategoryIds) && initialLoaded.pinnedCategoryIds.length > 0
     ? initialLoaded.pinnedCategoryIds
     : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
-  theme: initialLoaded.theme || 'light',
-  accentTheme: initialLoaded.accentTheme || 'blue',
+  theme: initialLoaded.theme || 'dark',
+  accentTheme: initialLoaded.accentTheme || 'amber',
   filters: initialLoaded.filters || {
     searchQuery: '',
     hasMediaOnly: false,
@@ -270,7 +279,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     dateRange: 'all',
   },
   comments: Array.isArray(initialLoaded.comments) ? initialLoaded.comments : INITIAL_COMMENTS,
-  viewMode: 'weekly',
+  viewMode: 'home',
 
   saveStatus: 'saved',
   lastSavedAt: null,
@@ -749,6 +758,11 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   // Theme & Filter Settings
   setTheme: (theme) => {
     set({ theme });
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('app_theme', theme);
+      }
+    } catch {}
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
