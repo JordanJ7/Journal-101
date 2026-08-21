@@ -338,7 +338,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       </button>
                     )}
 
-                    {(currentUser.role === 'owner' || comment.authorEmail === currentUser.email) && onEditComment && (
+                    {(currentUser.role === 'owner' || (comment.authorEmail?.trim().toLowerCase() === currentUser.email?.trim().toLowerCase())) && onEditComment && (
                       <button
                         onClick={() => {
                           setEditingCommentId(comment.id);
@@ -351,7 +351,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       </button>
                     )}
 
-                    {(currentUser.role === 'owner' || comment.authorEmail === currentUser.email) && (
+                    {(currentUser.role === 'owner' || (comment.authorEmail?.trim().toLowerCase() === currentUser.email?.trim().toLowerCase())) && (
                       <button
                         onClick={() => {
                           confirmDelete({

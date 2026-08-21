@@ -919,11 +919,12 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   setPermissions: (permissions) => set({ permissions }),
 
   switchSimulatedUser: (email, role) => {
+    const cleanEmail = email.trim().toLowerCase();
     set({
       currentUser: {
         uid: `sim-${role}-${Date.now()}`,
-        email,
-        displayName: email.split('@')[0],
+        email: cleanEmail,
+        displayName: cleanEmail.split('@')[0],
         isLoggedIn: false,
         role,
         isSimulated: true,

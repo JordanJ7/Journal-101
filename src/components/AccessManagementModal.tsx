@@ -100,15 +100,18 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
   const handleRoleChange = async (emailKey: string, newRole: UserRole) => {
     if (!isOwner) return;
     try {
-      const existing = permissions.users[emailKey];
-      if (!existing) return;
+      const cleanKey = emailKey.trim().toLowerCase();
+      const usersRecord = (permissions.users || {}) as Record<string, UserPermission>;
+      const targetEntry = Object.entries(usersRecord).find(
+        ([k, u]) => k.trim().toLowerCase() === cleanKey || (u?.email && u.email.trim().toLowerCase() === cleanKey)
+      );
+      if (!targetEntry) return;
 
-      const newUsers = {
-        ...permissions.users,
-        [emailKey]: {
-          ...existing,
-          role: newRole,
-        },
+      const [actualKey, existing] = targetEntry;
+      const newUsers: Record<string, UserPermission> = { ...usersRecord };
+      newUsers[actualKey] = {
+        ...existing,
+        role: newRole,
       };
 
       await savePermissionsDoc({
@@ -116,7 +119,7 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
         users: newUsers,
       });
 
-      setStatusMsg(`Updated ${emailKey}`);
+      setStatusMsg(`Updated ${actualKey}`);
       setTimeout(() => setStatusMsg(null), 2000);
     } catch {
       setErrorMsg('Failed to update role');
@@ -125,22 +128,30 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
 
   const handleRevokeUser = async (emailKey: string) => {
     if (!isOwner) return;
+    const cleanKey = emailKey.trim().toLowerCase();
 
     confirmDelete({
       title: 'Remove Access',
-      message: `Remove access for ${emailKey}?`,
+      message: `Remove access for ${cleanKey}?`,
       confirmText: 'Remove',
       onConfirm: async () => {
         try {
           const newUsers = { ...permissions.users };
-          delete newUsers[emailKey];
+          Object.keys(newUsers).forEach((k) => {
+            if (
+              k.trim().toLowerCase() === cleanKey ||
+              (newUsers[k]?.email && newUsers[k].email.trim().toLowerCase() === cleanKey)
+            ) {
+              delete newUsers[k];
+            }
+          });
 
           await savePermissionsDoc({
             ...permissions,
             users: newUsers,
           });
 
-          setStatusMsg(`Removed ${emailKey}`);
+          setStatusMsg(`Removed ${cleanKey}`);
           setTimeout(() => setStatusMsg(null), 2000);
         } catch {
           setErrorMsg('Failed to remove user');

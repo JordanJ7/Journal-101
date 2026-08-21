@@ -144,7 +144,7 @@ export function loadStoredPermissions(): PermissionsDoc {
 
 // Global listeners registry for real-time reactivity
 const permissionsListeners = new Set<(perms: PermissionsDoc) => void>();
-const journalDataListeners = new Set<(data: Partial<AppState>) => void>();
+const journalDataListeners = new Set<(data: Partial<AppState> & { clientSessionId?: string; updatedAt?: string }) => void>();
 const authStateListeners = new Set<(user: CurrentUserProfile | null) => void>();
 
 function getInitialStoredUser(): CurrentUserProfile | null {
@@ -207,21 +207,27 @@ export async function savePermissionsDoc(perms: PermissionsDoc): Promise<void> {
 
 /**
  * Resolve role for a given email address
+ * Strictly enforces case-insensitive and trimmed email comparisons
  */
 export function resolveUserRole(email: string, permissions: PermissionsDoc): UserRole | null {
+  if (!email) return null;
   const emailClean = email.trim().toLowerCase();
-  const ownerClean = permissions.ownerEmail.trim().toLowerCase();
+  const ownerClean = (permissions.ownerEmail || DEFAULT_OWNER_EMAIL).trim().toLowerCase();
 
-  if (emailClean === ownerClean) {
+  if (emailClean && emailClean === ownerClean) {
     return 'owner';
   }
 
-  // Check explicit invited user list
-  const matchedUser = Object.values(permissions.users).find(
-    (u) => u.email.trim().toLowerCase() === emailClean
-  );
-  if (matchedUser) {
-    return matchedUser.role;
+  // Check explicit invited user list (case-insensitive on both key and value)
+  if (permissions.users) {
+    const matchedUser = Object.entries(permissions.users).find(
+      ([key, u]) =>
+        key.trim().toLowerCase() === emailClean ||
+        (u?.email && u.email.trim().toLowerCase() === emailClean)
+    );
+    if (matchedUser && matchedUser[1]) {
+      return matchedUser[1].role;
+    }
   }
 
   // If global share is enabled, guest emails can view
@@ -231,6 +237,53 @@ export function resolveUserRole(email: string, permissions: PermissionsDoc): Use
 
   // Unauthorized
   return null;
+}
+
+/**
+ * Force a lightweight state re-sync on tab focus / visibilitychange
+ * Specifically addresses Safari background tab throttling/suspension of WebSockets/onSnapshot
+ */
+export async function refreshFirestoreSync(): Promise<void> {
+  try {
+    const appStateDocRef = doc(db, 'app_state', 'journal');
+    const snap = await getDoc(appStateDocRef);
+    if (snap.exists()) {
+      const rawData = snap.data();
+      if (rawData) {
+        const data = rawData as Partial<AppState> & { clientSessionId?: string; updatedAt?: string };
+        if (data.clientSessionId !== CLIENT_SESSION_ID) {
+          if (data.weeks || data.coreItems || data.coreCategories) {
+            try {
+              localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(data));
+            } catch (err) {
+              console.warn('Local cache error during focus refresh:', err);
+            }
+
+            journalDataListeners.forEach((listener) => {
+              listener({
+                weeks: data.weeks,
+                coreItems: data.coreItems,
+                coreCategories: data.coreCategories,
+                comments: data.comments,
+                updatedAt: data.updatedAt,
+                clientSessionId: data.clientSessionId,
+              });
+            });
+          }
+        }
+      }
+    }
+
+    const permsDocRef = doc(db, 'permissions', 'global');
+    const permsSnap = await getDoc(permsDocRef);
+    if (permsSnap.exists()) {
+      const permsData = permsSnap.data() as PermissionsDoc;
+      localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(permsData));
+      permissionsListeners.forEach((listener) => listener(permsData));
+    }
+  } catch (err) {
+    console.warn('[Sync] Focus refresh fallback note:', err);
+  }
 }
 
 /**

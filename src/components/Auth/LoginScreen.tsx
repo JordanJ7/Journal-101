@@ -76,7 +76,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const user = await loginWithEmail(email);
+      const clean = email.trim().toLowerCase();
+      const user = await loginWithEmail(clean);
       onLoginSuccess(user);
     } catch (err: any) {
       setErrorMsg(err?.message || `Failed to sign in as ${email}.`);

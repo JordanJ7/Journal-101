@@ -37,6 +37,8 @@ import {
   subscribePermissions,
   subscribeJournalData,
   onAuthStateChangedWrapper,
+  resolveUserRole,
+  refreshFirestoreSync,
   UserRole,
 } from './lib/firebase';
 
@@ -238,27 +240,35 @@ export default function App() {
     };
   }, [setPermissions]);
 
+  // Tab Focus / Visibility Listener for Desktop Safari & multi-device sync
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Re-verify Firestore connection state or trigger a lightweight state re-sync
+        console.log('[App] Tab regained focus - refreshing active subscriptions');
+        refreshFirestoreSync();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, []);
+
   // Auth listener with clean unsubscribe
   useEffect(() => {
     const unsubscribe = onAuthStateChangedWrapper((user) => {
       if (user) {
-        const userEmail = user.email?.toLowerCase() || '';
-        let resolvedRole: UserRole = 'viewer';
-
-        if (userEmail === permissions.ownerEmail.toLowerCase()) {
-          resolvedRole = 'owner';
-        } else if (permissions.users[userEmail]) {
-          resolvedRole = permissions.users[userEmail].role;
-        } else if (permissions.globalShareEnabled) {
-          resolvedRole = 'viewer';
-        } else {
-          resolvedRole = 'unauthorized';
-        }
+        const userEmail = (user.email || '').trim().toLowerCase();
+        const resolvedRole = resolveUserRole(userEmail, permissions) || 'unauthorized';
 
         setCurrentUser({
           uid: user.uid,
-          email: user.email || 'user@example.com',
-          displayName: user.displayName || user.email?.split('@')[0] || 'User',
+          email: userEmail || 'user@example.com',
+          displayName: user.displayName || userEmail.split('@')[0] || 'User',
           photoURL: user.photoURL || undefined,
           isLoggedIn: true,
           role: resolvedRole,
@@ -267,9 +277,10 @@ export default function App() {
       } else {
         setCurrentUser((prev) => {
           if (prev.isSimulated) return prev;
+          const ownerEmailClean = (permissions.ownerEmail || '').trim().toLowerCase();
           return {
             uid: 'owner-session',
-            email: permissions.ownerEmail,
+            email: ownerEmailClean,
             displayName: 'Journal Owner',
             isLoggedIn: false,
             role: 'owner',
