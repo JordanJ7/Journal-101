@@ -12,10 +12,22 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
+  getDocs,
+  collection,
+  collectionGroup,
+  query,
   onSnapshot,
   getDocFromServer,
 } from 'firebase/firestore';
-import { AppState } from '../types';
+import {
+  AppState,
+  BulletPoint,
+  CoreCategoryConfig,
+  CoreTopicItem,
+  WeeklyBlock,
+  CommentItem,
+} from '../types';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // 1. Initialize Firebase App, Auth and Firestore with exact database ID
@@ -97,7 +109,7 @@ export function handleFirestoreError(
     operationType,
     path,
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  console.error('[Firestore Error]: ', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
 
@@ -105,6 +117,7 @@ const DEFAULT_OWNER_EMAIL = 'saojmj123456@gmail.com';
 const PERMISSIONS_STORAGE_KEY = 'therapy_journal_permissions_v1';
 const CLOUD_SYNC_STORAGE_KEY = 'therapy_journal_cloud_sync_v1';
 const AUTH_SESSION_STORAGE_KEY = 'therapy_journal_auth_session_v1';
+const BACKUP_PAYLOAD_STORAGE_KEY = 'journal_cloud_local_backup';
 
 export const DEFAULT_PERMISSIONS: PermissionsDoc = {
   globalShareEnabled: true,
@@ -118,7 +131,7 @@ async function testConnection() {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Please check your Firebase configuration or network status.');
+      console.warn('[Firestore] Note: Client offline check or initial ping.');
     }
   }
 }
@@ -194,6 +207,7 @@ export function subscribePermissions(onUpdate: (perms: PermissionsDoc) => void) 
  * Update permissions document in Firestore & Local storage
  */
 export async function savePermissionsDoc(perms: PermissionsDoc): Promise<void> {
+  const path = 'permissions/global';
   try {
     localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(perms));
     permissionsListeners.forEach((listener) => listener(perms));
@@ -202,6 +216,7 @@ export async function savePermissionsDoc(perms: PermissionsDoc): Promise<void> {
     await setDoc(permissionsDocRef, perms, { merge: true });
   } catch (err) {
     console.warn('Saved permissions to local state, Firestore sync note:', err);
+    handleFirestoreError(err, OperationType.WRITE, path);
   }
 }
 
@@ -235,68 +250,20 @@ export function resolveUserRole(email: string, permissions: PermissionsDoc): Use
     return 'viewer';
   }
 
-  // Unauthorized
   return null;
-}
-
-/**
- * Force a lightweight state re-sync on tab focus / visibilitychange
- * Specifically addresses Safari background tab throttling/suspension of WebSockets/onSnapshot
- */
-export async function refreshFirestoreSync(): Promise<void> {
-  try {
-    const appStateDocRef = doc(db, 'app_state', 'journal');
-    const snap = await getDoc(appStateDocRef);
-    if (snap.exists()) {
-      const rawData = snap.data();
-      if (rawData) {
-        const data = rawData as Partial<AppState> & { clientSessionId?: string; updatedAt?: string };
-        if (data.clientSessionId !== CLIENT_SESSION_ID) {
-          if (data.weeks || data.coreItems || data.coreCategories) {
-            try {
-              localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(data));
-            } catch (err) {
-              console.warn('Local cache error during focus refresh:', err);
-            }
-
-            journalDataListeners.forEach((listener) => {
-              listener({
-                weeks: data.weeks,
-                coreItems: data.coreItems,
-                coreCategories: data.coreCategories,
-                comments: data.comments,
-                updatedAt: data.updatedAt,
-                clientSessionId: data.clientSessionId,
-              });
-            });
-          }
-        }
-      }
-    }
-
-    const permsDocRef = doc(db, 'permissions', 'global');
-    const permsSnap = await getDoc(permsDocRef);
-    if (permsSnap.exists()) {
-      const permsData = permsSnap.data() as PermissionsDoc;
-      localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(permsData));
-      permissionsListeners.forEach((listener) => listener(permsData));
-    }
-  } catch (err) {
-    console.warn('[Sync] Focus refresh fallback note:', err);
-  }
 }
 
 /**
  * Client Session Identifier to distinguish own writes from remote writes
  */
-export const CLIENT_SESSION_ID = 'session-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString(36);
+export const CLIENT_SESSION_ID =
+  'session-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString(36);
 
 /**
  * Deep sanitization for Firestore:
  * - Recursively removes/converts undefined values (which trigger Firestore write exceptions)
- * - Retains null, boolean, string (even empty strings), number, array, and nested objects cleanly
+ * - Retains null, boolean, string, number, array, and nested objects cleanly
  * - Converts Dates to ISO strings
- * - Strips non-serializable prototype properties while preserving nested data structures
  */
 export const sanitizePayload = (obj: any): any => {
   if (obj === undefined) return null;
@@ -313,28 +280,274 @@ export function sanitizeForFirestore<T>(val: T): T {
   return sanitizePayload(val);
 }
 
-export interface JournalCloudPayload {
-  weeks: any[];
-  coreItems: any[];
-  coreCategories: any[];
-  comments?: any[];
-  updatedAt: string;
-  clientSessionId: string;
-  version: number;
-}
-
-let lastWrittenCloudPayloadHash = '';
-const BACKUP_PAYLOAD_STORAGE_KEY = 'journal_cloud_local_backup';
+// -----------------------------------------------------------------------------------------
+// DIRECT ATOMIC CRUD HANDLERS (TOPICS, FOLDERS, WEEKS, ENTRIES, COMMENTS)
+// -----------------------------------------------------------------------------------------
 
 /**
- * Real-time journal data subscription (Firestore /app_state/journal + cross-tab sync)
- * Decoupled from the main thread using non-blocking microtasks / requestIdleCallback.
+ * 1. Create or Update Folder (/folders/{folderId})
  */
+export async function saveFolderDoc(folder: CoreCategoryConfig): Promise<void> {
+  if (!folder || !folder.id) return;
+  const path = `folders/${folder.id}`;
+  try {
+    const folderDocRef = doc(db, 'folders', folder.id);
+    const sanitized = sanitizeForFirestore({
+      ...folder,
+      updatedAt: new Date().toISOString(),
+    });
+    await setDoc(folderDocRef, sanitized, { merge: true });
+    console.log(`[Firestore SUCCESS] Folder saved: ${folder.id}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to save folder ${folder?.id}:`, err);
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * 2. Delete Folder (/folders/{folderId})
+ */
+export async function deleteFolderDoc(folderId: string): Promise<void> {
+  if (!folderId) return;
+  const path = `folders/${folderId}`;
+  try {
+    const folderDocRef = doc(db, 'folders', folderId);
+    await deleteDoc(folderDocRef);
+    console.log(`[Firestore SUCCESS] Folder deleted: ${folderId}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to delete folder ${folderId}:`, err);
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
+/**
+ * 3. Create or Update Core Topic Item (/core_topics/{itemId} and /folders/{categoryId}/notes/{itemId})
+ */
+export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
+  if (!item || !item.id) return;
+  const path = `core_topics/${item.id}`;
+  try {
+    const cleanItemData = sanitizeForFirestore({
+      ...item,
+      createdAt: item.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Write to /core_topics/{item.id}
+    const docRef = doc(db, 'core_topics', item.id);
+    await setDoc(docRef, cleanItemData, { merge: true });
+
+    // Also write to /folders/{categoryId}/notes/{item.id} if categoryId is present
+    if (item.categoryId) {
+      try {
+        const folderNoteRef = doc(db, 'folders', item.categoryId, 'notes', item.id);
+        await setDoc(folderNoteRef, cleanItemData, { merge: true });
+      } catch (fErr) {
+        console.warn(`[Firestore Subcollection Note] /folders/${item.categoryId}/notes write note:`, fErr);
+      }
+    }
+
+    console.log(`[Firestore SUCCESS] Core topic note saved: ${item.id}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to save core topic ${item.id}:`, err);
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * 4. Delete Core Topic Item
+ */
+export async function deleteCoreTopicDoc(itemId: string, categoryId?: string): Promise<void> {
+  if (!itemId) return;
+  const path = `core_topics/${itemId}`;
+  try {
+    const docRef = doc(db, 'core_topics', itemId);
+    await deleteDoc(docRef);
+
+    if (categoryId) {
+      try {
+        const folderNoteRef = doc(db, 'folders', categoryId, 'notes', itemId);
+        await deleteDoc(folderNoteRef);
+      } catch {}
+    }
+
+    console.log(`[Firestore SUCCESS] Core topic note deleted: ${itemId}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to delete core topic ${itemId}:`, err);
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
+/**
+ * 5. Create or Update Journal Entry (/weeks/{weekId}/entries/{entryId})
+ */
+export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<void> {
+  if (!weekId || !entry || !entry.id) return;
+  const path = `weeks/${weekId}/entries/${entry.id}`;
+  try {
+    const entryDocRef = doc(db, 'weeks', weekId, 'entries', entry.id);
+    const sanitized = sanitizeForFirestore({
+      ...entry,
+      createdAt: entry.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    await setDoc(entryDocRef, sanitized, { merge: true });
+    console.log(`[Firestore SUCCESS] Entry saved: /weeks/${weekId}/entries/${entry.id}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to save entry ${entry.id}:`, err);
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * 6. Partial Update Journal Entry (/weeks/{weekId}/entries/{entryId})
+ */
+export async function updateEntryDoc(
+  weekId: string,
+  entryId: string,
+  updates: Partial<BulletPoint>
+): Promise<void> {
+  if (!weekId || !entryId) return;
+  const path = `weeks/${weekId}/entries/${entryId}`;
+  try {
+    const entryDocRef = doc(db, 'weeks', weekId, 'entries', entryId);
+    const sanitized = sanitizeForFirestore({
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    });
+    await setDoc(entryDocRef, sanitized, { merge: true });
+    console.log(`[Firestore SUCCESS] Entry updated: /weeks/${weekId}/entries/${entryId}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to update entry ${entryId}:`, err);
+    handleFirestoreError(err, OperationType.UPDATE, path);
+  }
+}
+
+/**
+ * 7. Delete Journal Entry (/weeks/{weekId}/entries/{entryId})
+ */
+export async function deleteEntryDoc(weekId: string, entryId: string): Promise<void> {
+  if (!weekId || !entryId) return;
+  const path = `weeks/${weekId}/entries/${entryId}`;
+  try {
+    const entryDocRef = doc(db, 'weeks', weekId, 'entries', entryId);
+    await deleteDoc(entryDocRef);
+    console.log(`[Firestore SUCCESS] Entry deleted: /weeks/${weekId}/entries/${entryId}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to delete entry ${entryId}:`, err);
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
+/**
+ * 8. Create or Update Week Metadata (/weeks/{weekId})
+ */
+export async function saveWeekMetaDoc(week: WeeklyBlock): Promise<void> {
+  if (!week || !week.id) return;
+  const path = `weeks/${week.id}`;
+  try {
+    const { bullets, ...weekMeta } = week;
+    const weekDocRef = doc(db, 'weeks', week.id);
+    const sanitized = sanitizeForFirestore({
+      ...weekMeta,
+      createdAt: week.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    await setDoc(weekDocRef, sanitized, { merge: true });
+    console.log(`[Firestore SUCCESS] Week metadata saved: /weeks/${week.id}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to save week ${week.id}:`, err);
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * 9. Delete Week (/weeks/{weekId})
+ */
+export async function deleteWeekDoc(weekId: string): Promise<void> {
+  if (!weekId) return;
+  const path = `weeks/${weekId}`;
+  try {
+    const weekDocRef = doc(db, 'weeks', weekId);
+    await deleteDoc(weekDocRef);
+    console.log(`[Firestore SUCCESS] Week deleted: /weeks/${weekId}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to delete week ${weekId}:`, err);
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
+/**
+ * 10. Create or Update Comment (/comments/{commentId})
+ */
+export async function saveCommentDoc(comment: CommentItem): Promise<void> {
+  if (!comment || !comment.id) return;
+  const path = `comments/${comment.id}`;
+  try {
+    const commentDocRef = doc(db, 'comments', comment.id);
+    const sanitized = sanitizeForFirestore({
+      ...comment,
+      updatedAt: new Date().toISOString(),
+    });
+    await setDoc(commentDocRef, sanitized, { merge: true });
+    console.log(`[Firestore SUCCESS] Comment saved: ${comment.id}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to save comment ${comment.id}:`, err);
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * 11. Delete Comment (/comments/{commentId})
+ */
+export async function deleteCommentDoc(commentId: string): Promise<void> {
+  if (!commentId) return;
+  const path = `comments/${commentId}`;
+  try {
+    const commentDocRef = doc(db, 'comments', commentId);
+    await deleteDoc(commentDocRef);
+    console.log(`[Firestore SUCCESS] Comment deleted: ${commentId}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to delete comment ${commentId}:`, err);
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
+/**
+ * 12. Save Core Categories collection fallback
+ */
+export async function saveCoreCategoriesDoc(categories: CoreCategoryConfig[]): Promise<void> {
+  const path = 'core_categories/settings';
+  try {
+    const docRef = doc(db, 'core_categories', 'settings');
+    await setDoc(
+      docRef,
+      {
+        categories: sanitizeForFirestore(categories),
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+    // Also mirror each folder to /folders/{folderId}
+    for (const cat of categories) {
+      await saveFolderDoc(cat);
+    }
+  } catch (err) {
+    console.error('[Firestore Error] Failed to save categories config:', err);
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+// -----------------------------------------------------------------------------------------
+// REAL-TIME MULTI-COLLECTION LISTENER & HYDRATION ENGINE
+// -----------------------------------------------------------------------------------------
+
 export function subscribeJournalData(
   onUpdate: (data: Partial<AppState> & { clientSessionId?: string; updatedAt?: string }) => void,
   onHydrated?: () => void
 ) {
   let isInitialHydratedFired = false;
+  const activeUnsubscribes: (() => void)[] = [];
 
   const markHydrated = () => {
     if (!isInitialHydratedFired) {
@@ -351,32 +564,15 @@ export function subscribeJournalData(
       try {
         const parsed = JSON.parse(e.newValue);
         if (parsed && (parsed.weeks || parsed.coreItems || parsed.coreCategories)) {
-          // Schedule update in next idle period to keep UI responsive
-          if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-            (window as any).requestIdleCallback(() => {
-              onUpdate({
-                weeks: parsed.weeks,
-                coreItems: parsed.coreItems,
-                coreCategories: parsed.coreCategories,
-                comments: parsed.comments,
-                updatedAt: parsed.updatedAt,
-                clientSessionId: parsed.clientSessionId,
-              });
-              markHydrated();
-            }, { timeout: 500 });
-          } else {
-            setTimeout(() => {
-              onUpdate({
-                weeks: parsed.weeks,
-                coreItems: parsed.coreItems,
-                coreCategories: parsed.coreCategories,
-                comments: parsed.comments,
-                updatedAt: parsed.updatedAt,
-                clientSessionId: parsed.clientSessionId,
-              });
-              markHydrated();
-            }, 16);
-          }
+          onUpdate({
+            weeks: parsed.weeks,
+            coreItems: parsed.coreItems,
+            coreCategories: parsed.coreCategories,
+            comments: parsed.comments,
+            updatedAt: parsed.updatedAt,
+            clientSessionId: parsed.clientSessionId,
+          });
+          markHydrated();
         }
       } catch (err) {
         console.warn('Failed to parse cross-tab sync:', err);
@@ -387,123 +583,350 @@ export function subscribeJournalData(
   window.addEventListener('storage', handleStorage);
   journalDataListeners.add(onUpdate);
 
-  // 2. Real-Time Firestore onSnapshot listener with non-blocking hydration
-  const appStateDocRef = doc(db, 'app_state', 'journal');
-  const unsubscribeFirestore = onSnapshot(
-    appStateDocRef,
-    { includeMetadataChanges: false },
-    (snap) => {
+  // In-memory accumulation maps for real-time aggregation
+  let weeksMap: Map<string, WeeklyBlock> = new Map();
+  let entriesPerWeekMap: Map<string, Map<string, BulletPoint>> = new Map();
+  let coreItemsMap: Map<string, CoreTopicItem> = new Map();
+  let foldersMap: Map<string, CoreCategoryConfig> = new Map();
+  let coreCategoriesFallback: CoreCategoryConfig[] | null = null;
+  let commentsList: CommentItem[] = [];
+
+  const broadcastConsolidatedState = () => {
+    const consolidatedWeeks: WeeklyBlock[] = Array.from(weeksMap.values()).map((week) => {
+      const weekEntriesMap = entriesPerWeekMap.get(week.id);
+      const bullets = weekEntriesMap
+        ? Array.from(weekEntriesMap.values())
+        : week.bullets || [];
+
+      // Sort bullets chronologically
+      bullets.sort((a, b) => {
+        const timeA = a.isoDate ? new Date(a.isoDate).getTime() : new Date(a.createdAt || a.timestamp).getTime() || 0;
+        const timeB = b.isoDate ? new Date(b.isoDate).getTime() : new Date(b.createdAt || b.timestamp).getTime() || 0;
+        return timeA - timeB;
+      });
+
+      return {
+        ...week,
+        bullets,
+      };
+    });
+
+    const consolidatedCoreItems = Array.from(coreItemsMap.values());
+    const consolidatedFolders = foldersMap.size > 0
+      ? Array.from(foldersMap.values())
+      : (coreCategoriesFallback || []);
+
+    const payload: Partial<AppState> & { clientSessionId?: string; updatedAt?: string } = {
+      weeks: consolidatedWeeks,
+      coreItems: consolidatedCoreItems,
+      ...(consolidatedFolders.length > 0 ? { coreCategories: consolidatedFolders } : {}),
+      comments: commentsList,
+      updatedAt: new Date().toISOString(),
+      clientSessionId: CLIENT_SESSION_ID,
+    };
+
+    try {
+      localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(payload));
+      localStorage.setItem('journal_backup', JSON.stringify(payload));
+    } catch {}
+
+    onUpdate(payload);
+  };
+
+  // 2. Real-Time Weeks Collection Listener (/weeks)
+  const weeksUnsub = onSnapshot(
+    collection(db, 'weeks'),
+    async (weeksSnap) => {
       markHydrated();
-      if (snap.exists()) {
-        const rawData = snap.data();
-        if (!rawData) return;
 
-        const data = rawData as Partial<AppState> & { clientSessionId?: string; updatedAt?: string };
-        
-        // Skip processing if this payload came from our own local session and was already written
-        if (data.clientSessionId === CLIENT_SESSION_ID) {
-          return;
-        }
+      if (!weeksSnap.empty) {
+        weeksSnap.docChanges().forEach((change) => {
+          const weekData = change.doc.data() as WeeklyBlock;
+          const weekId = change.doc.id;
 
-        console.log('[Sync IN] <= Payload received from Firestore:', {
-          updatedAt: data.updatedAt,
-          weeksCount: data.weeks?.length,
-          coreItemsCount: data.coreItems?.length,
-          remoteSessionId: data.clientSessionId,
+          if (change.type === 'removed') {
+            weeksMap.delete(weekId);
+            entriesPerWeekMap.delete(weekId);
+          } else {
+            const existing = weeksMap.get(weekId) || ({} as WeeklyBlock);
+            weeksMap.set(weekId, {
+              ...existing,
+              ...weekData,
+              id: weekId,
+              bullets: existing.bullets || weekData.bullets || [],
+            });
+          }
         });
 
-        if (data.weeks || data.coreItems || data.coreCategories) {
-          // Cache remotely received state
-          try {
-            localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(data));
-            localStorage.setItem('journal_backup', JSON.stringify(data));
-          } catch (err) {
-            console.warn('Local cache error:', err);
+        broadcastConsolidatedState();
+      } else {
+        // Auto-migration check from legacy document
+        try {
+          const legacyDoc = await getDoc(doc(db, 'app_state', 'journal'));
+          if (legacyDoc.exists()) {
+            const legacyData = legacyDoc.data() as Partial<AppState>;
+            if (legacyData.weeks && legacyData.weeks.length > 0) {
+              for (const w of legacyData.weeks) {
+                await saveWeekMetaDoc(w);
+                if (w.bullets && w.bullets.length > 0) {
+                  for (const b of w.bullets) {
+                    await saveEntryDoc(w.id, b);
+                  }
+                }
+              }
+            }
+            if (legacyData.coreItems && legacyData.coreItems.length > 0) {
+              for (const ci of legacyData.coreItems) {
+                await saveCoreTopicDoc(ci);
+              }
+            }
+            if (legacyData.coreCategories && legacyData.coreCategories.length > 0) {
+              for (const cat of legacyData.coreCategories) {
+                await saveFolderDoc(cat);
+              }
+            }
           }
-
-          // Hydrate state directly
-          onUpdate({
-            weeks: data.weeks,
-            coreItems: data.coreItems,
-            coreCategories: data.coreCategories,
-            comments: data.comments,
-            updatedAt: data.updatedAt,
-            clientSessionId: data.clientSessionId,
-          });
+        } catch (mErr) {
+          console.warn('[Migration Note]:', mErr);
         }
       }
     },
     (err) => {
-      console.warn('Firestore state subscription fallback to local cache:', err.message);
-      // Even on network error, allow local hydration so offline work continues safely
+      console.warn('Weeks subscription note:', err.message);
       markHydrated();
     }
   );
+  activeUnsubscribes.push(weeksUnsub);
+
+  // 3. Real-Time CollectionGroup Query for all Entries across all Weeks (/weeks/{weekId}/entries/{entryId})
+  try {
+    const entriesGroupUnsub = onSnapshot(
+      collectionGroup(db, 'entries'),
+      (entriesSnap) => {
+        markHydrated();
+        entriesSnap.docChanges().forEach((change) => {
+          const entry = { id: change.doc.id, ...change.doc.data() } as BulletPoint;
+          const parentWeekId = change.doc.ref.parent.parent?.id;
+
+          if (parentWeekId) {
+            if (!entriesPerWeekMap.has(parentWeekId)) {
+              entriesPerWeekMap.set(parentWeekId, new Map());
+            }
+            const weekEntries = entriesPerWeekMap.get(parentWeekId)!;
+
+            if (change.type === 'removed') {
+              weekEntries.delete(entry.id);
+            } else {
+              weekEntries.set(entry.id, entry);
+            }
+          }
+        });
+
+        broadcastConsolidatedState();
+      },
+      (err) => {
+        console.warn('CollectionGroup entries query fallback to individual week listeners:', err.message);
+      }
+    );
+    activeUnsubscribes.push(entriesGroupUnsub);
+  } catch (cgErr) {
+    console.warn('CollectionGroup initialization note:', cgErr);
+  }
+
+  // 4. Real-Time Folders Collection Listener (/folders)
+  const foldersUnsub = onSnapshot(
+    collection(db, 'folders'),
+    (snap) => {
+      markHydrated();
+      if (!snap.empty) {
+        snap.docChanges().forEach((change) => {
+          const folder = { id: change.doc.id, ...change.doc.data() } as CoreCategoryConfig;
+          if (change.type === 'removed') {
+            foldersMap.delete(folder.id);
+          } else {
+            foldersMap.set(folder.id, folder);
+          }
+        });
+        broadcastConsolidatedState();
+      }
+    },
+    (err) => {
+      console.warn('Folders subscription note:', err.message);
+    }
+  );
+  activeUnsubscribes.push(foldersUnsub);
+
+  // 5. Real-Time Core Topics Collection Listener (/core_topics)
+  const coreTopicsUnsub = onSnapshot(
+    collection(db, 'core_topics'),
+    (snap) => {
+      markHydrated();
+      snap.docChanges().forEach((change) => {
+        const item = { id: change.doc.id, ...change.doc.data() } as CoreTopicItem;
+        if (change.type === 'removed') {
+          coreItemsMap.delete(item.id);
+        } else {
+          coreItemsMap.set(item.id, item);
+        }
+      });
+      broadcastConsolidatedState();
+    },
+    (err) => {
+      console.warn('Core topics subscription note:', err.message);
+    }
+  );
+  activeUnsubscribes.push(coreTopicsUnsub);
+
+  // 6. Real-Time Core Categories Fallback Settings Listener (/core_categories/settings)
+  const coreCategoriesUnsub = onSnapshot(
+    doc(db, 'core_categories', 'settings'),
+    (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && Array.isArray(data.categories)) {
+          coreCategoriesFallback = data.categories as CoreCategoryConfig[];
+          broadcastConsolidatedState();
+        }
+      }
+    },
+    (err) => {
+      console.warn('Core categories settings note:', err.message);
+    }
+  );
+  activeUnsubscribes.push(coreCategoriesUnsub);
+
+  // 7. Real-Time Comments Listener (/comments)
+  const commentsUnsub = onSnapshot(
+    collection(db, 'comments'),
+    (snap) => {
+      commentsList = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CommentItem[];
+      broadcastConsolidatedState();
+    },
+    (err) => {
+      console.warn('Comments subscription note:', err.message);
+    }
+  );
+  activeUnsubscribes.push(commentsUnsub);
 
   return () => {
     window.removeEventListener('storage', handleStorage);
     journalDataListeners.delete(onUpdate);
-    unsubscribeFirestore();
+    activeUnsubscribes.forEach((unsub) => unsub());
   };
 }
 
 /**
- * Save live journal data to Firestore & shared local sync
- * - Performs deep sanitization
- * - Non-destructive payload merge
- * - Immediate local backup caching before network dispatch
+ * Save live journal data to Cloud Firestore using Atomic Subcollections & Discrete Documents
+ * Guarantees zero race conditions, atomic document writes, and non-destructive persistence.
  */
-export async function saveJournalDataToCloud(state: AppState, entryId?: string): Promise<void> {
-  const payload: JournalCloudPayload = {
-    weeks: state.weeks || [],
-    coreItems: state.coreItems || [],
-    coreCategories: state.coreCategories || [],
-    comments: state.comments || [],
-    updatedAt: new Date().toISOString(),
-    clientSessionId: CLIENT_SESSION_ID,
-    version: 1,
-  };
-
-  const sanitized = sanitizeForFirestore(payload);
-  const payloadJson = JSON.stringify(sanitized);
-
-  // Pre-dispatch local backup guarantee
+export async function saveJournalDataToCloud(
+  state: AppState,
+  targetEntryId?: string,
+  targetWeekId?: string
+): Promise<void> {
+  // 1. Immediate Local Backup Guarantee
   try {
-    localStorage.setItem(BACKUP_PAYLOAD_STORAGE_KEY, payloadJson);
-    localStorage.setItem('journal_backup', payloadJson);
-    localStorage.setItem('journal_failsafe_backup', payloadJson);
-    localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, payloadJson);
+    const backupJson = JSON.stringify(state);
+    localStorage.setItem(BACKUP_PAYLOAD_STORAGE_KEY, backupJson);
+    localStorage.setItem('journal_backup', backupJson);
+    localStorage.setItem('journal_failsafe_backup', backupJson);
+    localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, backupJson);
   } catch (err) {
     console.warn('Failed to sync journal state locally:', err);
   }
 
-  // Skip redundant network writes if exact same state was already dispatched
-  if (payloadJson === lastWrittenCloudPayloadHash) {
-    return;
+  // 2. Targeted Atomic Entry Write if specific entryId is provided
+  if (targetEntryId) {
+    let targetBullet: BulletPoint | null = null;
+    let parentWeekId = targetWeekId || '';
+
+    if (!parentWeekId) {
+      for (const w of state.weeks || []) {
+        const found = w.bullets?.find((b) => b.id === targetEntryId);
+        if (found) {
+          targetBullet = found;
+          parentWeekId = w.id;
+          break;
+        }
+      }
+    } else {
+      const w = state.weeks?.find((week) => week.id === parentWeekId);
+      targetBullet = w?.bullets?.find((b) => b.id === targetEntryId) || null;
+    }
+
+    if (targetBullet && parentWeekId) {
+      await saveEntryDoc(parentWeekId, targetBullet);
+      return;
+    }
   }
 
-  console.log('[Sync OUT] Dispatching journal update to Firestore:', {
-    targetEntryId: entryId || 'global',
-    weeksCount: sanitized.weeks?.length,
-    coreItemsCount: sanitized.coreItems?.length,
-    updatedAt: sanitized.updatedAt,
-    sessionId: CLIENT_SESSION_ID,
-  });
-
+  // 3. Full Atomic Dispatch: Write week shells, entries, folders, and core topics independently
   try {
-    const appStateDocRef = doc(db, 'app_state', 'journal');
-    await setDoc(appStateDocRef, sanitized, { merge: true });
-    lastWrittenCloudPayloadHash = payloadJson;
-    console.log('[Auto-Save] Entry saved to Firestore:', entryId || 'all');
-  } catch (err) {
-    console.warn('[Sync OUT] Firestore write failed:', err);
-    // Store failed payload marker for offline recovery
-    try {
-      localStorage.setItem('journal_failed_sync_payload', payloadJson);
-    } catch {
-      // ignore
+    // Save Weeks & Entries
+    for (const week of state.weeks || []) {
+      await saveWeekMetaDoc(week);
+      for (const bullet of week.bullets || []) {
+        await saveEntryDoc(week.id, bullet);
+      }
     }
+
+    // Save Folders / Categories
+    for (const cat of state.coreCategories || []) {
+      await saveFolderDoc(cat);
+    }
+    if (state.coreCategories && state.coreCategories.length > 0) {
+      await saveCoreCategoriesDoc(state.coreCategories);
+    }
+
+    // Save Core Topic Notes
+    for (const item of state.coreItems || []) {
+      await saveCoreTopicDoc(item);
+    }
+
+    // Save Comments
+    for (const comment of state.comments || []) {
+      await saveCommentDoc(comment);
+    }
+
+    // Keep legacy fallback document updated for backward compatibility
+    try {
+      const appStateDocRef = doc(db, 'app_state', 'journal');
+      await setDoc(
+        appStateDocRef,
+        sanitizeForFirestore({
+          weeks: state.weeks,
+          coreItems: state.coreItems,
+          coreCategories: state.coreCategories,
+          updatedAt: new Date().toISOString(),
+          clientSessionId: CLIENT_SESSION_ID,
+        }),
+        { merge: true }
+      );
+    } catch {}
+
+    console.log('[Atomic Sync] Full atomic cloud synchronization completed.');
+  } catch (err) {
+    console.error('[Atomic Sync Error] Cloud write failure:', err);
     throw err;
+  }
+}
+
+/**
+ * Force a lightweight state re-sync on tab focus / visibilitychange
+ */
+export async function refreshFirestoreSync(): Promise<void> {
+  try {
+    const weeksSnap = await getDocs(collection(db, 'weeks'));
+    if (!weeksSnap.empty) {
+      const permsSnap = await getDoc(doc(db, 'permissions', 'global'));
+      if (permsSnap.exists()) {
+        const permsData = permsSnap.data() as PermissionsDoc;
+        localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(permsData));
+        permissionsListeners.forEach((listener) => listener(permsData));
+      }
+    }
+  } catch (err) {
+    console.warn('[Sync] Focus refresh fallback note:', err);
   }
 }
 

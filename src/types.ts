@@ -166,6 +166,9 @@ export interface CoreCategoryConfig {
   hasChecklist?: boolean;
   hasMediaGrid?: boolean;
   isCustom?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  order?: number;
 }
 
 export interface FilterOptions {

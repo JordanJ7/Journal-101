@@ -21,44 +21,73 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/permissions/global).data;
     }
 
-    function isOwner() {
-      return (
-        isSignedIn() && (
-          getUserEmail() == 'saojmj123456@gmail.com' ||
-          (hasPermissions() && 'ownerEmail' in getPermissions() && getUserEmail() == getPermissions().ownerEmail.lower())
-        )
-      );
-    }
-
-    // 1. Permissions Document (Read by all, editable by owner or initial setup)
+    // 1. Permissions Document
     match /permissions/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // 2. Journal Entries & App State Sync
-    match /app_state/{docId} {
       allow read, write: if true;
     }
 
+    // 2. Folders & Subcollection Notes (/folders/{folderId}/notes/{noteId})
+    match /folders/{folderId} {
+      allow read, write: if true;
+
+      match /notes/{noteId} {
+        allow read, write: if true;
+      }
+    }
+
+    // 3. Weekly Blocks & Atomic Entries Subcollections
     match /weeks/{weekId} {
       allow read, write: if true;
 
+      // Atomic Entry Subcollection: /weeks/{weekId}/entries/{entryId}
+      match /entries/{entryId} {
+        allow read, write: if true;
+
+        // Nested Media Attachments: /weeks/{weekId}/entries/{entryId}/attachments/{attachmentId}
+        match /attachments/{attachmentId} {
+          allow read, write: if true;
+        }
+      }
+
+      // Legacy bullets subcollection alias
       match /bullets/{bulletId} {
         allow read, write: if true;
       }
     }
 
+    // Collection Group Queries for entries and notes across all folders and weeks
+    match /{path=**}/entries/{entryId} {
+      allow read, write: if true;
+    }
+
+    match /{path=**}/notes/{noteId} {
+      allow read, write: if true;
+    }
+
+    match /{path=**}/attachments/{attachmentId} {
+      allow read, write: if true;
+    }
+
+    // 4. Core Topics & Core Categories (Atomic Documents)
     match /core_topics/{topicId} {
       allow read, write: if true;
     }
 
-    // 3. Comments (Owners, Editors, Commenters, and Collaborators)
+    match /core_categories/{docId} {
+      allow read, write: if true;
+    }
+
+    // 5. App State Backup & Sync
+    match /app_state/{docId} {
+      allow read, write: if true;
+    }
+
+    // 6. Comments
     match /comments/{commentId} {
       allow read, write: if true;
     }
 
-    // 4. Shared Media Hub Items
+    // 7. Shared Media Hub Items
     match /shared_media/{mediaId} {
       allow read, write: if true;
     }
@@ -69,4 +98,3 @@ service cloud.firestore {
     }
   }
 }
-

@@ -20,29 +20,241 @@
       },
       "required": ["globalShareEnabled", "ownerEmail", "users"]
     },
-    "JournalAppState": {
-      "title": "JournalAppState",
-      "description": "Top-level synchronized state containing weeks, core topics, and categories.",
+    "FolderDoc": {
+      "title": "FolderDoc",
+      "description": "Individual atomic core topic folder / category configuration document.",
       "type": "object",
       "properties": {
-        "weeks": {
-          "type": "array",
-          "description": "List of weekly journal timeline entries."
+        "id": {
+          "type": "string",
+          "description": "Unique folder / category ID."
         },
-        "coreItems": {
-          "type": "array",
-          "description": "List of persistent core topic questions, notes, and items."
+        "title": {
+          "type": "string",
+          "description": "Display title of the folder."
         },
-        "coreCategories": {
+        "description": {
+          "type": "string",
+          "description": "Folder description or intent prompt."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Lucide icon identifier string."
+        },
+        "color": {
+          "type": "string",
+          "description": "Theme color accent class."
+        },
+        "subCategories": {
           "type": "array",
-          "description": "List of core category configurations and folder structures."
+          "description": "Nested subcategory tabs and prompt configurations."
+        },
+        "order": {
+          "type": "number",
+          "description": "Display sort order."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation."
         },
         "updatedAt": {
           "type": "string",
-          "description": "ISO timestamp of the last synchronization."
+          "description": "ISO timestamp of last update."
         }
       },
-      "required": ["weeks", "coreItems", "coreCategories"]
+      "required": ["id", "title"]
+    },
+    "WeeklyBlockMeta": {
+      "title": "WeeklyBlockMeta",
+      "description": "Metadata for a weekly journal block containing titles, dates, assignments, and therapist notes.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the week block."
+        },
+        "weekTitle": {
+          "type": "string",
+          "description": "Human-readable title e.g. Week of August 17th, 2026."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start date for the week range."
+        },
+        "endDate": {
+          "type": "string",
+          "description": "End date for the week range."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Formatted timestamp string."
+        },
+        "isCustomDate": {
+          "type": "boolean",
+          "description": "Whether the date was manually backdated."
+        },
+        "assignments": {
+          "type": "object",
+          "description": "Weekly assignment switches and Q&A homework."
+        },
+        "therapistSection": {
+          "type": "object",
+          "description": "Therapist notes, shared links, and discussion items."
+        }
+      },
+      "required": ["id", "weekTitle", "startDate", "endDate"]
+    },
+    "JournalEntryDoc": {
+      "title": "JournalEntryDoc",
+      "description": "Individual atomic journal bullet/entry document stored in the entries subcollection.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the journal entry."
+        },
+        "text": {
+          "type": "string",
+          "description": "Text content of the bullet point or journal paragraph."
+        },
+        "indent": {
+          "type": "number",
+          "description": "Nesting indent level (0, 1, 2)."
+        },
+        "bulletStyle": {
+          "type": "string",
+          "description": "Style of bullet marker (disc, circle, dash)."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Human-readable formatted timestamp."
+        },
+        "isoDate": {
+          "type": "string",
+          "description": "ISO formatted date string."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation ISO timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update ISO timestamp."
+        },
+        "isCustomDate": {
+          "type": "boolean",
+          "description": "Whether the entry has a custom timestamp."
+        },
+        "isEdited": {
+          "type": "boolean",
+          "description": "Whether the entry was edited."
+        },
+        "isAnswerHighlight": {
+          "type": "boolean",
+          "description": "Highlighted therapist takeaway badge."
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "Optional legacy media URL."
+        },
+        "mediaType": {
+          "type": "string",
+          "description": "Media type (image, video, link)."
+        },
+        "mediaCaption": {
+          "type": "string",
+          "description": "Media caption description."
+        },
+        "attachments": {
+          "type": "array",
+          "description": "Array of media attachments."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Checkbox completion status."
+        },
+        "pinnedToLearned": {
+          "type": "boolean",
+          "description": "Pinned status to What I Learned."
+        },
+        "pinnedLearnedId": {
+          "type": "string",
+          "description": "Target ID in What I Learned."
+        }
+      },
+      "required": ["id", "text", "timestamp"]
+    },
+    "CoreTopicDoc": {
+      "title": "CoreTopicDoc",
+      "description": "Atomic persistent core topic item document.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique topic item identifier."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Target category or folder ID."
+        },
+        "subCategoryId": {
+          "type": "string",
+          "description": "Optional sub-category identifier."
+        },
+        "title": {
+          "type": "string",
+          "description": "Topic item title or prompt."
+        },
+        "content": {
+          "type": "string",
+          "description": "Detailed text content."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Formatted timestamp string."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp."
+        },
+        "dateTag": {
+          "type": "string",
+          "description": "Custom date or tag label."
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status."
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority level."
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "Legacy media URL."
+        },
+        "attachments": {
+          "type": "array",
+          "description": "Attachments array."
+        },
+        "answers": {
+          "type": "string",
+          "description": "Answers or therapist feedback notes."
+        }
+      },
+      "required": ["id", "categoryId", "title", "content"]
     },
     "CommentItem": {
       "title": "CommentItem",
@@ -53,9 +265,13 @@
           "type": "string",
           "description": "Unique comment identifier."
         },
-        "sectionTag": {
+        "targetType": {
           "type": "string",
-          "description": "Target section or block tag for the comment."
+          "description": "Target type: weekly or core."
+        },
+        "targetId": {
+          "type": "string",
+          "description": "Target week or category ID."
         },
         "authorEmail": {
           "type": "string",
@@ -67,7 +283,7 @@
         },
         "authorRole": {
           "type": "string",
-          "description": "Role of the author (e.g., owner, commenter, editor)."
+          "description": "Role of the author."
         },
         "content": {
           "type": "string",
@@ -78,7 +294,7 @@
           "description": "Formatted timestamp string."
         }
       },
-      "required": ["id", "sectionTag", "authorEmail", "content", "timestamp"]
+      "required": ["id", "authorName", "content", "timestamp"]
     }
   },
   "firestore": {
@@ -86,9 +302,33 @@
       "schema": "PermissionsDoc",
       "description": "Role-based access permissions and global share settings."
     },
+    "/folders/{folderId}": {
+      "schema": "FolderDoc",
+      "description": "Atomic topic folder and category document."
+    },
+    "/folders/{folderId}/notes/{noteId}": {
+      "schema": "CoreTopicDoc",
+      "description": "Notes and entries inside a specific folder."
+    },
+    "/weeks/{weekId}": {
+      "schema": "WeeklyBlockMeta",
+      "description": "Weekly block metadata, assignments, and therapist card."
+    },
+    "/weeks/{weekId}/entries/{entryId}": {
+      "schema": "JournalEntryDoc",
+      "description": "Atomic journal entries and bullets within each week."
+    },
+    "/core_topics/{topicId}": {
+      "schema": "CoreTopicDoc",
+      "description": "Atomic persistent core topic notes and items."
+    },
+    "/core_categories/{docId}": {
+      "schema": "FolderDoc",
+      "description": "Core categories settings fallback."
+    },
     "/app_state/{docId}": {
-      "schema": "JournalAppState",
-      "description": "Synchronized personal journal state, weekly blocks, and core topics."
+      "schema": "WeeklyBlockMeta",
+      "description": "Legacy backup document."
     },
     "/comments/{commentId}": {
       "schema": "CommentItem",
