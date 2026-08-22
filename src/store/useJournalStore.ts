@@ -42,6 +42,10 @@ const INITIAL_OWNER_PROFILE: CurrentUserProfile = {
 export type AutoSaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
 export interface JournalStoreState {
+  // Hydration state (prevents unhydrated state from overwriting Firestore)
+  isHydrated: boolean;
+  setIsHydrated: (isHydrated: boolean) => void;
+
   // Data state (clean empty defaults)
   weeks: WeeklyBlock[];
   activeWeekId: string;
@@ -129,7 +133,7 @@ export interface JournalStoreState {
 
   togglePinTakeaway: (bullet: BulletPoint, week: WeeklyBlock) => void;
 
-  flushAutoSave: () => Promise<void>;
+  flushAutoSave: (entryId?: string) => Promise<void>;
 
   setIsExportModalOpen: (isOpen: boolean) => void;
   setIsAccessManagementOpen: (isOpen: boolean) => void;
@@ -152,27 +156,36 @@ export interface JournalStoreState {
   resetAllData: () => void;
 }
 
-// Generous Debounced background persistence helper (triggers Firestore & Storage update 1400ms after user stops typing)
-const AUTO_SAVE_DEBOUNCE_MS = 1400;
+// Generous Debounced background persistence helper (600ms debounce after user stops typing)
+const AUTO_SAVE_DEBOUNCE_MS = 600;
 let syncTimeout: any = null;
 let lastLocalMutationTime = 0;
 let lastUserKeystrokeTime = 0;
 let isSyncInProgress = false;
 let pendingSaveAfterSync = false;
+let pendingTargetEntryId: string | undefined = undefined;
 
-const executeSave = async (get: () => JournalStoreState) => {
+const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
   if (syncTimeout) {
     clearTimeout(syncTimeout);
     syncTimeout = null;
   }
 
-  // Guard: If user is actively typing / mid-sentence (typed within the last AUTO_SAVE_DEBOUNCE_MS),
+  const s = get();
+
+  // HYDRATION GUARD: Prevent saving empty/default state over Firestore before cloud hydration completes
+  if (!s.isHydrated) {
+    console.warn('[Auto-Save Guard] Save skipped: App state is still hydrating from Cloud Firestore.');
+    return;
+  }
+
+  // Guard: If user is actively typing (typed within the debounce window),
   // reschedule to give the user uninterrupted smooth input flow.
   const timeSinceLastKeystroke = Date.now() - lastUserKeystrokeTime;
   if (timeSinceLastKeystroke < AUTO_SAVE_DEBOUNCE_MS && lastUserKeystrokeTime > 0) {
-    const remainingDelay = Math.max(350, AUTO_SAVE_DEBOUNCE_MS - timeSinceLastKeystroke);
+    const remainingDelay = Math.max(250, AUTO_SAVE_DEBOUNCE_MS - timeSinceLastKeystroke);
     syncTimeout = setTimeout(() => {
-      executeSave(get);
+      executeSave(get, entryId || pendingTargetEntryId);
     }, remainingDelay);
     return;
   }
@@ -180,12 +193,12 @@ const executeSave = async (get: () => JournalStoreState) => {
   // Guard against concurrent overlapping network dispatches
   if (isSyncInProgress) {
     pendingSaveAfterSync = true;
+    if (entryId) pendingTargetEntryId = entryId;
     return;
   }
 
   isSyncInProgress = true;
   useJournalStore.setState({ saveStatus: 'saving' });
-  const s = get();
 
   try {
     const appState: AppState = {
@@ -201,37 +214,65 @@ const executeSave = async (get: () => JournalStoreState) => {
       filters: s.filters,
       comments: s.comments,
     };
+
+    // 1. Immediate LocalStorage / IndexedDB Backup
     saveAppState(appState);
+
+    // 2. Cloud Firestore Dispatch
     if (s.currentUser?.role && s.currentUser.role !== 'viewer') {
-      await saveJournalDataToCloud(appState);
+      await saveJournalDataToCloud(appState, entryId || pendingTargetEntryId);
     }
+
     const formattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     useJournalStore.setState({
       saveStatus: 'saved',
       lastSavedAt: formattedTime,
     });
+    console.log('[Auto-Save] Entry saved to Firestore:', entryId || pendingTargetEntryId || 'all');
+    pendingTargetEntryId = undefined;
   } catch (err) {
-    console.warn('Auto-save sync status:', err);
-    // Even if cloud write fails, local storage is safely preserved
+    console.warn('[Auto-Save] Cloud write error, fallback to local backup:', err);
     useJournalStore.setState({ saveStatus: 'saved', lastSavedAt: 'Saved locally' });
   } finally {
     isSyncInProgress = false;
     if (pendingSaveAfterSync) {
       pendingSaveAfterSync = false;
-      schedulePersistence(get, 400);
+      schedulePersistence(get, 200, pendingTargetEntryId);
     }
   }
 };
 
-const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_DEBOUNCE_MS) => {
+const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_DEBOUNCE_MS, entryId?: string) => {
   lastLocalMutationTime = Date.now();
   lastUserKeystrokeTime = Date.now();
+  if (entryId) pendingTargetEntryId = entryId;
+
+  // Immediately mirror to LocalStorage failsafe backup upon every edit
+  try {
+    const s = get();
+    saveAppState({
+      weeks: s.weeks,
+      activeWeekId: s.activeWeekId,
+      coreItems: s.coreItems,
+      activeCoreCategory: s.activeCoreCategory,
+      activeCoreSubCategory: s.activeCoreSubCategory,
+      theme: s.theme,
+      accentTheme: s.accentTheme,
+      coreCategories: s.coreCategories,
+      pinnedCategoryIds: s.pinnedCategoryIds,
+      filters: s.filters,
+      comments: s.comments,
+    });
+  } catch (err) {
+    console.warn('Immediate local cache save note:', err);
+  }
+
   // Mark as unsaved immediately upon typing / mutation for instant responsive feedback
   useJournalStore.setState({ saveStatus: 'unsaved' });
 
   if (syncTimeout) clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
-    executeSave(get);
+    executeSave(get, entryId);
   }, delayMs);
 };
 
@@ -259,6 +300,9 @@ if (typeof document !== 'undefined') {
 }
 
 export const useJournalStore = create<JournalStoreState>((set, get) => ({
+  isHydrated: false,
+  setIsHydrated: (isHydrated) => set({ isHydrated }),
+
   weeks: Array.isArray(initialLoaded.weeks) ? initialLoaded.weeks : INITIAL_WEEKS,
   activeWeekId: initialLoaded.activeWeekId || initialLoaded.weeks?.[0]?.id || '',
   coreItems: Array.isArray(initialLoaded.coreItems) ? initialLoaded.coreItems : INITIAL_CORE_ITEMS,
@@ -284,9 +328,9 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   saveStatus: 'saved',
   lastSavedAt: null,
 
-  flushAutoSave: async () => {
+  flushAutoSave: async (entryId?: string) => {
     if (syncTimeout) clearTimeout(syncTimeout);
-    await executeSave(get);
+    await executeSave(get, entryId);
   },
 
   isExportModalOpen: false,
@@ -978,8 +1022,9 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     set((currentState) => {
       let nextWeeks = incomingWeeks;
       let nextCoreCategories = incomingCoreCategories;
+      let nextCoreItems = incomingCoreItems;
 
-      // If user is currently typing in the active week or active category, merge non-conflicting sections
+      // If user is currently typing in the active week, category, or item, merge non-conflicting sections
       if (isUserActivelyTyping) {
         // Retain the actively edited week draft
         nextWeeks = incomingWeeks.map((remoteWeek) => {
@@ -998,17 +1043,40 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
           }
           return remoteCat;
         });
+
+        // Retain locally modified or newly created core folder items
+        nextCoreItems = incomingCoreItems.map((remoteItem) => {
+          const localItem = currentState.coreItems.find((ci) => ci.id === remoteItem.id);
+          if (
+            localItem &&
+            localItem.updatedAt &&
+            (!remoteItem.updatedAt || new Date(localItem.updatedAt) >= new Date(remoteItem.updatedAt))
+          ) {
+            return localItem;
+          }
+          return remoteItem;
+        });
+        currentState.coreItems.forEach((localItem) => {
+          if (!nextCoreItems.some((ni) => ni.id === localItem.id)) {
+            nextCoreItems.push(localItem);
+          }
+        });
       }
 
       const hasActiveWeek = nextWeeks.some((w) => w.id === currentState.activeWeekId);
-      const activeWeekId = hasActiveWeek ? currentState.activeWeekId : nextWeeks[0]?.id || '';
+      const activeWeekId = hasActiveWeek
+        ? currentState.activeWeekId
+        : currentState.activeWeekId || nextWeeks[0]?.id || '';
 
       const hasActiveCat = nextCoreCategories.some((c) => c.id === currentState.activeCoreCategory);
-      const activeCoreCategory = hasActiveCat ? currentState.activeCoreCategory : nextCoreCategories[0]?.id || currentState.activeCoreCategory;
+      const activeCoreCategory = hasActiveCat
+        ? currentState.activeCoreCategory
+        : currentState.activeCoreCategory || nextCoreCategories[0]?.id || '';
 
       return {
+        isHydrated: true,
         weeks: nextWeeks,
-        coreItems: incomingCoreItems,
+        coreItems: nextCoreItems,
         coreCategories: nextCoreCategories,
         pinnedCategoryIds: incomingPinnedCategoryIds,
         comments: incomingComments,
@@ -1084,3 +1152,4 @@ export const useIsAccessManagementOpen = () => useJournalStore((s) => s.isAccess
 export const useIsCommentsSidebarOpen = () => useJournalStore((s) => s.isCommentsSidebarOpen);
 export const useActiveCommentSectionTag = () => useJournalStore((s) => s.activeCommentSectionTag);
 export const useUpdateWeeklyEntryTimestamp = () => useJournalStore((s) => s.updateWeeklyEntryTimestamp);
+export const useIsHydrated = () => useJournalStore((s) => s.isHydrated);

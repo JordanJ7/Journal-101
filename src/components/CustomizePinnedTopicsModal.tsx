@@ -207,7 +207,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
         </div>
 
         {/* Categories List */}
-        <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[220px]">
+        <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1 min-h-[220px]">
           {filteredCategories.length === 0 ? (
             <div className="p-8 text-center text-stone-400 text-xs">
               No folders found matching "{searchQuery}".
@@ -223,15 +223,15 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                 <div
                   key={category.id}
                   onClick={() => handleToggle(category.id)}
-                  className={`w-full p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group select-none ${
+                  className={`w-full h-auto min-h-[52px] py-2.5 px-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 box-border group select-none ${
                     isPinned
                       ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} text-stone-900 dark:text-stone-100 shadow-2xs`
                       : 'bg-stone-50/80 dark:bg-white/[0.02] border-stone-200/80 dark:border-white/5 text-stone-600 dark:text-stone-300 hover:bg-stone-100/90 dark:hover:bg-white/[0.05]'
                   }`}
                 >
                   {/* Left: Icon, Title, Badge */}
-                  <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
-                    <div
+                  <div className="flex items-center gap-3 min-w-0 flex-1 py-0.5">
+                    <span
                       className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-colors ${
                         isPinned
                           ? `${currentAccent.bg500} text-white shadow-2xs`
@@ -239,20 +239,20 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                       }`}
                     >
                       <IconComp className="w-4 h-4 shrink-0" />
-                    </div>
+                    </span>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs sm:text-sm font-semibold truncate">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs sm:text-sm font-semibold text-left leading-snug break-words whitespace-normal">
                           {category.title}
-                        </p>
+                        </span>
                         {isPinned && (
-                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${currentAccent.tagBadge}`}>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md shrink-0 ${currentAccent.tagBadge}`}>
                             #{pinIndex + 1}
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-stone-400 truncate">
+                      <p className="text-[11px] text-stone-400 leading-snug break-words whitespace-normal mt-0.5">
                         {noteCount} {noteCount === 1 ? 'note' : 'notes'}
                         {category.description ? ` • ${category.description}` : ''}
                       </p>
@@ -260,7 +260,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                   </div>
 
                   {/* Right: Reorder Arrows + Checkbox/Pin Button */}
-                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1 shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
                     {isPinned && (
                       <div className="flex items-center gap-0.5 mr-1 bg-black/5 dark:bg-white/5 rounded-lg p-0.5">
                         <button

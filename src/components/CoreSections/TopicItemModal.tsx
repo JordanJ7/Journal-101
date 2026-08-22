@@ -1,15 +1,22 @@
-import { Check, Clock, Folder, Image as ImageIcon, Loader2, Upload, X } from 'lucide-react';
+import { Check, Clock, Eye, Folder, Image as ImageIcon, Loader2, Play, Plus, Upload, Video, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { CORE_CATEGORIES_CONFIG } from '../../data/initialData';
-import { CoreCategoryConfig, CoreCategoryId, CoreTopicItem } from '../../types';
+import { Attachment, CoreCategoryConfig, CoreCategoryId, CoreTopicItem } from '../../types';
 import { formatTimestamp } from '../../utils/storage';
 import { BulletedNoteEditor } from './BulletedNoteEditor';
+import {
+  createAttachmentFromUrl,
+  filesToPersistentAttachments,
+  getNormalizedAttachments,
+  isVideoMedia,
+} from '../../utils/mediaUtils';
+import { MediaInspectModal } from '../MediaInspectModal';
 
 interface TopicItemModalProps {
   item?: CoreTopicItem | null;
   activeCategory: CoreCategoryId;
   coreCategories?: CoreCategoryConfig[];
-  onSave: (item: CoreTopicItem) => void;
+  onSave: (item: CoreTopicItem, shouldClose?: boolean) => void;
   onClose: () => void;
 }
 
@@ -25,24 +32,57 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
   );
   const categoryConfig = coreCategories.find((c) => c.id === selectedCategoryId) || coreCategories[0];
 
+  // Controlled local draft state isolated from background Firestore updates
   const [title, setTitle] = useState(item?.title || '');
   const [content, setContent] = useState(item?.content || '');
   const [status, setStatus] = useState<any>(item?.status || 'Draft');
   const [priority, setPriority] = useState<any>(item?.priority || 'Medium');
-  const [mediaUrl, setMediaUrl] = useState(item?.mediaUrl || '');
+  const [draftAttachments, setDraftAttachments] = useState<Attachment[]>(
+    item ? getNormalizedAttachments(item) : []
+  );
+  const [urlInput, setUrlInput] = useState('');
+  const [isProcessingUpload, setIsProcessingUpload] = useState(false);
+  const [showInspectModal, setShowInspectModal] = useState(false);
   const [location, setLocation] = useState(item?.location || '');
-  // Auto-fill date & time tag if new entry
   const [dateTag, setDateTag] = useState(item?.dateTag || formatTimestamp());
   const [notes, setNotes] = useState(item?.notes || '');
   const [answers, setAnswers] = useState(item?.answers || '');
   const [isHighlightedAnswer, setIsHighlightedAnswer] = useState(item?.isHighlightedAnswer || false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
 
-  // Debounced auto-save if editing existing item
-  const isTypingRef = useRef(false);
+  const isUserTypingRef = useRef(false);
+  const hasEverTypedRef = useRef(false);
+  const modalMountedItemIdRef = useRef<string | undefined>(item?.id);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Synchronize initial item changes ONLY if user is NOT actively typing and the opened item ID changed
+  useEffect(() => {
+    if (!item) return;
+    if (item.id !== modalMountedItemIdRef.current) {
+      modalMountedItemIdRef.current = item.id;
+      hasEverTypedRef.current = false;
+      setSelectedCategoryId(item.categoryId || activeCategory);
+      setTitle(item.title || '');
+      setContent(item.content || '');
+      setStatus(item.status || 'Draft');
+      setPriority(item.priority || 'Medium');
+      setDraftAttachments(getNormalizedAttachments(item));
+      setLocation(item.location || '');
+      setDateTag(item.dateTag || formatTimestamp());
+      setNotes(item.notes || '');
+      setAnswers(item.answers || '');
+      setIsHighlightedAnswer(item.isHighlightedAnswer || false);
+    }
+  }, [item, activeCategory]);
+
+  // Debounced auto-save if editing existing item (without closing the modal!)
   useEffect(() => {
     if (!item) return; // Only auto-save existing records, new items saved on Submit
+
+    const currentAtts = getNormalizedAttachments(item);
+    const hasAttChange =
+      JSON.stringify(draftAttachments.map((a) => a.id)) !==
+      JSON.stringify(currentAtts.map((a) => a.id));
 
     const hasChanges =
       title !== item.title ||
@@ -50,7 +90,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
       selectedCategoryId !== item.categoryId ||
       (status || 'Draft') !== (item.status || 'Draft') ||
       (priority || 'Medium') !== (item.priority || 'Medium') ||
-      (mediaUrl || '') !== (item.mediaUrl || '') ||
+      hasAttChange ||
       (location || '') !== (item.location || '') ||
       (notes || '') !== (item.notes || '') ||
       (answers || '') !== (item.answers || '') ||
@@ -58,11 +98,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
 
     if (!hasChanges || !title.trim()) return;
 
-    isTypingRef.current = true;
+    isUserTypingRef.current = true;
+    hasEverTypedRef.current = true;
     setAutoSaveStatus('unsaved');
 
     const timer = setTimeout(() => {
       setAutoSaveStatus('saving');
+      const primaryMedia = draftAttachments[0];
       const savedItem: CoreTopicItem = {
         ...item,
         categoryId: selectedCategoryId,
@@ -72,8 +114,10 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
         dateTag: dateTag.trim() || undefined,
         status: categoryConfig?.hasDraftTracking ? status : status || undefined,
         priority: priority || undefined,
-        mediaUrl: mediaUrl.trim() || undefined,
-        mediaType: mediaUrl.trim() ? 'image' : undefined,
+        attachments: draftAttachments,
+        mediaUrl: primaryMedia?.url || undefined,
+        mediaType: primaryMedia?.type || undefined,
+        mediaCaption: primaryMedia?.caption || undefined,
         location: location.trim() || undefined,
         notes: notes.trim() || undefined,
         answers: answers.trim() || undefined,
@@ -81,10 +125,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
         updatedAt: new Date().toISOString(),
       };
 
-      onSave(savedItem);
+      // Auto-save in background without closing modal (shouldClose = false)
+      onSave(savedItem, false);
+      console.log('[Auto-Save] Entry saved to Firestore:', item.id);
       setAutoSaveStatus('saved');
-      isTypingRef.current = false;
-    }, 2000);
+      isUserTypingRef.current = false;
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [
@@ -94,7 +140,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
     selectedCategoryId,
     status,
     priority,
-    mediaUrl,
+    draftAttachments,
     location,
     dateTag,
     notes,
@@ -104,23 +150,68 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
     onSave,
   ]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setMediaUrl(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+  // Flush on unmount if pending changes
+  useEffect(() => {
+    return () => {
+      if (isUserTypingRef.current && item && title.trim()) {
+        const primaryMedia = draftAttachments[0];
+        const savedItem: CoreTopicItem = {
+          ...item,
+          categoryId: selectedCategoryId,
+          title: title.trim(),
+          content: content.trim(),
+          timestamp: item.timestamp || formatTimestamp(),
+          dateTag: dateTag.trim() || undefined,
+          status: categoryConfig?.hasDraftTracking ? status : status || undefined,
+          priority: priority || undefined,
+          attachments: draftAttachments,
+          mediaUrl: primaryMedia?.url || undefined,
+          mediaType: primaryMedia?.type || undefined,
+          mediaCaption: primaryMedia?.caption || undefined,
+          location: location.trim() || undefined,
+          notes: notes.trim() || undefined,
+          answers: answers.trim() || undefined,
+          isHighlightedAnswer,
+          updatedAt: new Date().toISOString(),
+        };
+        onSave(savedItem, false);
+        console.log('[Auto-Save] Entry saved to Firestore:', item.id);
+      }
+    };
+  }, [answers, categoryConfig?.hasDraftTracking, content, dateTag, draftAttachments, isHighlightedAnswer, item, location, notes, onSave, priority, selectedCategoryId, status, title]);
+
+  const handleMultipleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setIsProcessingUpload(true);
+      const newAtts = await filesToPersistentAttachments(files);
+      setDraftAttachments((prev) => [...prev, ...newAtts]);
+    } catch (err) {
+      console.error('Failed to read files:', err);
+    } finally {
+      setIsProcessingUpload(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleAddUrl = () => {
+    if (!urlInput.trim()) return;
+    const att = createAttachmentFromUrl(urlInput.trim());
+    setDraftAttachments((prev) => [...prev, att]);
+    setUrlInput('');
+  };
+
+  const handleRemoveAttachment = (idToRemove: string) => {
+    setDraftAttachments((prev) => prev.filter((a) => a.id !== idToRemove));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
+    const primaryMedia = draftAttachments[0];
     const savedItem: CoreTopicItem = {
       id: item?.id || 'core-' + Date.now(),
       categoryId: selectedCategoryId,
@@ -130,8 +221,10 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
       dateTag: dateTag.trim() || undefined,
       status: categoryConfig?.hasDraftTracking ? status : status || undefined,
       priority: priority || undefined,
-      mediaUrl: mediaUrl.trim() || undefined,
-      mediaType: mediaUrl.trim() ? 'image' : undefined,
+      attachments: draftAttachments,
+      mediaUrl: primaryMedia?.url || undefined,
+      mediaType: primaryMedia?.type || undefined,
+      mediaCaption: primaryMedia?.caption || undefined,
       location: location.trim() || undefined,
       notes: notes.trim() || undefined,
       answers: answers.trim() || undefined,
@@ -140,7 +233,8 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
       updatedAt: new Date().toISOString(),
     };
 
-    onSave(savedItem);
+    // User explicitly pressed Submit -> Save & Close modal (shouldClose = true)
+    onSave(savedItem, true);
   };
 
   return (
@@ -356,44 +450,99 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
             />
           </div>
 
-          {/* Media Attachment (Photo / Document Image) */}
-          <div>
-            <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              Media Attachment (Photo / Screenshot)
-            </label>
-            <div className="flex gap-2 items-center">
+          {/* Media Attachments (Photos / Videos) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block font-semibold text-stone-700 dark:text-stone-300">
+                Media Attachments ({draftAttachments.length})
+              </label>
+              {draftAttachments.length > 0 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowInspectModal(true);
+                  }}
+                  className="text-amber-600 dark:text-amber-400 font-semibold text-xs flex items-center gap-1 hover:underline cursor-pointer pointer-events-auto"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Inspect All ({draftAttachments.length})</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 items-center">
               <input
                 type="text"
-                placeholder="Paste image URL (https://...)"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                className="flex-1 p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+                placeholder="Paste photo or video URL..."
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddUrl();
+                  }
+                }}
+                className="flex-1 min-w-[180px] p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
               />
-              <label className="cursor-pointer min-h-[44px] px-3.5 py-2 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-xl font-bold flex items-center gap-1 shrink-0 transition-colors">
-                <Upload className="w-4 h-4" />
-                <span>Upload</span>
+              <button
+                type="button"
+                onClick={handleAddUrl}
+                className="min-h-[44px] px-3 py-2 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-xl font-bold text-xs"
+              >
+                Add URL
+              </button>
+              <label className="cursor-pointer min-h-[44px] px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-1 shrink-0 transition-colors shadow-2xs">
+                {isProcessingUpload ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4" />
+                )}
+                <span>Upload Media</span>
                 <input
+                  ref={fileInputRef}
                   type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={handleMultipleFilesUpload}
                   className="hidden"
+                  disabled={isProcessingUpload}
                 />
               </label>
             </div>
-            {mediaUrl && (
-              <div className="mt-2 relative inline-block">
-                <img
-                  src={mediaUrl}
-                  alt="Attachment preview"
-                  className="w-24 h-24 object-cover rounded-xl border border-stone-300 dark:border-stone-700 shadow-2xs"
-                />
-                <button
-                  type="button"
-                  onClick={() => setMediaUrl('')}
-                  className="absolute -top-1.5 -right-1.5 bg-rose-600 text-white rounded-full p-1 shadow-xs min-h-[28px] min-w-[28px] flex items-center justify-center"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+
+            {/* Thumbnail Carousel / List */}
+            {draftAttachments.length > 0 && (
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
+                {draftAttachments.map((att) => {
+                  const isVid = isVideoMedia(att.url, att.type);
+                  return (
+                    <div
+                      key={att.id}
+                      className="relative group rounded-xl overflow-hidden border border-stone-300 dark:border-stone-700 aspect-square bg-stone-950"
+                    >
+                      {isVid ? (
+                        <div className="w-full h-full flex items-center justify-center text-sky-400 bg-stone-900">
+                          <Video className="w-5 h-5" />
+                        </div>
+                      ) : (
+                        <img
+                          src={att.url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttachment(att.id)}
+                        className="absolute top-1 right-1 p-1 bg-rose-600 text-white rounded-full shadow-xs hover:scale-110 transition-transform"
+                        title="Remove attachment"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -416,6 +565,23 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
           </div>
         </form>
       </div>
+
+      {showInspectModal && draftAttachments.length > 0 && (
+        <MediaInspectModal
+          isOpen={showInspectModal}
+          attachments={draftAttachments}
+          title={title || 'Topic Entry Media'}
+          onClose={() => setShowInspectModal(false)}
+          onDeleteAttachment={(attId) => {
+            setDraftAttachments((prev) => prev.filter((a) => a.id !== attId));
+          }}
+          onUpdateCaption={(attId, caption) => {
+            setDraftAttachments((prev) =>
+              prev.map((a) => (a.id === attId ? { ...a, caption } : a))
+            );
+          }}
+        />
+      )}
     </div>
   );
 };

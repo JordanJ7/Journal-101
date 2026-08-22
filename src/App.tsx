@@ -120,6 +120,7 @@ export default function App() {
     switchSimulatedUser,
     logout,
     syncFromCloud,
+    setIsHydrated,
   } = useJournalStore(
     useShallow((s) => ({
       isExportModalOpen: s.isExportModalOpen,
@@ -163,6 +164,7 @@ export default function App() {
       switchSimulatedUser: s.switchSimulatedUser,
       logout: s.logout,
       syncFromCloud: s.syncFromCloud,
+      setIsHydrated: s.setIsHydrated,
     }))
   );
 
@@ -297,15 +299,20 @@ export default function App() {
 
   // Live Cloud data subscription with clean unsubscribe
   useEffect(() => {
-    const unsubscribe = subscribeJournalData((cloudData) => {
-      startTransition(() => {
-        syncFromCloud(cloudData);
-      });
-    });
+    const unsubscribe = subscribeJournalData(
+      (cloudData) => {
+        startTransition(() => {
+          syncFromCloud(cloudData);
+        });
+      },
+      () => {
+        setIsHydrated(true);
+      }
+    );
     return () => {
       unsubscribe();
     };
-  }, [syncFromCloud]);
+  }, [syncFromCloud, setIsHydrated]);
 
   // Global Keyboard Shortcuts (Ctrl+B/Cmd+B for Sidebar toggle, Escape for Fullscreen exit)
   useEffect(() => {

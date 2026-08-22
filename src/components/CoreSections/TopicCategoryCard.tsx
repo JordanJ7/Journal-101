@@ -7,14 +7,17 @@ import {
   ExternalLink,
   Eye,
   HeartHandshake,
+  Image as ImageIcon,
   MapPin,
   Maximize2,
   MessageSquare,
   Pencil,
   Pin,
+  Play,
   Trash2,
   User,
   Users,
+  Video,
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { AccentTheme, CoreTopicItem, ItemActivityStatus } from '../../types';
@@ -22,6 +25,8 @@ import { ACCENT_THEMES } from '../../utils/theme';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 import { HighlightText } from '../HighlightText';
 import { BulletedNoteEditor } from './BulletedNoteEditor';
+import { getNormalizedAttachments, isVideoMedia } from '../../utils/mediaUtils';
+import { MediaInspectModal } from '../MediaInspectModal';
 
 interface TopicCategoryCardProps {
   item: CoreTopicItem;
@@ -56,7 +61,10 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
 }) => {
   const [copied, setCopied] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<LightboxMedia | null>(null);
+  const [showInspectModal, setShowInspectModal] = useState(false);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
+
+  const attachments = getNormalizedAttachments(item);
 
   const isHighlighted =
     activeCommentSectionTag &&
@@ -301,37 +309,66 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
         </div>
       )}
 
-      {/* Image Preview with Semi-Fullscreen Lightbox Trigger */}
-      {item.mediaUrl && (
-        <div
-          onClick={() =>
-            setPreviewMedia({
-              url: item.mediaUrl!,
-              title: item.title,
-              caption: item.content,
-              timestamp: item.timestamp,
-              categoryLabel: 'Core Topic Attachment',
-            })
-          }
-          className="mb-3 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 max-w-md cursor-pointer group relative bg-stone-950 shadow-2xs hover:shadow-md transition-all"
-          title="Click to view full screen"
-        >
-          <div className="relative w-full h-52 overflow-hidden bg-stone-900">
-            <img
-              src={item.mediaUrl}
-              alt={item.title}
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
+      {/* Compact Multi-Media Attachments Trigger / Carousel */}
+      {attachments.length > 0 && (
+        <div className="mb-3">
+          <div className="flex flex-wrap items-center gap-2 p-2 bg-stone-50 dark:bg-stone-900/60 rounded-xl border border-stone-200/80 dark:border-stone-800">
+            {/* Direct Inspect Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowInspectModal(true);
               }}
-            />
-            <div className="absolute inset-0 bg-stone-950/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px] pointer-events-none">
-              <div className="px-3 py-1.5 rounded-full bg-stone-950/80 border border-white/20 flex items-center gap-1.5 shadow-lg">
-                <Maximize2 className="w-3.5 h-3.5" />
-                <span>View Full Screen</span>
-              </div>
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer pointer-events-auto"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-500" />
+              <span>Inspect Media ({attachments.length})</span>
+            </button>
+
+            {/* Micro Thumbnails Carousel */}
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              {attachments.slice(0, 3).map((att) => {
+                const isVid = isVideoMedia(att.url, att.type);
+                return (
+                  <button
+                    key={att.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowInspectModal(true);
+                    }}
+                    className="relative w-9 h-9 rounded-lg overflow-hidden border border-stone-300 dark:border-stone-700 bg-stone-950 shrink-0 group hover:opacity-90 transition-opacity cursor-pointer pointer-events-auto"
+                    title={att.caption || 'Click to view'}
+                  >
+                    {isVid ? (
+                      <div className="w-full h-full flex items-center justify-center bg-stone-900 text-sky-400">
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                      </div>
+                    ) : (
+                      <img
+                        src={att.url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+
+              {attachments.length > 3 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowInspectModal(true);
+                  }}
+                  className="px-2 h-9 rounded-lg bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-[11px] font-bold flex items-center justify-center transition-colors cursor-pointer pointer-events-auto"
+                >
+                  +{attachments.length - 3} more
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -362,6 +399,17 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
 
       {/* Semi-Full-Screen Centered Media Lightbox with Blurred Background */}
       <MediaLightboxModal media={previewMedia} onClose={() => setPreviewMedia(null)} />
+
+      {/* Multi-Media Full Inspection Gallery Modal */}
+      {showInspectModal && attachments.length > 0 && (
+        <MediaInspectModal
+          isOpen={showInspectModal}
+          attachments={attachments}
+          title={item.title}
+          accentTheme={accentTheme}
+          onClose={() => setShowInspectModal(false)}
+        />
+      )}
     </div>
   );
 });

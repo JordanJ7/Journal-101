@@ -458,7 +458,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                       setDraggedWeekIndex(null);
                       setDragOverWeekIndex(null);
                     }}
-                    className={`group flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-xs transition-all cursor-pointer select-none active:scale-[0.99] ${
+                    className={`group shrink-0 flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-xs transition-all cursor-pointer select-none active:scale-[0.99] ${
                       isSelected
                         ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
@@ -542,7 +542,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           )}
 
           {/* Full-Width Single-Column List Rows with Horizontal Card Structure */}
-          <div className="flex flex-col gap-2 w-full overflow-y-auto p-1 pr-1 pb-16 sm:pb-6 flex-1 content-start">
+          <div className="flex flex-col gap-2.5 w-full overflow-y-auto p-1 pr-1 pb-16 sm:pb-6 flex-1 content-start">
             {filteredCategories.length === 0 ? (
               <div className="py-8 text-center w-full">
                 <Folder className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 mb-2 stroke-[1.5]" />
@@ -584,26 +584,26 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                       });
                     }}
                     onClick={() => handleSelectCategory(config.id)}
-                    className={`group relative w-full h-auto min-h-[52px] p-3 rounded-xl transition-all duration-150 ease-out cursor-pointer select-none text-left border flex items-center justify-between ${
+                    className={`group relative w-full shrink-0 h-auto min-h-[52px] py-2.5 px-3.5 rounded-xl transition-all duration-150 ease-out cursor-pointer select-none text-left border flex items-center justify-between gap-3 box-border ${
                       isSelected
                         ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} shadow-2xs text-stone-900 dark:text-stone-100`
                         : 'bg-stone-100/80 hover:bg-stone-200/80 active:bg-stone-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:active:bg-white/[0.12] border-stone-200/80 dark:border-white/5 text-stone-700 dark:text-stone-300'
                     } ${isDragged ? 'opacity-30' : ''} ${dragOverCatIndex === index ? `ring-2 ${currentAccent.ring}` : ''}`}
                   >
                     {/* Left Section: Icon + Title */}
-                    <div className="flex items-center min-w-0 flex-1 mr-2">
-                      <div
-                        className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mr-3 transition-colors ${
+                    <div className="flex items-center gap-3 min-w-0 flex-1 py-0.5">
+                      <span
+                        className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-colors ${
                           isSelected
                             ? currentAccent.iconBoxSelected
                             : `${currentAccent.iconBox} ${currentAccent.iconBoxHover}`
                         }`}
                       >
                         <IconComp className="w-4 h-4 shrink-0" />
-                      </div>
+                      </span>
 
-                      <p
-                        className={`text-sm font-medium text-left leading-snug flex-1 break-words ${
+                      <span
+                        className={`text-sm font-medium text-left leading-snug break-words whitespace-normal flex-1 ${
                           isSelected
                             ? 'text-stone-900 dark:text-stone-100 font-semibold'
                             : 'text-stone-700 dark:text-neutral-200 group-hover:text-stone-900 dark:group-hover:text-stone-100'
@@ -611,13 +611,13 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                         title={config.title}
                       >
                         {config.title}
-                      </p>
+                      </span>
                     </div>
 
                     {/* Right Section: Item Counter / Actions / Chevron */}
                     <div className="flex items-center gap-1.5 shrink-0 ml-2">
                       {itemCount > 0 && (
-                        <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                        <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full shrink-0">
                           {itemCount} {itemCount === 1 ? 'note' : 'notes'}
                         </span>
                       )}
@@ -635,14 +635,14 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                               y: rect.bottom,
                             });
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity shrink-0"
                           title="Folder options"
                         >
                           <MoreVertical className="w-3.5 h-3.5" />
                         </button>
                       )}
 
-                      <ChevronRight className="w-4 h-4 text-stone-400 dark:text-neutral-500 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                      <ChevronRight className="w-4 h-4 text-stone-400 dark:text-neutral-500 shrink-0 ml-2 transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </div>
                 );
@@ -662,7 +662,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('media');
                 if (setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full text-left px-3 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold flex items-center justify-between"
+              className="w-full shrink-0 text-left px-3 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold flex items-center justify-between"
             >
               <div className="flex items-center gap-2">
                 <Film className={`w-4 h-4 ${currentAccent.textPrimary}`} />

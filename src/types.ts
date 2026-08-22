@@ -16,6 +16,16 @@ export interface CommentItem {
   resolved?: boolean;
 }
 
+export interface Attachment {
+  id: string;
+  url: string; // Persistent Base64 Data URL or Firebase Storage URL
+  type: 'image' | 'video';
+  name: string;
+  createdAt: string;
+  size?: number;
+  caption?: string;
+}
+
 export interface BulletPoint {
   id: string;
   text: string;
@@ -31,6 +41,7 @@ export interface BulletPoint {
   mediaUrl?: string;
   mediaType?: 'image' | 'video' | 'link';
   mediaCaption?: string;
+  attachments?: Attachment[]; // Multi-media persistent attachments
   completed?: boolean;
   pinnedToLearned?: boolean;
   pinnedLearnedId?: string;
@@ -125,6 +136,7 @@ export interface CoreTopicItem {
   mediaUrl?: string;
   mediaType?: 'image' | 'video' | 'link';
   mediaCaption?: string;
+  attachments?: Attachment[];
   linkUrl?: string;
   location?: string;
   tags?: string[];

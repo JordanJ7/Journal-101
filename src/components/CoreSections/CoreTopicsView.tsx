@@ -157,11 +157,12 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
       saveTimeoutRef.current = setTimeout(() => {
         setSaveStatus('saving');
         onUpdateCoreCategory?.(activeCategoryConfig.id, { notes: newNotes });
+        console.log('[Auto-Save] Entry saved to Firestore:', activeCategoryConfig.id);
         setTimeout(() => {
           setSaveStatus('saved');
           setTimeout(() => setSaveStatus('idle'), 2000);
         }, 300);
-      }, 700);
+      }, 600);
     },
     [activeCategoryConfig?.id, onUpdateCoreCategory]
   );
@@ -173,12 +174,22 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
     if (notesValue !== activeCategoryConfig?.notes) {
       setSaveStatus('saving');
       onUpdateCoreCategory?.(activeCategoryConfig.id, { notes: notesValue });
+      console.log('[Auto-Save] Entry saved to Firestore:', activeCategoryConfig.id);
       setTimeout(() => {
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 2000);
       }, 300);
     }
   }, [activeCategoryConfig?.id, activeCategoryConfig?.notes, notesValue, onUpdateCoreCategory]);
+
+  // Flush notes on unmount if pending changes
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const isWatchlistCategory =
     activeCategory === 'things-i-want-to-do-together' ||
@@ -212,7 +223,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   const { confirmDelete } = useConfirmDelete();
 
   const handleSaveItem = useCallback(
-    (saved: CoreTopicItem) => {
+    (saved: CoreTopicItem, shouldClose = true) => {
       setItems((prevItems) => {
         const exists = prevItems.some((i) => i.id === saved.id);
         if (exists) {
@@ -221,8 +232,10 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
           return [saved, ...prevItems];
         }
       });
-      setShowItemModal(false);
-      setEditingItem(null);
+      if (shouldClose) {
+        setShowItemModal(false);
+        setEditingItem(null);
+      }
     },
     [setItems]
   );
@@ -533,6 +546,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
           </div>
 
           <BulletedNoteEditor
+            entryId={activeCategoryConfig?.id}
             value={notesValue}
             onChange={handleNotesChange}
             onSaveImmediate={handleNotesSaveImmediate}

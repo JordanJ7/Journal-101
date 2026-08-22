@@ -149,9 +149,9 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
           </div>
 
           {/* Title & Description */}
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 py-0.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100 leading-snug">
+              <h3 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100 leading-snug break-words whitespace-normal">
                 <HighlightText text={category.title} searchQuery={searchQuery} />
               </h3>
 
@@ -168,7 +168,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
             </div>
 
             {category.description && (
-              <p className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5 line-clamp-1">
+              <p className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5 break-words whitespace-normal leading-relaxed">
                 <HighlightText text={category.description} searchQuery={searchQuery} />
               </p>
             )}

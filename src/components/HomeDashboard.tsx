@@ -252,7 +252,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
 
         {/* Dynamic Grid: 2 columns on sm/md+, 1 column on mobile */}
         {pinnedFolders.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {pinnedFolders.map((folder) => {
               const IconComponent = FOLDER_ICON_MAP[folder.iconName] || Folder;
 
@@ -260,21 +260,21 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                 <div
                   key={folder.id}
                   onClick={() => onNavigateToCoreCategory(folder.id as CoreCategoryId)}
-                  className={`w-full p-4 rounded-xl bg-white dark:bg-[#18181b] hover:bg-neutral-50 dark:hover:bg-white/[0.06] border border-neutral-200 dark:border-white/5 flex items-center justify-between transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative ${currentAccent.hoverBorder}`}
+                  className={`w-full h-auto min-h-[52px] py-2.5 px-3.5 rounded-xl bg-white dark:bg-[#18181b] hover:bg-neutral-50 dark:hover:bg-white/[0.06] border border-neutral-200 dark:border-white/5 flex items-center justify-between gap-3 box-border transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative ${currentAccent.hoverBorder}`}
                 >
                   {/* Left side: Matching icon + folder title */}
-                  <div className="flex items-center gap-3 min-w-0 pr-2">
-                    <div className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
+                  <div className="flex items-center gap-3 min-w-0 flex-1 py-0.5">
+                    <span className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                       <IconComponent className="w-4 h-4 shrink-0" />
-                    </div>
-                    <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
+                    </span>
+                    <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200 text-left leading-snug break-words whitespace-normal flex-1 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
                       {folder.title}
                     </span>
                   </div>
 
                   {/* Right side: Note count badge + Unpin / Chevron */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-neutral-200/60 dark:border-white/5">
+                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-neutral-200/60 dark:border-white/5 shrink-0">
                       {folder.count} {folder.count === 1 ? 'note' : 'notes'}
                     </span>
 
@@ -282,13 +282,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                     <button
                       type="button"
                       onClick={(e) => handleUnpinSingle(folder.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all shrink-0"
                       title="Unpin from Home"
                     >
                       <PinOff className="w-3.5 h-3.5" />
                     </button>
 
-                    <ChevronRight className="w-4 h-4 text-neutral-400 dark:text-neutral-600 group-hover:text-neutral-600 dark:group-hover:text-neutral-400 transition-transform group-hover:translate-x-0.5" />
+                    <ChevronRight className="w-4 h-4 text-neutral-400 dark:text-neutral-600 group-hover:text-neutral-600 dark:group-hover:text-neutral-400 transition-transform group-hover:translate-x-0.5 shrink-0" />
                   </div>
                 </div>
               );
@@ -299,9 +299,9 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
               <button
                 type="button"
                 onClick={() => setIsCustomizeModalOpen(true)}
-                className={`w-full p-4 rounded-xl border border-dashed border-neutral-300 dark:border-white/10 text-neutral-500 flex items-center justify-center gap-2 text-xs font-medium transition-all group ${currentAccent.hoverBorder} ${currentAccent.hoverText}`}
+                className={`w-full h-auto min-h-[52px] py-2.5 px-3.5 rounded-xl border border-dashed border-neutral-300 dark:border-white/10 text-neutral-500 flex items-center justify-center gap-2 text-xs font-medium transition-all group box-border ${currentAccent.hoverBorder} ${currentAccent.hoverText}`}
               >
-                <Plus className="w-4 h-4 text-neutral-400 group-hover:currentColor transition-colors" />
+                <Plus className="w-4 h-4 text-neutral-400 group-hover:currentColor transition-colors shrink-0" />
                 <span>Add Pinned Topic</span>
               </button>
             )}

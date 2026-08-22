@@ -20,6 +20,7 @@ export interface BulletedNoteEditorRef {
 }
 
 interface BulletedNoteEditorProps {
+  entryId?: string;
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
@@ -39,10 +40,12 @@ interface BulletedNoteEditorProps {
  * - Pressing Enter on an empty bullet removes the bullet glyph and exits list.
  * - Pressing Tab / Shift+Tab indents and outdents nested bullets.
  * - Minimalist floating format chips for quick formatting.
+ * - Direct Firestore auto-save debounce (600ms) with immediate onBlur and unmount flush.
  */
 export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, BulletedNoteEditorProps>(
   (
     {
+      entryId,
       value,
       onChange,
       placeholder = 'Type notes, thoughts, or type - or • to start a bulleted list...',
@@ -59,6 +62,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [localValue, setLocalValue] = useState(value);
     const [isFocused, setIsFocused] = useState(false);
+    const lastEmittedValueRef = useRef(value);
 
     // Auto-resize textarea to fit content dynamically (no inner scrollbars)
     const adjustTextareaHeight = useCallback(() => {
@@ -75,10 +79,23 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
 
     // Sync external value changes only when not actively focused to prevent cursor jump / rubber-banding
     useEffect(() => {
-      if (!isFocused) {
+      const isActivelyFocused =
+        isFocused ||
+        (typeof document !== 'undefined' && document.activeElement === textareaRef.current);
+      if (!isActivelyFocused) {
         setLocalValue(value);
+        lastEmittedValueRef.current = value;
       }
     }, [value, isFocused]);
+
+    // Handle immediate flush on unmount
+    useEffect(() => {
+      return () => {
+        if (lastEmittedValueRef.current !== value) {
+          onSaveImmediate?.();
+        }
+      };
+    }, [onSaveImmediate, value]);
 
     useImperativeHandle(ref, () => ({
       focus: () => {

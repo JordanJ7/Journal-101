@@ -2,6 +2,8 @@ import { CORE_CATEGORIES_CONFIG, INITIAL_COMMENTS, INITIAL_CORE_ITEMS, INITIAL_W
 import { AppState, CoreTopicItem, SharedSnapshotData, WeeklyBlock } from '../types';
 
 const STORAGE_KEY = 'journal_therapy_tracker_v1';
+const BACKUP_KEY = 'journal_backup';
+const FAILSAFE_KEY = 'journal_failsafe_backup';
 
 export function formatTimestamp(date = new Date()): string {
   const months = [
@@ -132,40 +134,55 @@ export function loadAppState(): AppState {
     }
   } catch {}
 
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.weeks && parsed.coreItems) {
-        // Merge subCategories from CORE_CATEGORIES_CONFIG for standard categories if not present
-        const mergedCategories = (parsed.coreCategories && parsed.coreCategories.length > 0
-          ? parsed.coreCategories
-          : CORE_CATEGORIES_CONFIG
-        ).map((cat: any) => {
-          const defaultCat = CORE_CATEGORIES_CONFIG.find((c) => c.id === cat.id);
-          if (defaultCat && (!cat.subCategories || cat.subCategories.length === 0) && defaultCat.subCategories) {
-            return {
-              ...cat,
-              subCategories: defaultCat.subCategories,
-            };
-          }
-          return cat;
-        });
+  const storageKeysToTry = [STORAGE_KEY, BACKUP_KEY, FAILSAFE_KEY, 'journal_cloud_local_backup'];
 
-        return {
-          ...parsed,
-          theme: explicitTheme || parsed.theme || 'dark',
-          accentTheme: parsed.accentTheme || 'amber',
-          comments: Array.isArray(parsed.comments) ? parsed.comments : INITIAL_COMMENTS,
-          coreCategories: mergedCategories,
-          pinnedCategoryIds: Array.isArray(parsed.pinnedCategoryIds)
-            ? parsed.pinnedCategoryIds
-            : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
-        };
+  for (const key of storageKeysToTry) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && (Array.isArray(parsed.weeks) || Array.isArray(parsed.coreItems))) {
+          // Merge subCategories from CORE_CATEGORIES_CONFIG for standard categories if not present
+          const rawCategories = Array.isArray(parsed.coreCategories) && parsed.coreCategories.length > 0
+            ? parsed.coreCategories
+            : CORE_CATEGORIES_CONFIG;
+
+          const mergedCategories = rawCategories.map((cat: any) => {
+            const defaultCat = CORE_CATEGORIES_CONFIG.find((c) => c.id === cat.id);
+            if (defaultCat && (!cat.subCategories || cat.subCategories.length === 0) && defaultCat.subCategories) {
+              return {
+                ...cat,
+                subCategories: defaultCat.subCategories,
+              };
+            }
+            return cat;
+          });
+
+          return {
+            weeks: Array.isArray(parsed.weeks) ? parsed.weeks : INITIAL_WEEKS,
+            activeWeekId: parsed.activeWeekId || parsed.weeks?.[0]?.id || INITIAL_WEEKS[0]?.id || '',
+            coreItems: Array.isArray(parsed.coreItems) ? parsed.coreItems : INITIAL_CORE_ITEMS,
+            activeCoreCategory: parsed.activeCoreCategory || 'questions-to-ask-her',
+            activeCoreSubCategory: parsed.activeCoreSubCategory,
+            theme: explicitTheme || parsed.theme || 'dark',
+            accentTheme: parsed.accentTheme || 'amber',
+            comments: Array.isArray(parsed.comments) ? parsed.comments : INITIAL_COMMENTS,
+            coreCategories: mergedCategories,
+            pinnedCategoryIds: Array.isArray(parsed.pinnedCategoryIds) && parsed.pinnedCategoryIds.length > 0
+              ? parsed.pinnedCategoryIds
+              : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
+            filters: parsed.filters || {
+              searchQuery: '',
+              hasMediaOnly: false,
+              hasTherapistAnswersOnly: false,
+              dateRange: 'all',
+            },
+          };
+        }
       }
+    } catch (err) {
+      console.error(`Failed to parse state from localStorage key "${key}":`, err);
     }
-  } catch (err) {
-    console.error('Failed to parse state from localStorage:', err);
   }
 
   return {
@@ -189,7 +206,11 @@ export function loadAppState(): AppState {
 
 export function saveAppState(state: AppState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const serialized = JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY, serialized);
+    localStorage.setItem(BACKUP_KEY, serialized);
+    localStorage.setItem(FAILSAFE_KEY, serialized);
+    localStorage.setItem('journal_backup_timestamp', new Date().toISOString());
   } catch (err) {
     console.error('Failed to save state to localStorage:', err);
   }

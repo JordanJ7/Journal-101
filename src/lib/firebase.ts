@@ -331,8 +331,20 @@ const BACKUP_PAYLOAD_STORAGE_KEY = 'journal_cloud_local_backup';
  * Decoupled from the main thread using non-blocking microtasks / requestIdleCallback.
  */
 export function subscribeJournalData(
-  onUpdate: (data: Partial<AppState> & { clientSessionId?: string; updatedAt?: string }) => void
+  onUpdate: (data: Partial<AppState> & { clientSessionId?: string; updatedAt?: string }) => void,
+  onHydrated?: () => void
 ) {
+  let isInitialHydratedFired = false;
+
+  const markHydrated = () => {
+    if (!isInitialHydratedFired) {
+      isInitialHydratedFired = true;
+      if (onHydrated) {
+        onHydrated();
+      }
+    }
+  };
+
   // 1. Cross-tab storage listener
   const handleStorage = (e: StorageEvent) => {
     if (e.key === CLOUD_SYNC_STORAGE_KEY && e.newValue) {
@@ -350,6 +362,7 @@ export function subscribeJournalData(
                 updatedAt: parsed.updatedAt,
                 clientSessionId: parsed.clientSessionId,
               });
+              markHydrated();
             }, { timeout: 500 });
           } else {
             setTimeout(() => {
@@ -361,6 +374,7 @@ export function subscribeJournalData(
                 updatedAt: parsed.updatedAt,
                 clientSessionId: parsed.clientSessionId,
               });
+              markHydrated();
             }, 16);
           }
         }
@@ -379,6 +393,7 @@ export function subscribeJournalData(
     appStateDocRef,
     { includeMetadataChanges: false },
     (snap) => {
+      markHydrated();
       if (snap.exists()) {
         const rawData = snap.data();
         if (!rawData) return;
@@ -401,6 +416,7 @@ export function subscribeJournalData(
           // Cache remotely received state
           try {
             localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem('journal_backup', JSON.stringify(data));
           } catch (err) {
             console.warn('Local cache error:', err);
           }
@@ -419,6 +435,8 @@ export function subscribeJournalData(
     },
     (err) => {
       console.warn('Firestore state subscription fallback to local cache:', err.message);
+      // Even on network error, allow local hydration so offline work continues safely
+      markHydrated();
     }
   );
 
@@ -435,7 +453,7 @@ export function subscribeJournalData(
  * - Non-destructive payload merge
  * - Immediate local backup caching before network dispatch
  */
-export async function saveJournalDataToCloud(state: AppState): Promise<void> {
+export async function saveJournalDataToCloud(state: AppState, entryId?: string): Promise<void> {
   const payload: JournalCloudPayload = {
     weeks: state.weeks || [],
     coreItems: state.coreItems || [],
@@ -449,20 +467,23 @@ export async function saveJournalDataToCloud(state: AppState): Promise<void> {
   const sanitized = sanitizeForFirestore(payload);
   const payloadJson = JSON.stringify(sanitized);
 
-  // Skip redundant network writes if exact same state was already dispatched
-  if (payloadJson === lastWrittenCloudPayloadHash) {
-    return;
-  }
-
   // Pre-dispatch local backup guarantee
   try {
     localStorage.setItem(BACKUP_PAYLOAD_STORAGE_KEY, payloadJson);
+    localStorage.setItem('journal_backup', payloadJson);
+    localStorage.setItem('journal_failsafe_backup', payloadJson);
     localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, payloadJson);
   } catch (err) {
     console.warn('Failed to sync journal state locally:', err);
   }
 
+  // Skip redundant network writes if exact same state was already dispatched
+  if (payloadJson === lastWrittenCloudPayloadHash) {
+    return;
+  }
+
   console.log('[Sync OUT] Dispatching journal update to Firestore:', {
+    targetEntryId: entryId || 'global',
     weeksCount: sanitized.weeks?.length,
     coreItemsCount: sanitized.coreItems?.length,
     updatedAt: sanitized.updatedAt,
@@ -473,7 +494,7 @@ export async function saveJournalDataToCloud(state: AppState): Promise<void> {
     const appStateDocRef = doc(db, 'app_state', 'journal');
     await setDoc(appStateDocRef, sanitized, { merge: true });
     lastWrittenCloudPayloadHash = payloadJson;
-    console.log('[Sync OUT] => Firestore write committed successfully');
+    console.log('[Auto-Save] Entry saved to Firestore:', entryId || 'all');
   } catch (err) {
     console.warn('[Sync OUT] Firestore write failed:', err);
     // Store failed payload marker for offline recovery
