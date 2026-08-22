@@ -63,6 +63,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
     const [localValue, setLocalValue] = useState(value);
     const [isFocused, setIsFocused] = useState(false);
     const lastEmittedValueRef = useRef(value);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-resize textarea to fit content dynamically (no inner scrollbars)
     const adjustTextareaHeight = useCallback(() => {
@@ -88,9 +89,43 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
       }
     }, [value, isFocused]);
 
+    const flushChange = useCallback(
+      (newVal?: string) => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+          debounceTimerRef.current = null;
+        }
+        const valToEmit = newVal !== undefined ? newVal : localValue;
+        if (valToEmit !== lastEmittedValueRef.current) {
+          lastEmittedValueRef.current = valToEmit;
+          onChange(valToEmit);
+        }
+      },
+      [localValue, onChange]
+    );
+
+    const scheduleChange = useCallback(
+      (nextText: string) => {
+        setLocalValue(nextText);
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+          if (nextText !== lastEmittedValueRef.current) {
+            lastEmittedValueRef.current = nextText;
+            onChange(nextText);
+          }
+        }, 600);
+      },
+      [onChange]
+    );
+
     // Handle immediate flush on unmount
     useEffect(() => {
       return () => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
         if (lastEmittedValueRef.current !== value) {
           onSaveImmediate?.();
         }
@@ -121,15 +156,13 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
       if (e.key === 'Tab') {
         e.preventDefault();
         const startOfLine = currentText.lastIndexOf('\n', selectionStart - 1) + 1;
-        const lineContent = currentText.substring(startOfLine, selectionStart);
 
         if (e.shiftKey) {
           // Shift + Tab: Outdent
           if (currentText.substring(startOfLine, startOfLine + 2) === '  ') {
             const nextText =
               currentText.substring(0, startOfLine) + currentText.substring(startOfLine + 2);
-            setLocalValue(nextText);
-            onChange(nextText);
+            scheduleChange(nextText);
             setTimeout(() => {
               const newPos = Math.max(startOfLine, selectionStart - 2);
               textarea.setSelectionRange(newPos, newPos);
@@ -139,8 +172,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
           // Tab: Indent by 2 spaces
           const nextText =
             currentText.substring(0, startOfLine) + '  ' + currentText.substring(startOfLine);
-          setLocalValue(nextText);
-          onChange(nextText);
+          scheduleChange(nextText);
           setTimeout(() => {
             textarea.setSelectionRange(selectionStart + 2, selectionStart + 2);
           }, 0);
@@ -168,8 +200,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             e.preventDefault();
             const nextText =
               currentText.substring(0, startOfLine) + currentText.substring(lineEnd);
-            setLocalValue(nextText);
-            onChange(nextText);
+            scheduleChange(nextText);
             setTimeout(() => {
               textarea.setSelectionRange(startOfLine, startOfLine);
             }, 0);
@@ -185,8 +216,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             insertion +
             currentText.substring(selectionEnd);
 
-          setLocalValue(nextText);
-          onChange(nextText);
+          scheduleChange(nextText);
           setTimeout(() => {
             const newPos = selectionStart + insertion.length;
             textarea.setSelectionRange(newPos, newPos);
@@ -212,8 +242,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             replacement +
             currentText.substring(selectionEnd);
 
-          setLocalValue(nextText);
-          onChange(nextText);
+          scheduleChange(nextText);
           setTimeout(() => {
             const newPos = startOfLine + replacement.length;
             textarea.setSelectionRange(newPos, newPos);
@@ -233,8 +262,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             replacement +
             currentText.substring(selectionEnd);
 
-          setLocalValue(nextText);
-          onChange(nextText);
+          scheduleChange(nextText);
           setTimeout(() => {
             const newPos = startOfLine + replacement.length;
             textarea.setSelectionRange(newPos, newPos);
@@ -253,20 +281,16 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
 
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const val = e.target.value;
-      setLocalValue(val);
-      onChange(val);
+      scheduleChange(val);
     };
 
     // Format Helpers
     const handleInsertBullet = useCallback(() => {
       const textarea = textareaRef.current;
       if (!textarea) return;
-      const { selectionStart, selectionEnd, value: currentText } = textarea;
+      const { selectionStart, value: currentText } = textarea;
       const startOfLine = currentText.lastIndexOf('\n', selectionStart - 1) + 1;
-      const currentLine = currentText.substring(
-        startOfLine,
-        selectionStart
-      );
+      const currentLine = currentText.substring(startOfLine, selectionStart);
 
       // Check if already has bullet
       if (/^\s*[•\-\*]/.test(currentLine)) {
@@ -279,19 +303,19 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
         insertion +
         currentText.substring(startOfLine);
 
+      flushChange(nextText);
       setLocalValue(nextText);
-      onChange(nextText);
       setTimeout(() => {
         textarea.focus();
         const newPos = selectionStart + insertion.length;
         textarea.setSelectionRange(newPos, newPos);
       }, 0);
-    }, [onChange]);
+    }, [flushChange]);
 
     const handleInsertCheckbox = useCallback(() => {
       const textarea = textareaRef.current;
       if (!textarea) return;
-      const { selectionStart, selectionEnd, value: currentText } = textarea;
+      const { selectionStart, value: currentText } = textarea;
       const startOfLine = currentText.lastIndexOf('\n', selectionStart - 1) + 1;
       const insertion = '[ ] ';
       const nextText =
@@ -299,14 +323,14 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
         insertion +
         currentText.substring(startOfLine);
 
+      flushChange(nextText);
       setLocalValue(nextText);
-      onChange(nextText);
       setTimeout(() => {
         textarea.focus();
         const newPos = selectionStart + insertion.length;
         textarea.setSelectionRange(newPos, newPos);
       }, 0);
-    }, [onChange]);
+    }, [flushChange]);
 
     const handleToggleBold = useCallback(() => {
       const textarea = textareaRef.current;
@@ -320,8 +344,8 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
           currentText.substring(0, selectionStart) +
           insertion +
           currentText.substring(selectionEnd);
+        flushChange(nextText);
         setLocalValue(nextText);
-        onChange(nextText);
         setTimeout(() => {
           textarea.focus();
           textarea.setSelectionRange(selectionStart + 2, selectionStart + 2);
@@ -334,14 +358,14 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
           currentText.substring(0, selectionStart) +
           wrapped +
           currentText.substring(selectionEnd);
+        flushChange(nextText);
         setLocalValue(nextText);
-        onChange(nextText);
         setTimeout(() => {
           textarea.focus();
           textarea.setSelectionRange(selectionStart + 2, selectionEnd + 2);
         }, 0);
       }
-    }, [onChange]);
+    }, [flushChange]);
 
     const handleInsertTimestamp = useCallback(() => {
       const textarea = textareaRef.current;
@@ -353,14 +377,14 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
         stamp +
         currentText.substring(selectionEnd);
 
+      flushChange(nextText);
       setLocalValue(nextText);
-      onChange(nextText);
       setTimeout(() => {
         textarea.focus();
         const newPos = selectionStart + stamp.length;
         textarea.setSelectionRange(newPos, newPos);
       }, 0);
-    }, [onChange]);
+    }, [flushChange]);
 
     // Render formatted read-only view for viewers or formatted preview
     if (readOnly) {
@@ -529,6 +553,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
             setIsFocused(false);
+            flushChange();
             onSaveImmediate?.();
           }}
           placeholder={placeholder}

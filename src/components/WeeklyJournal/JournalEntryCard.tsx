@@ -81,6 +81,10 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isTypingRef = useRef(false);
+  const bulletRef = useRef(bullet);
+  bulletRef.current = bullet;
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
 
   // Normalized attachments for display
   const activeAttachments = getNormalizedAttachments(bullet);
@@ -100,8 +104,9 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
       return;
     }
 
-    const hasTextChange = text !== bullet.text;
-    const currentAtts = getNormalizedAttachments(bullet);
+    const currentBullet = bulletRef.current;
+    const hasTextChange = text !== currentBullet.text;
+    const currentAtts = getNormalizedAttachments(currentBullet);
     const hasAttChange =
       JSON.stringify(draftAttachments.map((a) => a.id)) !==
       JSON.stringify(currentAtts.map((a) => a.id));
@@ -114,39 +119,39 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
     const timer = setTimeout(() => {
       setAutoSaveState('saving');
       const primaryMedia = draftAttachments[0];
-      onUpdate({
-        ...bullet,
+      onUpdateRef.current({
+        ...bulletRef.current,
         text: text.trim(),
         attachments: draftAttachments,
         mediaUrl: primaryMedia?.url || undefined,
         mediaType: primaryMedia?.type || undefined,
         mediaCaption: primaryMedia?.caption || undefined,
       });
-      console.log('[Auto-Save] Entry saved to Firestore:', bullet.id);
+      console.log('[Auto-Save] Entry saved to Firestore:', bulletRef.current.id);
       setAutoSaveState('saved');
       isTypingRef.current = false;
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [text, draftAttachments, isEditing, canEdit, bullet, onUpdate]);
+  }, [text, draftAttachments, isEditing, canEdit]);
 
   // Flush on unmount if user was typing
   useEffect(() => {
     return () => {
       if (isTypingRef.current && canEdit) {
         const primaryMedia = draftAttachments[0];
-        onUpdate({
-          ...bullet,
+        onUpdateRef.current({
+          ...bulletRef.current,
           text: text.trim(),
           attachments: draftAttachments,
           mediaUrl: primaryMedia?.url || undefined,
           mediaType: primaryMedia?.type || undefined,
           mediaCaption: primaryMedia?.caption || undefined,
         });
-        console.log('[Auto-Save] Entry saved to Firestore:', bullet.id);
+        console.log('[Auto-Save] Entry saved to Firestore:', bulletRef.current.id);
       }
     };
-  }, [bullet, canEdit, draftAttachments, onUpdate, text]);
+  }, [canEdit, draftAttachments, text]);
 
   // Multi-File upload handler (converts to persistent Base64)
   const handleMultipleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -105,6 +105,15 @@ mark.search-mark-active {
   backface-visibility: hidden;
 }
 
+[class*="backdrop-blur"] {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
+}
+
 /* Eliminate layout shifts on images and previews */
 img {
   content-visibility: auto;

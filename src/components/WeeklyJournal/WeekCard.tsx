@@ -60,10 +60,6 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 
   const themeConfig = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const [isJournalOpen, setIsJournalOpen] = useState(true);
-  const [newBulletText, setNewBulletText] = useState('');
-  const [newBulletCustomTimestamp, setNewBulletCustomTimestamp] = useState<string | null>(null);
-  const [newBulletCustomIso, setNewBulletCustomIso] = useState<string | null>(null);
-  const [showNewBulletDatePicker, setShowNewBulletDatePicker] = useState(false);
   const [newLinkTitle, setNewLinkTitle] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newShowItemText, setNewShowItemText] = useState('');
@@ -86,49 +82,46 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
     activeCommentSectionTag?.toLowerCase().includes('show des');
 
   // Bullet Handlers
-  const handleAddBullet = useCallback(() => {
-    if (!newBulletText.trim()) return;
-    const finalTimestamp = newBulletCustomTimestamp || formatTimestamp();
-    const newBullet: BulletPoint = {
-      id: 'b-' + Date.now(),
-      text: newBulletText.trim(),
-      indent: 0,
-      bulletStyle: 'disc',
-      timestamp: finalTimestamp,
-      isoDate: newBulletCustomIso || undefined,
-      isCustomDate: !!newBulletCustomTimestamp,
-    };
+  const handleAddBulletSubmit = useCallback(
+    (text: string, customTs: string | null, customIso: string | null) => {
+      const finalTimestamp = customTs || formatTimestamp();
+      const newBullet: BulletPoint = {
+        id: 'b-' + Date.now(),
+        text: text.trim(),
+        indent: 0,
+        bulletStyle: 'disc',
+        timestamp: finalTimestamp,
+        isoDate: customIso || undefined,
+        isCustomDate: !!customTs,
+      };
 
-    // If custom backdated date was picked, use store helper which auto-places in the right week & sorts chronologically
-    if (newBulletCustomTimestamp) {
-      const updateBulletTimestamp = useJournalStore.getState().updateBulletTimestamp;
-      // Add first to week then update timestamp
-      onUpdateWeek({
-        ...week,
-        updatedAt: new Date().toISOString(),
-        bullets: [...week.bullets, newBullet],
-      });
-      setTimeout(() => {
-        updateBulletTimestamp(
-          week.id,
-          newBullet.id,
-          finalTimestamp,
-          newBulletCustomIso || undefined,
-          true
-        );
-      }, 0);
-    } else {
-      onUpdateWeek({
-        ...week,
-        updatedAt: new Date().toISOString(),
-        bullets: [...week.bullets, newBullet],
-      });
-    }
-
-    setNewBulletText('');
-    setNewBulletCustomTimestamp(null);
-    setNewBulletCustomIso(null);
-  }, [newBulletText, newBulletCustomTimestamp, newBulletCustomIso, onUpdateWeek, week]);
+      // If custom backdated date was picked, use store helper which auto-places in the right week & sorts chronologically
+      if (customTs) {
+        const updateBulletTimestamp = useJournalStore.getState().updateBulletTimestamp;
+        onUpdateWeek({
+          ...week,
+          updatedAt: new Date().toISOString(),
+          bullets: [...week.bullets, newBullet],
+        });
+        setTimeout(() => {
+          updateBulletTimestamp(
+            week.id,
+            newBullet.id,
+            finalTimestamp,
+            customIso || undefined,
+            true
+          );
+        }, 0);
+      } else {
+        onUpdateWeek({
+          ...week,
+          updatedAt: new Date().toISOString(),
+          bullets: [...week.bullets, newBullet],
+        });
+      }
+    },
+    [onUpdateWeek, week]
+  );
 
   const { confirmDelete } = useConfirmDelete();
 
@@ -419,78 +412,10 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 
               {/* Add Bullet Input & Backdating Trigger */}
               {canEdit && (
-                <div className="pt-1 space-y-1.5">
-                  {newBulletCustomTimestamp && (
-                    <div className="flex items-center justify-between text-[11px] px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 rounded-lg border border-amber-200 dark:border-amber-800/60 font-mono">
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                        <span>Backdating entry to: <strong>{newBulletCustomTimestamp}</strong></span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setNewBulletCustomTimestamp(null);
-                          setNewBulletCustomIso(null);
-                        }}
-                        className="text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 flex items-center gap-0.5"
-                      >
-                        <X className="w-3 h-3" /> Reset
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <div className={`relative flex-1 ${showNewBulletDatePicker ? 'z-[9999]' : 'z-10'}`}>
-                      <input
-                        type="text"
-                        placeholder={newBulletCustomTimestamp ? "New reflection for custom date..." : "New reflection..."}
-                        value={newBulletText}
-                        onChange={(e) => setNewBulletText(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddBullet()}
-                        className="w-full pl-3 pr-11 py-2.5 sm:py-2 text-base sm:text-xs min-h-[44px] sm:min-h-[38px] bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
-                      />
-
-                      {/* Custom Date / Time Button */}
-                      <button
-                        type="button"
-                        onClick={() => setShowNewBulletDatePicker(!showNewBulletDatePicker)}
-                        title="Set custom/backdated date before creating entry"
-                        aria-label="Set custom or backdated timestamp"
-                        className={`absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] p-2.5 rounded-xl transition-all flex items-center justify-center ${
-                          newBulletCustomTimestamp
-                            ? 'text-amber-600 bg-amber-100 dark:bg-amber-900/50'
-                            : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
-                        }`}
-                      >
-                        <Calendar className="w-4 h-4" />
-                      </button>
-
-                      {/* Date Picker Popover */}
-                      {showNewBulletDatePicker && (
-                        <TimestampPickerPopover
-                          currentTimestamp={newBulletCustomTimestamp || formatTimestamp()}
-                          isoDate={newBulletCustomIso || undefined}
-                          onSave={(timestamp, iso) => {
-                            setNewBulletCustomTimestamp(timestamp);
-                            setNewBulletCustomIso(iso);
-                            setShowNewBulletDatePicker(false);
-                          }}
-                          onClose={() => setShowNewBulletDatePicker(false)}
-                          title="Backdate New Entry"
-                          align="right"
-                        />
-                      )}
-                    </div>
-
-                    <button
-                      onClick={handleAddBullet}
-                      className={`min-h-[44px] sm:min-h-[38px] px-3.5 py-2 active:scale-95 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 shrink-0 ${themeConfig.buttonPrimary}`}
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Add</span>
-                    </button>
-                  </div>
-                </div>
+                <QuickAddBulletForm
+                  onAdd={handleAddBulletSubmit}
+                  buttonPrimaryClass={themeConfig.buttonPrimary}
+                />
               )}
             </div>
           )}
@@ -687,3 +612,103 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
     </div>
   );
 });
+
+interface QuickAddBulletFormProps {
+  onAdd: (text: string, customTs: string | null, customIso: string | null) => void;
+  buttonPrimaryClass: string;
+}
+
+const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
+  ({ onAdd, buttonPrimaryClass }) => {
+    const [text, setText] = useState('');
+    const [customTs, setCustomTs] = useState<string | null>(null);
+    const [customIso, setCustomIso] = useState<string | null>(null);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const handleSubmit = () => {
+      if (!text.trim()) return;
+      onAdd(text.trim(), customTs, customIso);
+      setText('');
+      setCustomTs(null);
+      setCustomIso(null);
+      setShowDatePicker(false);
+    };
+
+    return (
+      <div className="pt-1 space-y-1.5">
+        {customTs && (
+          <div className="flex items-center justify-between text-[11px] px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 rounded-lg border border-amber-200 dark:border-amber-800/60 font-mono">
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+              <span>
+                Backdating entry to: <strong>{customTs}</strong>
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setCustomTs(null);
+                setCustomIso(null);
+              }}
+              className="text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 flex items-center gap-0.5"
+            >
+              <X className="w-3 h-3" /> Reset
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className={`relative flex-1 ${showDatePicker ? 'z-[9999]' : 'z-10'}`}>
+            <input
+              type="text"
+              placeholder={customTs ? 'New reflection for custom date...' : 'New reflection...'}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+              className="w-full pl-3 pr-11 py-2.5 sm:py-2 text-base sm:text-xs min-h-[44px] sm:min-h-[38px] bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+            />
+
+            {/* Custom Date / Time Button */}
+            <button
+              type="button"
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              title="Set custom/backdated date before creating entry"
+              aria-label="Set custom or backdated timestamp"
+              className={`absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] p-2.5 rounded-xl transition-all flex items-center justify-center ${
+                customTs
+                  ? 'text-amber-600 bg-amber-100 dark:bg-amber-900/50'
+                  : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+            </button>
+
+            {/* Date Picker Popover */}
+            {showDatePicker && (
+              <TimestampPickerPopover
+                currentTimestamp={customTs || formatTimestamp()}
+                isoDate={customIso || undefined}
+                onSave={(timestamp, iso) => {
+                  setCustomTs(timestamp);
+                  setCustomIso(iso);
+                  setShowDatePicker(false);
+                }}
+                onClose={() => setShowDatePicker(false)}
+                title="Backdate New Entry"
+                align="right"
+              />
+            )}
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            className={`min-h-[44px] sm:min-h-[38px] px-3.5 py-2 active:scale-95 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 shrink-0 ${buttonPrimaryClass}`}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+);
