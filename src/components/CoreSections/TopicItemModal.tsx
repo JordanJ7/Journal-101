@@ -239,12 +239,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+      id="topic-item-modal-overlay"
+      className="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white dark:bg-[#1C1C1E] rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 border border-stone-200 dark:border-stone-800 shadow-2xl max-w-lg w-full space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-[#1C1C1E] rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 border border-stone-200 dark:border-stone-800 shadow-2xl max-w-lg w-full space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 transform-gpu will-change-transform isolate">
         <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2 shrink-0" />
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
           <div className="flex items-center gap-2">

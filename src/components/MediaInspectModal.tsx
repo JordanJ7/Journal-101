@@ -142,14 +142,14 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
   const modalContent = (
     <div
       id="media-inspect-modal-overlay"
-      className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
       onClick={(e) => {
         e.stopPropagation();
         onClose();
       }}
     >
       <div
-        className="relative w-full max-w-5xl h-[92vh] max-h-[900px] flex flex-col bg-stone-900 border border-stone-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto"
+        className="relative w-full max-w-5xl h-[92vh] max-h-[900px] flex flex-col bg-stone-900 border border-stone-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto transform-gpu will-change-transform isolate"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Bar */}

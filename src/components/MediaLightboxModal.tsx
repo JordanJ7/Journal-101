@@ -97,11 +97,11 @@ export const MediaLightboxModal: React.FC<MediaLightboxModalProps> = ({ media, o
   return (
     <div
       id="media-lightbox-overlay"
-      className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 transition-all animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 transition-all animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
       onClick={onClose}
     >
       <div
-        className="relative max-w-5xl w-full max-h-[92vh] flex flex-col bg-stone-900/95 border border-stone-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative max-w-5xl w-full max-h-[92vh] flex flex-col bg-stone-900/95 border border-stone-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 transform-gpu will-change-transform isolate"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Lightbox Header Bar */}

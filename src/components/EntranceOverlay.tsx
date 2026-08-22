@@ -210,10 +210,11 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
 
   return (
     <div
+      id="entrance-overlay"
       role="dialog"
       aria-label="Welcome Quote"
       aria-modal="true"
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-600 ease-out ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-600 ease-out transform-gpu will-change-transform isolate ${
         isDismissing
           ? 'bg-transparent backdrop-blur-none opacity-0 pointer-events-none'
           : isDark

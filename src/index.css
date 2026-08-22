@@ -105,7 +105,12 @@ mark.search-mark-active {
   backface-visibility: hidden;
 }
 
-[class*="backdrop-blur"] {
+[class*="backdrop-blur"],
+.modal-backdrop,
+.modal-overlay,
+[role="dialog"],
+[id*="-modal-overlay"],
+[id*="-lightbox-overlay"] {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;

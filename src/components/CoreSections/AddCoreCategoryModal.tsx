@@ -65,12 +65,13 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+      id="add-core-category-modal-overlay"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto transform-gpu will-change-transform isolate"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/15 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative animate-in zoom-in-95 duration-150">
+      <div className="bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/15 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative animate-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate">
         <div className="flex items-center justify-between pb-2 border-b border-black/5 dark:border-white/10">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
