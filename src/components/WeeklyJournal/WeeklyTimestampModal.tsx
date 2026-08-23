@@ -88,12 +88,21 @@ export const WeeklyTimestampModal: React.FC<WeeklyTimestampModalProps> = ({
   return (
     <div
       id="weekly-timestamp-modal-overlay"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-[#0f0f11]/90 animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/75"
+      style={{
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        transform: 'translateZ(0)',
+      }}
       onClick={onClose}
     >
       <div
         id="weekly-timestamp-modal-card"
-        className="w-full max-w-lg bg-white dark:bg-[#1C1C1E] border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 transform-gpu will-change-transform isolate"
+        className="w-full max-w-lg bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        style={{
+          contain: 'layout paint',
+          transform: 'translateZ(0)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

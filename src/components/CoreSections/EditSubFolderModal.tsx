@@ -31,9 +31,22 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
   return (
     <div
       id="edit-subfolder-modal-overlay"
-      className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex justify-center items-center p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-50 bg-black/75 flex justify-center items-center p-4"
+      style={{
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        transform: 'translateZ(0)',
+      }}
+      onClick={onClose}
     >
-      <div className="bg-white dark:bg-stone-900 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-2xl max-w-md w-full space-y-4 relative transform-gpu will-change-transform isolate">
+      <div
+        className="bg-white dark:bg-[#141416] rounded-3xl p-6 border border-stone-200 dark:border-white/10 shadow-2xl max-w-md w-full space-y-4 relative"
+        style={{
+          contain: 'layout paint',
+          transform: 'translateZ(0)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center">

@@ -620,9 +620,22 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
       {showAddModal && (
         <div
           id="add-question-modal-overlay"
-          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          style={{
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            transform: 'translateZ(0)',
+          }}
+          onClick={() => setShowAddModal(false)}
         >
-          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate">
+          <div
+            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
+            style={{
+              contain: 'layout paint',
+              transform: 'translateZ(0)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -752,9 +765,22 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
       {editingItem && (
         <div
           id="edit-question-modal-overlay"
-          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          style={{
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            transform: 'translateZ(0)',
+          }}
+          onClick={() => setEditingItem(null)}
         >
-          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate">
+          <div
+            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
+            style={{
+              contain: 'layout paint',
+              transform: 'translateZ(0)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
               <div className="flex items-center gap-2">
                 <Pencil className="w-5 h-5 text-blue-600 dark:text-blue-400" />

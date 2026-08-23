@@ -692,15 +692,26 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
       {/* Mobile Slide-Over Drawer (visible on screens < md when isOpenMobile is true) */}
       {isOpenMobile && (
-        <div className="fixed inset-0 z-50 md:hidden flex transform-gpu will-change-transform isolate">
+        <div className="fixed inset-0 z-50 md:hidden flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-[#0f0f11]/90 transition-opacity animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
+            className="fixed inset-0 bg-black/75 transition-opacity duration-200"
+            style={{
+              backdropFilter: 'none',
+              WebkitBackdropFilter: 'none',
+              transform: 'translateZ(0)',
+            }}
             onClick={() => setIsOpenMobile?.(false)}
           />
 
           {/* Drawer Content with clean mobile width and safe area insets */}
-          <div className="relative w-full max-w-[340px] bg-[#F2F2F7] dark:bg-[#1C1C1E] h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] animate-in slide-in-from-left duration-250 z-10 transform-gpu will-change-transform isolate">
+          <div
+            className="relative w-full max-w-[340px] bg-[#F2F2F7] dark:bg-[#1C1C1E] h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] z-10"
+            style={{
+              contain: 'layout paint',
+              transform: 'translateZ(0)',
+            }}
+          >
             {renderSidebarContent(true)}
           </div>
         </div>
@@ -710,9 +721,22 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {showAddWeekModal && (
         <div
           id="add-week-modal-overlay"
-          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-black/75 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          style={{
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            transform: 'translateZ(0)',
+          }}
+          onClick={() => setShowAddWeekModal(false)}
         >
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 transform-gpu will-change-transform isolate">
+          <div
+            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
+            style={{
+              contain: 'layout paint',
+              transform: 'translateZ(0)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2" />
             <div className="flex items-center justify-between">
               <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">New Week</h3>
@@ -772,9 +796,22 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {showAddCategoryModal && (
         <div
           id="add-sidebar-category-modal-overlay"
-          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-black/75 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          style={{
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            transform: 'translateZ(0)',
+          }}
+          onClick={() => setShowAddCategoryModal(false)}
         >
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 transform-gpu will-change-transform isolate">
+          <div
+            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
+            style={{
+              contain: 'layout paint',
+              transform: 'translateZ(0)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2" />
             <div className="flex items-center justify-between">
               <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">New Folder</h3>

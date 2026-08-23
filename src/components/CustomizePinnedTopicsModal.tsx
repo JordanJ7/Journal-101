@@ -142,10 +142,20 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
   return (
     <div
       id="customize-pinned-topics-modal-overlay"
-      className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-50 bg-black/75 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        transform: 'translateZ(0)',
+      }}
+      onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#1C1C1E] border border-stone-200/80 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 max-h-[90vh] flex flex-col transform-gpu will-change-transform isolate"
+        className="bg-white dark:bg-[#141416] border border-stone-200/80 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 max-h-[90vh] flex flex-col"
+        style={{
+          contain: 'layout paint',
+          transform: 'translateZ(0)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile handle indicator */}

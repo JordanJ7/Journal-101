@@ -92,14 +92,22 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
   return (
     <div
       id="edit-core-category-modal-overlay"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-[#0f0f11]/90 animate-in fade-in duration-150 overflow-y-auto transform-gpu will-change-transform isolate"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/75 overflow-y-auto"
+      style={{
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        transform: 'translateZ(0)',
       }}
+      onClick={onClose}
     >
       <div
         id="edit-core-category-modal-card"
-        className="bg-white dark:bg-[#1C1C1E] border border-stone-200 dark:border-white/10 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative animate-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate"
+        className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative"
+        style={{
+          contain: 'layout paint',
+          transform: 'translateZ(0)',
+        }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between pb-2 border-b border-black/5 dark:border-white/10">
           <div className="flex items-center gap-2.5">

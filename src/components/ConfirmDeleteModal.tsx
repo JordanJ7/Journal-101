@@ -59,12 +59,21 @@ export const ConfirmDeleteProvider: React.FC<{ children: React.ReactNode }> = ({
       {modalState?.isOpen && (
         <div
           id="confirm-delete-modal-overlay"
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0f0f11]/90 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75"
+          style={{
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            transform: 'translateZ(0)',
+          }}
           onClick={handleClose}
         >
           <div
             id="confirm-delete-modal-container"
-            className="w-full max-w-md bg-white dark:bg-stone-900 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-800 p-6 space-y-5 animate-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate"
+            className="w-full max-w-md bg-white dark:bg-[#141416] rounded-2xl shadow-2xl border border-stone-200 dark:border-white/10 p-6 space-y-5"
+            style={{
+              contain: 'layout paint',
+              transform: 'translateZ(0)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
