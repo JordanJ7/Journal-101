@@ -211,15 +211,14 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
   return (
     <div
       id="entrance-overlay"
-      role="dialog"
+      role="region"
       aria-label="Welcome Quote"
-      aria-modal="true"
       className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-600 ease-out transform-gpu will-change-transform isolate ${
         isDismissing
-          ? 'bg-transparent backdrop-blur-none opacity-0 pointer-events-none'
+          ? 'bg-transparent opacity-0 pointer-events-none'
           : isDark
-          ? 'bg-[#0f0f11]/90 backdrop-blur-2xl opacity-100 text-neutral-100'
-          : 'bg-[#f8f9fa]/95 backdrop-blur-2xl opacity-100 text-neutral-900'
+          ? 'bg-[#0f0f11] opacity-100 text-neutral-100'
+          : 'bg-[#f8f9fa] opacity-100 text-neutral-900'
       }`}
     >
       {/* Ambient subtle dynamic vignette / radiant depth based on theme */}
@@ -236,7 +235,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
         <button
           type="button"
           onClick={handleDismiss}
-          className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md transition-all duration-200 cursor-pointer shadow-xs active:scale-95 border ${
+          className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer shadow-xs active:scale-95 border ${
             isDark
               ? `text-neutral-400 hover:text-neutral-100 bg-white/5 hover:bg-white/10 border-white/10 ${tokens.skipHoverDark}`
               : `text-neutral-600 hover:text-neutral-900 bg-black/5 hover:bg-black/10 border-neutral-300/70 ${tokens.skipHoverLight}`
@@ -252,7 +251,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
       <main className="relative z-10 flex flex-col items-center justify-center max-w-xl mx-auto px-6 py-12 text-center">
         {/* Decorative sparkle themed badge */}
         <div
-          className={`mb-5 inline-flex items-center justify-center w-9 h-9 rounded-full border backdrop-blur-md shadow-xs animate-in fade-in duration-300 transition-colors ${
+          className={`mb-5 inline-flex items-center justify-center w-9 h-9 rounded-full border shadow-xs animate-in fade-in duration-300 transition-colors ${
             isDark ? tokens.sparkleDark : tokens.sparkleLight
           }`}
         >
@@ -296,8 +295,8 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
       {/* Bottom Bar: Curated 5-Font Typography Roster */}
       <footer className="absolute bottom-6 inset-x-0 z-10 flex flex-col items-center gap-2 px-4">
         <div
-          className={`flex flex-wrap justify-center items-center gap-1 p-1 rounded-2xl sm:rounded-full border backdrop-blur-md shadow-xs max-w-[95vw] transition-colors ${
-            isDark ? 'bg-white/10 border-white/10' : 'bg-black/5 border-neutral-300/70'
+          className={`flex flex-wrap justify-center items-center gap-1 p-1 rounded-2xl sm:rounded-full border shadow-xs max-w-[95vw] transition-colors ${
+            isDark ? 'bg-[#18181b] border-white/10' : 'bg-stone-100 border-neutral-300/70'
           }`}
         >
           <button

@@ -97,8 +97,7 @@ mark.search-mark-active {
 
 /* GPU Acceleration & Performance Enhancements */
 .gpu-accelerated,
-.ambient-glow,
-.blur-sphere {
+.ambient-glow {
   will-change: transform;
   pointer-events: none;
   transform: translateZ(0);
@@ -108,10 +107,10 @@ mark.search-mark-active {
 /* Strict Rendering Isolation for Modals and Overlays (Eliminates blur repaint flickers) */
 .modal-backdrop,
 .modal-overlay,
-[role="dialog"],
 [id*="-overlay"],
 [id*="-modal-overlay"],
-[id*="-lightbox-overlay"] {
+[id*="-lightbox-overlay"],
+[id*="modal-backdrop"] {
   background-color: rgba(15, 15, 17, 0.88) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;

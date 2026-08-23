@@ -74,7 +74,7 @@ export const SharedView: React.FC<SharedViewProps> = ({
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100">
       {/* Top Shared Header */}
-      <header className="sticky top-0 z-30 bg-white/90 dark:bg-stone-850/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-4 py-3">
+      <header className="sticky top-0 z-30 bg-white dark:bg-[#18181b] border-b border-stone-200 dark:border-stone-800 px-4 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button

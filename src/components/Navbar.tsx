@@ -596,7 +596,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             <>
               {/* Dismiss backdrop */}
               <div
-                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transform-gpu will-change-transform isolate"
+                className="fixed inset-0 z-40 bg-[#0f0f11]/90 transform-gpu will-change-transform isolate"
                 onClick={() => setIsMobileMenuOpen(false)}
               />
 
