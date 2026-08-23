@@ -661,12 +661,12 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             <>
               {/* Dismiss backdrop */}
               <div
-                className="fixed inset-0 z-40 bg-[#0f0f11]/90 transform-gpu will-change-transform isolate"
+                className="fixed inset-0 z-40 bg-black/70"
                 onClick={() => setIsMobileMenuOpen(false)}
               />
 
               <div
-                className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/15 rounded-2xl p-4 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 max-h-[calc(100dvh-4.5rem)] overflow-y-auto space-y-3 transform-gpu will-change-transform isolate"
+                className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/15 rounded-2xl p-4 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 max-h-[calc(100dvh-4.5rem)] overflow-y-auto space-y-3"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header with User and Close button */}

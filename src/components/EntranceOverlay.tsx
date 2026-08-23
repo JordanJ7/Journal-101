@@ -213,7 +213,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
       id="entrance-overlay"
       role="region"
       aria-label="Welcome Quote"
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-600 ease-out transform-gpu will-change-transform isolate ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-600 ease-out ${
         isDismissing
           ? 'bg-transparent opacity-0 pointer-events-none'
           : isDark

@@ -84,7 +84,7 @@ export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
   return (
     <div
       ref={popoverRef}
-      className={`absolute z-[9999] mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 sm:p-4 bg-white dark:bg-[#202022] rounded-2xl border border-black/15 dark:border-white/20 shadow-2xl animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate ${
+      className={`absolute z-[9999] mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 sm:p-4 bg-white dark:bg-[#202022] rounded-2xl border border-black/15 dark:border-white/20 shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
         align === 'right' ? 'right-0' : align === 'center' ? 'left-1/2 -translate-x-1/2' : 'left-0'
       }`}
       onClick={(e) => e.stopPropagation()}

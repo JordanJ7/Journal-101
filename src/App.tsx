@@ -490,7 +490,7 @@ export default function App() {
             <button
               onClick={toggleSidebar}
               title="Expand Sidebar (Ctrl+B / ⌘B)"
-              className={`hidden md:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate`}
+              className={`hidden md:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold animate-in fade-in zoom-in-95 duration-150`}
             >
               <PanelLeftOpen className={`w-4 h-4 ${currentAccent.textPrimary}`} />
               <span>Sidebar</span>
@@ -591,7 +591,7 @@ export default function App() {
         {/* Authentic iOS Bottom Tab Bar (Only on mobile < md) */}
         <nav
           aria-label="Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7] dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg transform-gpu will-change-transform isolate"
+          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7] dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
         >
           <button
             onClick={() => handleSetViewMode('home')}

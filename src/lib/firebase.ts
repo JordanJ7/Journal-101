@@ -294,6 +294,7 @@ export async function saveFolderDoc(folder: CoreCategoryConfig): Promise<void> {
     const folderDocRef = doc(db, 'folders', folder.id);
     const sanitized = sanitizeForFirestore({
       ...folder,
+      clientSessionId: CLIENT_SESSION_ID,
       updatedAt: new Date().toISOString(),
     });
     await setDoc(folderDocRef, sanitized, { merge: true });
@@ -329,6 +330,7 @@ export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
   try {
     const cleanItemData = sanitizeForFirestore({
       ...item,
+      clientSessionId: CLIENT_SESSION_ID,
       createdAt: item.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -388,6 +390,7 @@ export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<
     const entryDocRef = doc(db, 'weeks', weekId, 'entries', entry.id);
     const sanitized = sanitizeForFirestore({
       ...entry,
+      clientSessionId: CLIENT_SESSION_ID,
       createdAt: entry.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -413,6 +416,7 @@ export async function updateEntryDoc(
     const entryDocRef = doc(db, 'weeks', weekId, 'entries', entryId);
     const sanitized = sanitizeForFirestore({
       ...updates,
+      clientSessionId: CLIENT_SESSION_ID,
       updatedAt: new Date().toISOString(),
     });
     await setDoc(entryDocRef, sanitized, { merge: true });
@@ -450,6 +454,7 @@ export async function saveWeekMetaDoc(week: WeeklyBlock): Promise<void> {
     const weekDocRef = doc(db, 'weeks', week.id);
     const sanitized = sanitizeForFirestore({
       ...weekMeta,
+      clientSessionId: CLIENT_SESSION_ID,
       createdAt: week.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -487,6 +492,7 @@ export async function saveCommentDoc(comment: CommentItem): Promise<void> {
     const commentDocRef = doc(db, 'comments', comment.id);
     const sanitized = sanitizeForFirestore({
       ...comment,
+      clientSessionId: CLIENT_SESSION_ID,
       updatedAt: new Date().toISOString(),
     });
     await setDoc(commentDocRef, sanitized, { merge: true });
@@ -524,6 +530,7 @@ export async function saveCoreCategoriesDoc(categories: CoreCategoryConfig[]): P
       docRef,
       {
         categories: sanitizeForFirestore(categories),
+        clientSessionId: CLIENT_SESSION_ID,
         updatedAt: new Date().toISOString(),
       },
       { merge: true }
@@ -564,6 +571,10 @@ export function subscribeJournalData(
       try {
         const parsed = JSON.parse(e.newValue);
         if (parsed && (parsed.weeks || parsed.coreItems || parsed.coreCategories)) {
+          // If the storage event was written by ourselves, skip to avoid double execution
+          if (parsed.clientSessionId === CLIENT_SESSION_ID) {
+            return;
+          }
           onUpdate({
             weeks: parsed.weeks,
             coreItems: parsed.coreItems,
@@ -583,54 +594,105 @@ export function subscribeJournalData(
   window.addEventListener('storage', handleStorage);
   journalDataListeners.add(onUpdate);
 
-  // In-memory accumulation maps for real-time aggregation
-  let weeksMap: Map<string, WeeklyBlock> = new Map();
-  let entriesPerWeekMap: Map<string, Map<string, BulletPoint>> = new Map();
-  let coreItemsMap: Map<string, CoreTopicItem> = new Map();
-  let foldersMap: Map<string, CoreCategoryConfig> = new Map();
+  // In-memory accumulation maps for granular updates
+  const weeksMap = new Map<string, WeeklyBlock>();
+  const entriesPerWeekMap = new Map<string, Map<string, BulletPoint>>();
+  const coreItemsMap = new Map<string, CoreTopicItem>();
+  const foldersMap = new Map<string, CoreCategoryConfig>();
   let coreCategoriesFallback: CoreCategoryConfig[] | null = null;
   let commentsList: CommentItem[] = [];
 
-  const broadcastConsolidatedState = () => {
-    const consolidatedWeeks: WeeklyBlock[] = Array.from(weeksMap.values()).map((week) => {
-      const weekEntriesMap = entriesPerWeekMap.get(week.id);
+  // Cached stable array references to prevent full-tree re-renders when only 1 item changes
+  let cachedConsolidatedWeeks: WeeklyBlock[] = [];
+  let cachedConsolidatedCoreItems: CoreTopicItem[] = [];
+  let cachedConsolidatedFolders: CoreCategoryConfig[] = [];
+  let cachedComments: CommentItem[] = [];
+
+  let broadcastDebounceTimer: any = null;
+
+  const scheduleBroadcast = () => {
+    if (broadcastDebounceTimer) {
+      clearTimeout(broadcastDebounceTimer);
+    }
+    broadcastDebounceTimer = setTimeout(() => {
+      broadcastDebounceTimer = null;
+      const payload: Partial<AppState> & { clientSessionId?: string; updatedAt?: string } = {
+        weeks: cachedConsolidatedWeeks,
+        coreItems: cachedConsolidatedCoreItems,
+        ...(cachedConsolidatedFolders.length > 0 ? { coreCategories: cachedConsolidatedFolders } : {}),
+        comments: cachedComments,
+        updatedAt: new Date().toISOString(),
+        clientSessionId: CLIENT_SESSION_ID,
+      };
+
+      try {
+        localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(payload));
+        localStorage.setItem('journal_backup', JSON.stringify(payload));
+      } catch {}
+
+      onUpdate(payload);
+    }, 25);
+  };
+
+  // Helper to re-build bullets for a specific week and update only that week in cachedConsolidatedWeeks
+  const refreshSingleWeekBullets = (weekId: string) => {
+    const week = weeksMap.get(weekId);
+    if (!week) return;
+
+    const weekEntriesMap = entriesPerWeekMap.get(weekId);
+    const bullets = weekEntriesMap
+      ? Array.from(weekEntriesMap.values())
+      : [...(week.bullets || [])];
+
+    bullets.sort((a, b) => {
+      const timeA = a.isoDate ? new Date(a.isoDate).getTime() : new Date(a.createdAt || a.timestamp).getTime() || 0;
+      const timeB = b.isoDate ? new Date(b.isoDate).getTime() : new Date(b.createdAt || b.timestamp).getTime() || 0;
+      return timeA - timeB;
+    });
+
+    const updatedWeek: WeeklyBlock = {
+      ...week,
+      bullets,
+    };
+    weeksMap.set(weekId, updatedWeek);
+
+    const existingIndex = cachedConsolidatedWeeks.findIndex((w) => w.id === weekId);
+    if (existingIndex >= 0) {
+      cachedConsolidatedWeeks = [
+        ...cachedConsolidatedWeeks.slice(0, existingIndex),
+        updatedWeek,
+        ...cachedConsolidatedWeeks.slice(existingIndex + 1),
+      ];
+    } else {
+      cachedConsolidatedWeeks = [...cachedConsolidatedWeeks, updatedWeek];
+    }
+  };
+
+  // Helper to sync all weeks while preserving unaltered week references
+  const syncConsolidatedWeeks = () => {
+    const nextWeeks: WeeklyBlock[] = [];
+    weeksMap.forEach((week, weekId) => {
+      const existingInCache = cachedConsolidatedWeeks.find((w) => w.id === weekId);
+      const weekEntriesMap = entriesPerWeekMap.get(weekId);
       const bullets = weekEntriesMap
         ? Array.from(weekEntriesMap.values())
         : week.bullets || [];
 
-      // Sort bullets chronologically
       bullets.sort((a, b) => {
         const timeA = a.isoDate ? new Date(a.isoDate).getTime() : new Date(a.createdAt || a.timestamp).getTime() || 0;
         const timeB = b.isoDate ? new Date(b.isoDate).getTime() : new Date(b.createdAt || b.timestamp).getTime() || 0;
         return timeA - timeB;
       });
 
-      return {
+      const assembledWeek: WeeklyBlock = {
         ...week,
         bullets,
       };
+      weeksMap.set(weekId, assembledWeek);
+      nextWeeks.push(assembledWeek);
     });
 
-    const consolidatedCoreItems = Array.from(coreItemsMap.values());
-    const consolidatedFolders = foldersMap.size > 0
-      ? Array.from(foldersMap.values())
-      : (coreCategoriesFallback || []);
-
-    const payload: Partial<AppState> & { clientSessionId?: string; updatedAt?: string } = {
-      weeks: consolidatedWeeks,
-      coreItems: consolidatedCoreItems,
-      ...(consolidatedFolders.length > 0 ? { coreCategories: consolidatedFolders } : {}),
-      comments: commentsList,
-      updatedAt: new Date().toISOString(),
-      clientSessionId: CLIENT_SESSION_ID,
-    };
-
-    try {
-      localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(payload));
-      localStorage.setItem('journal_backup', JSON.stringify(payload));
-    } catch {}
-
-    onUpdate(payload);
+    cachedConsolidatedWeeks = nextWeeks;
   };
 
   // 2. Real-Time Weeks Collection Listener (/weeks)
@@ -639,26 +701,41 @@ export function subscribeJournalData(
     async (weeksSnap) => {
       markHydrated();
 
+      // Skip snapshot updates if this is solely a local uncommitted write
+      if (weeksSnap.metadata.hasPendingWrites) {
+        return;
+      }
+
       if (!weeksSnap.empty) {
+        let hasStructuralChanges = false;
         weeksSnap.docChanges().forEach((change) => {
+          if (change.doc.metadata.hasPendingWrites) return;
+
           const weekData = change.doc.data() as WeeklyBlock;
           const weekId = change.doc.id;
 
           if (change.type === 'removed') {
             weeksMap.delete(weekId);
             entriesPerWeekMap.delete(weekId);
+            cachedConsolidatedWeeks = cachedConsolidatedWeeks.filter((w) => w.id !== weekId);
+            hasStructuralChanges = true;
           } else {
             const existing = weeksMap.get(weekId) || ({} as WeeklyBlock);
-            weeksMap.set(weekId, {
+            const mergedWeek: WeeklyBlock = {
               ...existing,
               ...weekData,
               id: weekId,
               bullets: existing.bullets || weekData.bullets || [],
-            });
+            };
+            weeksMap.set(weekId, mergedWeek);
+            refreshSingleWeekBullets(weekId);
+            hasStructuralChanges = true;
           }
         });
 
-        broadcastConsolidatedState();
+        if (hasStructuralChanges) {
+          scheduleBroadcast();
+        }
       } else {
         // Auto-migration check from legacy document
         try {
@@ -704,7 +781,17 @@ export function subscribeJournalData(
       collectionGroup(db, 'entries'),
       (entriesSnap) => {
         markHydrated();
+
+        // Skip snapshot processing if it is an uncommitted local write
+        if (entriesSnap.metadata.hasPendingWrites) {
+          return;
+        }
+
+        const affectedWeekIds = new Set<string>();
+
         entriesSnap.docChanges().forEach((change) => {
+          if (change.doc.metadata.hasPendingWrites) return;
+
           const entry = { id: change.doc.id, ...change.doc.data() } as BulletPoint;
           const parentWeekId = change.doc.ref.parent.parent?.id;
 
@@ -719,10 +806,16 @@ export function subscribeJournalData(
             } else {
               weekEntries.set(entry.id, entry);
             }
+            affectedWeekIds.add(parentWeekId);
           }
         });
 
-        broadcastConsolidatedState();
+        if (affectedWeekIds.size > 0) {
+          affectedWeekIds.forEach((wId) => {
+            refreshSingleWeekBullets(wId);
+          });
+          scheduleBroadcast();
+        }
       },
       (err) => {
         console.warn('CollectionGroup entries query fallback to individual week listeners:', err.message);
@@ -738,16 +831,30 @@ export function subscribeJournalData(
     collection(db, 'folders'),
     (snap) => {
       markHydrated();
+
+      if (snap.metadata.hasPendingWrites) {
+        return;
+      }
+
       if (!snap.empty) {
+        let hasChanges = false;
         snap.docChanges().forEach((change) => {
+          if (change.doc.metadata.hasPendingWrites) return;
+
           const folder = { id: change.doc.id, ...change.doc.data() } as CoreCategoryConfig;
           if (change.type === 'removed') {
             foldersMap.delete(folder.id);
+            hasChanges = true;
           } else {
             foldersMap.set(folder.id, folder);
+            hasChanges = true;
           }
         });
-        broadcastConsolidatedState();
+
+        if (hasChanges) {
+          cachedConsolidatedFolders = Array.from(foldersMap.values());
+          scheduleBroadcast();
+        }
       }
     },
     (err) => {
@@ -761,15 +868,34 @@ export function subscribeJournalData(
     collection(db, 'core_topics'),
     (snap) => {
       markHydrated();
+
+      // (1) Skip processing snapshot changes where snapshot.metadata.hasPendingWrites is true for local writes
+      if (snap.metadata.hasPendingWrites) {
+        return;
+      }
+
+      let hasChanges = false;
       snap.docChanges().forEach((change) => {
+        if (change.doc.metadata.hasPendingWrites) return;
+
         const item = { id: change.doc.id, ...change.doc.data() } as CoreTopicItem;
         if (change.type === 'removed') {
           coreItemsMap.delete(item.id);
+          hasChanges = true;
         } else {
-          coreItemsMap.set(item.id, item);
+          // (2) Granular check: Only update item if different
+          const existing = coreItemsMap.get(item.id);
+          if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+            coreItemsMap.set(item.id, item);
+            hasChanges = true;
+          }
         }
       });
-      broadcastConsolidatedState();
+
+      if (hasChanges) {
+        cachedConsolidatedCoreItems = Array.from(coreItemsMap.values());
+        scheduleBroadcast();
+      }
     },
     (err) => {
       console.warn('Core topics subscription note:', err.message);
@@ -781,11 +907,18 @@ export function subscribeJournalData(
   const coreCategoriesUnsub = onSnapshot(
     doc(db, 'core_categories', 'settings'),
     (snap) => {
+      if (snap.metadata.hasPendingWrites) {
+        return;
+      }
+
       if (snap.exists()) {
         const data = snap.data();
         if (data && Array.isArray(data.categories)) {
           coreCategoriesFallback = data.categories as CoreCategoryConfig[];
-          broadcastConsolidatedState();
+          if (foldersMap.size === 0) {
+            cachedConsolidatedFolders = coreCategoriesFallback;
+            scheduleBroadcast();
+          }
         }
       }
     },
@@ -799,8 +932,13 @@ export function subscribeJournalData(
   const commentsUnsub = onSnapshot(
     collection(db, 'comments'),
     (snap) => {
+      if (snap.metadata.hasPendingWrites) {
+        return;
+      }
+
       commentsList = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CommentItem[];
-      broadcastConsolidatedState();
+      cachedComments = commentsList;
+      scheduleBroadcast();
     },
     (err) => {
       console.warn('Comments subscription note:', err.message);
@@ -812,6 +950,9 @@ export function subscribeJournalData(
     window.removeEventListener('storage', handleStorage);
     journalDataListeners.delete(onUpdate);
     activeUnsubscribes.forEach((unsub) => unsub());
+    if (broadcastDebounceTimer) {
+      clearTimeout(broadcastDebounceTimer);
+    }
   };
 }
 
