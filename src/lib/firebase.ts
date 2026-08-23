@@ -21,6 +21,12 @@ import {
   getDocFromServer,
 } from 'firebase/firestore';
 import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage';
+import {
   AppState,
   BulletPoint,
   CoreCategoryConfig,
@@ -30,10 +36,36 @@ import {
 } from '../types';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-// 1. Initialize Firebase App, Auth and Firestore with exact database ID
+// 1. Initialize Firebase App, Auth, Firestore and Storage with exact database ID
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+export const storage = getStorage(app);
+
+/**
+ * Uploads a file (photo, video, attachment) directly to Firebase Cloud Storage.
+ * Returns the public persistent download URL.
+ */
+export async function uploadFileToStorage(file: File, folder = 'attachments'): Promise<string> {
+  const timestamp = Date.now();
+  const randomSuffix = Math.random().toString(36).substring(2, 9);
+  const cleanName = (file.name || 'attachment').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const fullPath = `${folder}/${timestamp}_${randomSuffix}_${cleanName}`;
+  const fileRef = storageRef(storage, fullPath);
+
+  const metadata = {
+    contentType: file.type || (file.name?.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg'),
+    customMetadata: {
+      originalName: file.name,
+      uploadedAt: new Date().toISOString(),
+    },
+  };
+
+  const snapshot = await uploadBytes(fileRef, file, metadata);
+  const downloadUrl = await getDownloadURL(snapshot.ref);
+  console.log(`[Firebase Storage SUCCESS] Uploaded file to ${fullPath}:`, downloadUrl);
+  return downloadUrl;
+}
 
 // 2. Types & Data Structures
 export type UserRole = 'owner' | 'editor' | 'commenter' | 'viewer' | 'unauthorized';
@@ -302,6 +334,7 @@ export async function saveFolderDoc(folder: CoreCategoryConfig): Promise<void> {
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to save folder ${folder?.id}:`, err);
     handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
   }
 }
 
@@ -318,15 +351,36 @@ export async function deleteFolderDoc(folderId: string): Promise<void> {
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to delete folder ${folderId}:`, err);
     handleFirestoreError(err, OperationType.DELETE, path);
+    throw err;
   }
 }
 
 /**
  * 3. Create or Update Core Topic Item (/core_topics/{itemId} and /folders/{categoryId}/notes/{itemId})
+ * Checks document size limit before saving and throws descriptive errors.
  */
 export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
   if (!item || !item.id) return;
   const path = `core_topics/${item.id}`;
+
+  // Pre-save client-side size check (700KB safe ceiling to prevent Firestore 1MB dropouts)
+  try {
+    const payloadStr = JSON.stringify(item);
+    const estimatedSizeBytes = new Blob([payloadStr]).size;
+    if (estimatedSizeBytes > 700 * 1024) {
+      const sizeErr = new Error(
+        `Entry payload size (${Math.round(estimatedSizeBytes / 1024)} KB) exceeds the safe 700 KB Firestore limit. Please remove photos or large attachments before saving.`
+      );
+      console.error(`[Firestore CRITICAL SIZE ERROR] Failed to save core topic ${item.id}:`, sizeErr);
+      handleFirestoreError(sizeErr, OperationType.WRITE, path);
+      throw sizeErr;
+    }
+  } catch (checkErr) {
+    if (checkErr instanceof Error && checkErr.message.includes('700 KB')) {
+      throw checkErr;
+    }
+  }
+
   try {
     const cleanItemData = sanitizeForFirestore({
       ...item,
@@ -350,9 +404,10 @@ export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
     }
 
     console.log(`[Firestore SUCCESS] Core topic note saved: ${item.id}`);
-  } catch (err) {
+  } catch (err: any) {
     console.error(`[Firestore CRITICAL ERROR] Failed to save core topic ${item.id}:`, err);
     handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
   }
 }
 
@@ -377,6 +432,7 @@ export async function deleteCoreTopicDoc(itemId: string, categoryId?: string): P
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to delete core topic ${itemId}:`, err);
     handleFirestoreError(err, OperationType.DELETE, path);
+    throw err;
   }
 }
 
@@ -386,6 +442,25 @@ export async function deleteCoreTopicDoc(itemId: string, categoryId?: string): P
 export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<void> {
   if (!weekId || !entry || !entry.id) return;
   const path = `weeks/${weekId}/entries/${entry.id}`;
+
+  // Pre-save client-side size check (700KB safe ceiling)
+  try {
+    const payloadStr = JSON.stringify(entry);
+    const estimatedSizeBytes = new Blob([payloadStr]).size;
+    if (estimatedSizeBytes > 700 * 1024) {
+      const sizeErr = new Error(
+        `Entry payload size (${Math.round(estimatedSizeBytes / 1024)} KB) exceeds the safe 700 KB Firestore limit. Please remove photos or large attachments before saving.`
+      );
+      console.error(`[Firestore CRITICAL SIZE ERROR] Failed to save entry ${entry.id}:`, sizeErr);
+      handleFirestoreError(sizeErr, OperationType.WRITE, path);
+      throw sizeErr;
+    }
+  } catch (checkErr) {
+    if (checkErr instanceof Error && checkErr.message.includes('700 KB')) {
+      throw checkErr;
+    }
+  }
+
   try {
     const entryDocRef = doc(db, 'weeks', weekId, 'entries', entry.id);
     const sanitized = sanitizeForFirestore({
@@ -399,6 +474,7 @@ export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to save entry ${entry.id}:`, err);
     handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
   }
 }
 
@@ -424,6 +500,7 @@ export async function updateEntryDoc(
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to update entry ${entryId}:`, err);
     handleFirestoreError(err, OperationType.UPDATE, path);
+    throw err;
   }
 }
 
@@ -440,6 +517,7 @@ export async function deleteEntryDoc(weekId: string, entryId: string): Promise<v
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to delete entry ${entryId}:`, err);
     handleFirestoreError(err, OperationType.DELETE, path);
+    throw err;
   }
 }
 
@@ -463,6 +541,7 @@ export async function saveWeekMetaDoc(week: WeeklyBlock): Promise<void> {
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to save week ${week.id}:`, err);
     handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
   }
 }
 
@@ -479,6 +558,7 @@ export async function deleteWeekDoc(weekId: string): Promise<void> {
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to delete week ${weekId}:`, err);
     handleFirestoreError(err, OperationType.DELETE, path);
+    throw err;
   }
 }
 
@@ -500,6 +580,7 @@ export async function saveCommentDoc(comment: CommentItem): Promise<void> {
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to save comment ${comment.id}:`, err);
     handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
   }
 }
 
@@ -516,6 +597,7 @@ export async function deleteCommentDoc(commentId: string): Promise<void> {
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to delete comment ${commentId}:`, err);
     handleFirestoreError(err, OperationType.DELETE, path);
+    throw err;
   }
 }
 
@@ -542,6 +624,7 @@ export async function saveCoreCategoriesDoc(categories: CoreCategoryConfig[]): P
   } catch (err) {
     console.error('[Firestore Error] Failed to save categories config:', err);
     handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
   }
 }
 

@@ -1,11 +1,12 @@
 import React from 'react';
-import { Check, Loader2, Clock } from 'lucide-react';
+import { Check, Loader2, Clock, AlertCircle } from 'lucide-react';
 
 export type SaveStatusState = 'idle' | 'countdown' | 'unsaved' | 'saving' | 'saved' | 'error';
 
 export interface SaveStatusBadgeProps {
   status: SaveStatusState;
   secondsRemaining?: number;
+  errorMessage?: string;
   className?: string;
   showIcon?: boolean;
 }
@@ -16,7 +17,7 @@ export interface SaveStatusBadgeProps {
  * Prevents parent layout containers, modals, and backdrop overlays from re-rendering on timer ticks.
  */
 export const SaveStatusBadge = React.memo<SaveStatusBadgeProps>(
-  ({ status, secondsRemaining = 2, className = '', showIcon = true }) => {
+  ({ status, secondsRemaining = 2, errorMessage, className = '', showIcon = true }) => {
     if (status === 'idle') return null;
 
     return (
@@ -57,9 +58,12 @@ export const SaveStatusBadge = React.memo<SaveStatusBadgeProps>(
         )}
 
         {status === 'error' && (
-          <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full border border-stone-200 dark:border-stone-700">
-            {showIcon && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
-            <span>Local backup</span>
+          <span
+            className="text-[11px] font-medium text-rose-600 dark:text-rose-400 flex items-center gap-1 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-900/50"
+            title={errorMessage || 'Failed to save to cloud'}
+          >
+            {showIcon && <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />}
+            <span>{errorMessage ? 'Save failed' : 'Failed to save'}</span>
           </span>
         )}
       </div>

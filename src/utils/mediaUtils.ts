@@ -1,4 +1,38 @@
 import { Attachment } from '../types';
+import { uploadFileToStorage } from '../lib/firebase';
+
+/**
+ * 700KB safe payload threshold.
+ * Firestore enforces a strict 1MB document limit.
+ * Keeping attachments under 700KB provides a comfortable safety buffer.
+ */
+export const MAX_SAFE_ATTACHMENTS_SIZE_BYTES = 700 * 1024; // 700 KB
+
+/**
+ * Calculates the total approximate storage payload size in bytes of attachments.
+ * Base64 data URLs consume their actual string character length.
+ * Cloud Storage URLs consume only their minimal URL string length (~150 bytes).
+ */
+export function calculateAttachmentsSize(attachments?: Attachment[]): number {
+  if (!attachments || !Array.isArray(attachments)) return 0;
+  return attachments.reduce((total, att) => {
+    if (!att || !att.url) return total;
+    if (att.url.startsWith('data:')) {
+      return total + att.url.length;
+    }
+    return total + (att.url.length || 150);
+  }, 0);
+}
+
+/**
+ * Checks if total attachments size exceeds the safe threshold.
+ */
+export function isAttachmentsSizeExceeded(
+  attachments?: Attachment[],
+  limit = MAX_SAFE_ATTACHMENTS_SIZE_BYTES
+): boolean {
+  return calculateAttachmentsSize(attachments) > limit;
+}
 
 /**
  * Generates a clean unique ID for an attachment.
@@ -30,11 +64,10 @@ export function isVideoMedia(url?: string, mimeType?: string): boolean {
 }
 
 /**
- * High-performance image compressor:
+ * High-performance image compressor (fallback for offline or local preview):
  * - Downscales photos to max dimension 1200px (width or height).
  * - Encodes with JPEG quality 0.7.
- * - Iteratively steps down quality/resolution if size exceeds 180KB (~240,000 Base64 characters).
- * - Guarantees the entry document stays strictly lightweight (<150KB) to prevent Firestore 1MB dropouts.
+ * - Iteratively steps down quality/resolution if size exceeds 180KB.
  */
 export function compressImageToBase64(
   file: File,
@@ -122,13 +155,12 @@ export function compressImageToBase64(
 }
 
 /**
- * Reads video file into Data URL with safety guard.
+ * Reads video file into Data URL with safety guard (fallback only).
  */
 export function readVideoFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
-    // If video file is greater than 10MB, warn about storage
     if (file.size > 10 * 1024 * 1024) {
-      console.warn('Large video file detected (>10MB). Consider using an external video URL for optimal cloud sync.');
+      console.warn('Large video file detected (>10MB). Uploading to Cloud Storage is strongly recommended.');
     }
     const reader = new FileReader();
     reader.onload = (e) => resolve(e.target?.result as string);
@@ -138,21 +170,31 @@ export function readVideoFileAsBase64(file: File): Promise<string> {
 }
 
 /**
- * Converts a browser File to a persistent, optimized Attachment object.
+ * Converts a browser File into a persistent Attachment by uploading directly to Firebase Cloud Storage.
+ * Stores only the lightweight download URL in the Firestore entry document.
  */
 export async function fileToPersistentAttachment(file: File): Promise<Attachment> {
   const isVideo = file.type.startsWith('video/') || isVideoMedia(file.name);
-  let dataUrl: string;
+  let persistentUrl: string;
 
-  if (isVideo) {
-    dataUrl = await readVideoFileAsBase64(file);
-  } else {
-    dataUrl = await compressImageToBase64(file);
+  try {
+    // 1. Primary path: Upload to Firebase Cloud Storage
+    const folder = isVideo ? 'attachments/videos' : 'attachments/images';
+    persistentUrl = await uploadFileToStorage(file, folder);
+    console.log(`[Attachment Upload] Successfully stored file in Cloud Storage: ${file.name}`);
+  } catch (storageErr) {
+    console.warn('[Attachment Upload] Cloud Storage direct upload failed or offline. Falling back to local Base64:', storageErr);
+    // 2. Fallback path: Compress to Base64 data URL
+    if (isVideo) {
+      persistentUrl = await readVideoFileAsBase64(file);
+    } else {
+      persistentUrl = await compressImageToBase64(file);
+    }
   }
 
   return {
     id: generateAttachmentId(),
-    url: dataUrl,
+    url: persistentUrl,
     type: isVideo ? 'video' : 'image',
     name: file.name || (isVideo ? 'Video Attachment' : 'Photo Attachment'),
     createdAt: new Date().toISOString(),
@@ -161,7 +203,7 @@ export async function fileToPersistentAttachment(file: File): Promise<Attachment
 }
 
 /**
- * Converts multiple browser Files into persistent Attachment objects in parallel.
+ * Converts multiple browser Files into persistent Cloud Storage Attachment objects in parallel.
  */
 export async function filesToPersistentAttachments(files: FileList | File[]): Promise<Attachment[]> {
   const fileArray = Array.from(files);

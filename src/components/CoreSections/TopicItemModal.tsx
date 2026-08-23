@@ -1,5 +1,5 @@
-import { Eye, Folder, Image as ImageIcon, Loader2, Play, Plus, Upload, Video, X } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { AlertCircle, Eye, Folder, Image as ImageIcon, Loader2, Play, Plus, Upload, Video, X } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CORE_CATEGORIES_CONFIG } from '../../data/initialData';
 import { Attachment, CoreCategoryConfig, CoreCategoryId, CoreTopicItem } from '../../types';
 import { formatTimestamp } from '../../utils/storage';
@@ -10,6 +10,9 @@ import {
   filesToPersistentAttachments,
   getNormalizedAttachments,
   isVideoMedia,
+  calculateAttachmentsSize,
+  isAttachmentsSizeExceeded,
+  MAX_SAFE_ATTACHMENTS_SIZE_BYTES,
 } from '../../utils/mediaUtils';
 import { MediaInspectModal } from '../MediaInspectModal';
 
@@ -17,7 +20,7 @@ interface TopicItemModalProps {
   item?: CoreTopicItem | null;
   activeCategory: CoreCategoryId;
   coreCategories?: CoreCategoryConfig[];
-  onSave: (item: CoreTopicItem, shouldClose?: boolean) => void;
+  onSave: (item: CoreTopicItem, shouldClose?: boolean) => Promise<void> | void;
   onClose: () => void;
 }
 
@@ -49,12 +52,21 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
   const [notes, setNotes] = useState(item?.notes || '');
   const [answers, setAnswers] = useState(item?.answers || '');
   const [isHighlightedAnswer, setIsHighlightedAnswer] = useState(item?.isHighlightedAnswer || false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
+  const [autoSaveStatus, setAutoSaveStatus] = useState<SaveStatusState>('idle');
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
   const isUserTypingRef = useRef(false);
   const hasEverTypedRef = useRef(false);
   const modalMountedItemIdRef = useRef<string | undefined>(item?.id);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Calculate approximate attachment size in KB
+  const totalAttachmentSizeBytes = useMemo(
+    () => calculateAttachmentsSize(draftAttachments),
+    [draftAttachments]
+  );
+  const isOverSizeLimit = totalAttachmentSizeBytes > MAX_SAFE_ATTACHMENTS_SIZE_BYTES;
+  const attachmentSizeKB = Math.round(totalAttachmentSizeBytes / 1024);
 
   // Synchronize initial item changes ONLY if user is NOT actively typing and the opened item ID changed
   useEffect(() => {
@@ -73,6 +85,8 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       setNotes(item.notes || '');
       setAnswers(item.answers || '');
       setIsHighlightedAnswer(item.isHighlightedAnswer || false);
+      setSaveErrorMessage(null);
+      setAutoSaveStatus('idle');
     }
   }, [item, activeCategory]);
 
@@ -99,11 +113,18 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
 
     if (!hasChanges || !title.trim()) return;
 
+    if (isOverSizeLimit) {
+      setAutoSaveStatus('error');
+      setSaveErrorMessage(`Attachment size (${attachmentSizeKB} KB) exceeds 700 KB limit.`);
+      return;
+    }
+
     isUserTypingRef.current = true;
     hasEverTypedRef.current = true;
     setAutoSaveStatus('unsaved');
+    setSaveErrorMessage(null);
 
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       setAutoSaveStatus('saving');
       const primaryMedia = draftAttachments[0];
       const savedItem: CoreTopicItem = {
@@ -126,11 +147,16 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
         updatedAt: new Date().toISOString(),
       };
 
-      // Auto-save in background without closing modal (shouldClose = false)
-      onSave(savedItem, false);
-      console.log('[Auto-Save] Entry saved to Firestore:', item.id);
-      setAutoSaveStatus('saved');
-      isUserTypingRef.current = false;
+      try {
+        await onSave(savedItem, false);
+        setAutoSaveStatus('saved');
+        setSaveErrorMessage(null);
+        isUserTypingRef.current = false;
+      } catch (err: any) {
+        console.error('[Auto-Save ERROR] Failed to save entry:', err);
+        setAutoSaveStatus('error');
+        setSaveErrorMessage(err?.message || 'Failed to save to cloud');
+      }
     }, 600);
 
     return () => clearTimeout(timer);
@@ -149,12 +175,14 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
     isHighlightedAnswer,
     categoryConfig,
     onSave,
+    isOverSizeLimit,
+    attachmentSizeKB,
   ]);
 
   // Flush on unmount if pending changes
   useEffect(() => {
     return () => {
-      if (isUserTypingRef.current && item && title.trim()) {
+      if (isUserTypingRef.current && item && title.trim() && !isOverSizeLimit) {
         const primaryMedia = draftAttachments[0];
         const savedItem: CoreTopicItem = {
           ...item,
@@ -175,11 +203,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           isHighlightedAnswer,
           updatedAt: new Date().toISOString(),
         };
-        onSave(savedItem, false);
-        console.log('[Auto-Save] Entry saved to Firestore:', item.id);
+        try {
+          onSave(savedItem, false);
+        } catch {}
       }
     };
-  }, [answers, categoryConfig?.hasDraftTracking, content, dateTag, draftAttachments, isHighlightedAnswer, item, location, notes, onSave, priority, selectedCategoryId, status, title]);
+  }, [answers, categoryConfig?.hasDraftTracking, content, dateTag, draftAttachments, isHighlightedAnswer, isOverSizeLimit, item, location, notes, onSave, priority, selectedCategoryId, status, title]);
 
   const handleMultipleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -189,8 +218,10 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       setIsProcessingUpload(true);
       const newAtts = await filesToPersistentAttachments(files);
       setDraftAttachments((prev) => [...prev, ...newAtts]);
-    } catch (err) {
-      console.error('Failed to read files:', err);
+    } catch (err: any) {
+      console.error('Failed to upload files to Cloud Storage:', err);
+      setAutoSaveStatus('error');
+      setSaveErrorMessage(err?.message || 'Failed to upload media');
     } finally {
       setIsProcessingUpload(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -208,9 +239,15 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
     setDraftAttachments((prev) => prev.filter((a) => a.id !== idToRemove));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    if (isOverSizeLimit) {
+      setAutoSaveStatus('error');
+      setSaveErrorMessage(`Attachment size (${attachmentSizeKB} KB) exceeds the safe 700 KB limit. Please remove an attachment before saving.`);
+      return;
+    }
 
     const primaryMedia = draftAttachments[0];
     const savedItem: CoreTopicItem = {
@@ -234,8 +271,14 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       updatedAt: new Date().toISOString(),
     };
 
-    // User explicitly pressed Submit -> Save & Close modal (shouldClose = true)
-    onSave(savedItem, true);
+    try {
+      setAutoSaveStatus('saving');
+      await onSave(savedItem, true);
+    } catch (err: any) {
+      console.error('[Submit ERROR] Failed to save entry:', err);
+      setAutoSaveStatus('error');
+      setSaveErrorMessage(err?.message || 'Failed to save entry to cloud');
+    }
   };
 
   return (
@@ -266,6 +309,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             <SaveStatusBadge
               status={autoSaveStatus === 'unsaved' ? 'countdown' : autoSaveStatus}
               secondsRemaining={2}
+              errorMessage={saveErrorMessage || undefined}
             />
           </div>
           <button
@@ -275,6 +319,20 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Error Alert Box */}
+        {(saveErrorMessage || isOverSizeLimit) && (
+          <div className="flex items-start gap-2 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl text-rose-800 dark:text-rose-300 text-xs leading-relaxed">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <span className="font-semibold">
+                {isOverSizeLimit ? 'Attachment Size Limit Exceeded' : 'Save Error'}:
+              </span>{' '}
+              {saveErrorMessage ||
+                `Attachment payload is ${attachmentSizeKB} KB. The safe limit is 700 KB to avoid Firestore data loss. Please remove large photos or videos before saving.`}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           {/* Target Topic Folder Selection */}
@@ -299,70 +357,35 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           {/* Title */}
           <div>
             <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              Title / Subject
+              Title <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
-              placeholder="e.g., Thoughtful Check-in Draft..."
+              required
+              placeholder="e.g., Mom's Birthday Gift Idea, Book Recommendation..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold focus:outline-none"
+              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold"
             />
           </div>
 
-          {/* Main Content */}
+          {/* Content / Details with Bulleted Note Editor */}
           <div>
             <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              Content & Bullet Notes
+              Details & Notes (Type - or • to start bullet points)
             </label>
-            <div className="p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl">
-              <BulletedNoteEditor
-                value={content}
-                onChange={setContent}
-                minRows={4}
-                placeholder="Write thoughts, message drafts, reflections, or type - or • for bullets..."
-              />
-            </div>
+            <BulletedNoteEditor
+              entryId={item?.id || 'new-item-draft'}
+              value={content}
+              onChange={(newVal) => setContent(newVal)}
+              minRows={4}
+              placeholder="Add thoughts, key details, or bullet points..."
+            />
           </div>
 
-          {/* Status & Priority Fields */}
+          {/* Status & Priority Row */}
           <div className="grid grid-cols-2 gap-3">
             {categoryConfig?.hasDraftTracking ? (
-              <div>
-                <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                  Draft Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full p-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
-                >
-                  <option value="Draft">Draft</option>
-                  <option value="Ready to Send">Ready to Send</option>
-                  <option value="Sent">Sent</option>
-                  <option value="Decided Not To Send">Decided Not To Send</option>
-                </select>
-              </div>
-            ) : selectedCategoryId === 'things-i-want-to-do-together' ||
-              selectedCategoryId === 'my-hobbies' ||
-              selectedCategoryId === 'things-i-want-to-do' ||
-              selectedCategoryId === 'foods-to-try' ? (
-              <div>
-                <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                  Activity Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full p-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
-                >
-                  <option value="To Watch/Read">To Do / To Try</option>
-                  <option value="Done Alone">Done Alone</option>
-                  <option value="Done Together">Done Together</option>
-                </select>
-              </div>
-            ) : (
               <div>
                 <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
                   Status
@@ -372,9 +395,25 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                   onChange={(e) => setStatus(e.target.value as any)}
                   className="w-full p-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
                 >
-                  <option value="Pending">Pending</option>
+                  <option value="Draft">Draft</option>
                   <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
+                  <option value="Shared">Shared</option>
+                  <option value="Done">Done</option>
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                  Activity Status
+                </label>
+                <select
+                  value={status || 'Active'}
+                  onChange={(e) => setStatus(e.target.value as any)}
+                  className="w-full p-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+                >
+                  <option value="Active">Active / Planned</option>
+                  <option value="Done">Completed</option>
+                  <option value="Archived">Archived</option>
                 </select>
               </div>
             )}
@@ -462,6 +501,11 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             <div className="flex items-center justify-between">
               <label className="block font-semibold text-stone-700 dark:text-stone-300">
                 Media Attachments ({draftAttachments.length})
+                {attachmentSizeKB > 0 && (
+                  <span className={`ml-1.5 text-[11px] font-mono font-normal ${isOverSizeLimit ? 'text-rose-600 font-bold' : 'text-stone-400'}`}>
+                    ({attachmentSizeKB} KB / 700 KB max)
+                  </span>
+                )}
               </label>
               {draftAttachments.length > 0 && (
                 <button
@@ -505,7 +549,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                <span>Upload Media</span>
+                <span>{isProcessingUpload ? 'Uploading to Storage...' : 'Upload Media'}</span>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -565,7 +609,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             </button>
             <button
               type="submit"
-              className="min-h-[44px] px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm sm:text-xs shadow-2xs"
+              disabled={isOverSizeLimit || isProcessingUpload}
+              className={`min-h-[44px] px-5 py-2 rounded-xl font-bold text-sm sm:text-xs shadow-2xs transition-colors ${
+                isOverSizeLimit || isProcessingUpload
+                  ? 'bg-stone-400 cursor-not-allowed text-stone-200'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
             >
               {item ? 'Save Changes' : 'Create Entry'}
             </button>
