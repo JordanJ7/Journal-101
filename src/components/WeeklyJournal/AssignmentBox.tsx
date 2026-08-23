@@ -218,15 +218,24 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                 <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
                   Progress & Notes
                 </label>
-                <textarea
-                  placeholder="Chapter notes, key takeaways, pages read..."
-                  value={assignments.readBookProgress}
-                  onChange={(e) => updateField('readBookProgress', e.target.value)}
-                  onBlur={() => useJournalStore.getState().flushAutoSave()}
-                  readOnly={!canEdit}
-                  className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400"
-                  rows={2}
-                />
+                <div
+                  className="w-full relative transform-gpu typing-isolation-container"
+                  style={{
+                    contain: 'layout paint',
+                    willChange: 'contents',
+                    transform: 'translateZ(0)',
+                  }}
+                >
+                  <textarea
+                    placeholder="Chapter notes, key takeaways, pages read..."
+                    value={assignments.readBookProgress}
+                    onChange={(e) => updateField('readBookProgress', e.target.value)}
+                    onBlur={() => useJournalStore.getState().flushAutoSave()}
+                    readOnly={!canEdit}
+                    className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400"
+                    rows={2}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -274,15 +283,24 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                 <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
                   Thoughts & Emotional Reactions
                 </label>
-                <textarea
-                  placeholder="What resonated with you? Character dynamics..."
-                  value={assignments.watchMovieThoughts}
-                  onChange={(e) => updateField('watchMovieThoughts', e.target.value)}
-                  onBlur={() => useJournalStore.getState().flushAutoSave()}
-                  readOnly={!canEdit}
-                  className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400"
-                  rows={2}
-                />
+                <div
+                  className="w-full relative transform-gpu typing-isolation-container"
+                  style={{
+                    contain: 'layout paint',
+                    willChange: 'contents',
+                    transform: 'translateZ(0)',
+                  }}
+                >
+                  <textarea
+                    placeholder="What resonated with you? Character dynamics..."
+                    value={assignments.watchMovieThoughts}
+                    onChange={(e) => updateField('watchMovieThoughts', e.target.value)}
+                    onBlur={() => useJournalStore.getState().flushAutoSave()}
+                    readOnly={!canEdit}
+                    className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400"
+                    rows={2}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -360,15 +378,24 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                       )}
                     </div>
 
-                    <textarea
-                      placeholder="Type your reflection or answer here..."
-                      value={q.answer}
-                      onChange={(e) => updateDesQuestion(q.id, e.target.value)}
-                      onBlur={() => useJournalStore.getState().flushAutoSave()}
-                      readOnly={!canEdit}
-                      className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none"
-                      rows={2}
-                    />
+                    <div
+                      className="w-full relative transform-gpu typing-isolation-container"
+                      style={{
+                        contain: 'layout paint',
+                        willChange: 'contents',
+                        transform: 'translateZ(0)',
+                      }}
+                    >
+                      <textarea
+                        placeholder="Type your reflection or answer here..."
+                        value={q.answer}
+                        onChange={(e) => updateDesQuestion(q.id, e.target.value)}
+                        onBlur={() => useJournalStore.getState().flushAutoSave()}
+                        readOnly={!canEdit}
+                        className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none"
+                        rows={2}
+                      />
+                    </div>
 
                     <div className="flex items-center justify-between mt-2.5 text-xs">
                       <div className={`relative inline-block ${activeDateEditingQuestionId === q.id ? 'z-[9999]' : 'z-10'}`}>

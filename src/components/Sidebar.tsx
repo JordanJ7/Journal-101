@@ -695,7 +695,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
         <div className="fixed inset-0 z-50 md:hidden flex transform-gpu will-change-transform isolate">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
+            className="fixed inset-0 bg-[#0f0f11]/90 transition-opacity animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
             onClick={() => setIsOpenMobile?.(false)}
           />
 
@@ -710,7 +710,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {showAddWeekModal && (
         <div
           id="add-week-modal-overlay"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
         >
           <div className="bg-white dark:bg-[#1C1C1E] rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 transform-gpu will-change-transform isolate">
             <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2" />
@@ -772,7 +772,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {showAddCategoryModal && (
         <div
           id="add-sidebar-category-modal-overlay"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
         >
           <div className="bg-white dark:bg-[#1C1C1E] rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 transform-gpu will-change-transform isolate">
             <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2" />

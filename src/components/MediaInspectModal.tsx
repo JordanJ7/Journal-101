@@ -142,7 +142,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
   const modalContent = (
     <div
       id="media-inspect-modal-overlay"
-      className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-[99999] bg-[#0f0f11]/95 flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
       onClick={(e) => {
         e.stopPropagation();
         onClose();
@@ -409,7 +409,14 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                   </span>
                   
                   {editingCaption ? (
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <div
+                      className="flex items-center gap-1.5 flex-1 min-w-0 typing-isolation-container"
+                      style={{
+                        contain: 'layout paint',
+                        willChange: 'contents',
+                        transform: 'translateZ(0)',
+                      }}
+                    >
                       <input
                         type="text"
                         value={captionDraft}

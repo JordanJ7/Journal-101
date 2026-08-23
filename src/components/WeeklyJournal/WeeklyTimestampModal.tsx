@@ -88,7 +88,7 @@ export const WeeklyTimestampModal: React.FC<WeeklyTimestampModalProps> = ({
   return (
     <div
       id="weekly-timestamp-modal-overlay"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-[#0f0f11]/90 animate-in fade-in duration-200 transform-gpu will-change-transform isolate"
       onClick={onClose}
     >
       <div

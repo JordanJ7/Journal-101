@@ -152,7 +152,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
         <button
           onClick={onToggleOpen}
           id="comments-toggle-ribbon"
-          className="fixed right-3 sm:right-6 bottom-20 z-40 bg-white/95 text-slate-700 dark:bg-stone-900/95 dark:text-stone-200 px-3.5 py-2 rounded-full shadow-lg hover:shadow-xl flex items-center gap-2.5 text-xs font-semibold hover:scale-105 active:scale-95 transition-all border border-slate-200/90 dark:border-stone-700 cursor-pointer group backdrop-blur-sm"
+          className="fixed right-3 sm:right-6 bottom-20 z-40 bg-white text-slate-700 dark:bg-stone-900 dark:text-stone-200 px-3.5 py-2 rounded-full shadow-lg hover:shadow-xl flex items-center gap-2.5 text-xs font-semibold hover:scale-105 active:scale-95 transition-all border border-slate-200/90 dark:border-stone-700 cursor-pointer group"
           title="Open Comments & Feedback Sidebar"
         >
           <div className="relative">
@@ -175,7 +175,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
       {/* Expanded Comments Sidebar Panel */}
       <aside
         id="comments-sidebar-panel"
-        className={`fixed top-16 right-0 bottom-0 z-40 w-full max-w-sm sm:w-96 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-l border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out transform-gpu will-change-transform isolate ${
+        className={`fixed top-16 right-0 bottom-0 z-40 w-full max-w-sm sm:w-96 bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out transform-gpu will-change-transform isolate ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -381,13 +381,22 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 {/* Comment Content or Inline Editor */}
                 {editingCommentId === comment.id ? (
                   <div className="space-y-2 pt-1 animate-in fade-in duration-150">
-                    <textarea
-                      rows={3}
-                      value={editingCommentText}
-                      onChange={(e) => setEditingCommentText(e.target.value)}
-                      className={`w-full p-2 text-xs bg-white dark:bg-stone-900 border ${currentAccent.border} rounded-lg text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 ${currentAccent.ring}`}
-                      autoFocus
-                    />
+                    <div
+                      className="typing-isolation-container"
+                      style={{
+                        contain: 'layout paint',
+                        willChange: 'contents',
+                        transform: 'translateZ(0)',
+                      }}
+                    >
+                      <textarea
+                        rows={3}
+                        value={editingCommentText}
+                        onChange={(e) => setEditingCommentText(e.target.value)}
+                        className={`w-full p-2 text-xs bg-white dark:bg-stone-900 border ${currentAccent.border} rounded-lg text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 ${currentAccent.ring}`}
+                        autoFocus
+                      />
+                    </div>
                     <div className="flex items-center gap-1.5 justify-end">
                       <button
                         onClick={() => setEditingCommentId(null)}
@@ -457,7 +466,14 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 </select>
               </div>
 
-              <div className="relative">
+              <div
+                className="relative typing-isolation-container"
+                style={{
+                  contain: 'layout paint',
+                  willChange: 'contents',
+                  transform: 'translateZ(0)',
+                }}
+              >
                 <textarea
                   rows={2}
                   placeholder={

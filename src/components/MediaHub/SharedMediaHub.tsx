@@ -464,7 +464,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
       {showAddModal && (
         <div
           id="add-media-modal-overlay"
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
         >
           <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95 transform-gpu will-change-transform isolate">
             <div className="flex items-center justify-between">

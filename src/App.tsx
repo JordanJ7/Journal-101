@@ -591,7 +591,7 @@ export default function App() {
         {/* Authentic iOS Bottom Tab Bar (Only on mobile < md) */}
         <nav
           aria-label="Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7]/95 dark:bg-[#000000]/95 backdrop-blur-xl border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg transform-gpu will-change-transform isolate"
+          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7] dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg transform-gpu will-change-transform isolate"
         >
           <button
             onClick={() => handleSetViewMode('home')}

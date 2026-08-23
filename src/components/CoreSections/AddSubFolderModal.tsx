@@ -41,7 +41,7 @@ export const AddSubFolderModal: React.FC<AddSubFolderModalProps> = ({
   return (
     <div
       id="add-subfolder-modal-overlay"
-      className="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex justify-center items-center p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex justify-center items-center p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
     >
       <div className="bg-white dark:bg-stone-900 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-2xl max-w-md w-full space-y-4 relative transform-gpu will-change-transform isolate">
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">

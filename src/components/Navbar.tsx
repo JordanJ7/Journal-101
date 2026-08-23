@@ -222,7 +222,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   const userInitial = (currentUser.displayName || currentUser.email || 'U')[0].toUpperCase();
 
   return (
-    <header className="shrink-0 w-full relative z-30 border-b border-black/5 dark:border-white/10 bg-[#F2F2F7]/95 dark:bg-[#000000]/95 backdrop-blur-xl transition-colors">
+    <header className="shrink-0 w-full relative z-30 border-b border-black/5 dark:border-white/10 bg-[#F2F2F7] dark:bg-[#000000] transition-colors">
       <div className="w-full px-2.5 sm:px-6 h-14 flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left: Desktop Toggle / Mobile Menu Trigger & App Title */}
         <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">

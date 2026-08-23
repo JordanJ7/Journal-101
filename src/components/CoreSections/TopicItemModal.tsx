@@ -240,7 +240,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
   return (
     <div
       id="topic-item-modal-overlay"
-      className="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -442,13 +442,22 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
                 <span>Highlight Box</span>
               </label>
             </div>
-            <textarea
-              placeholder="Her answers, therapist suggestions, or personal takeaways..."
-              value={answers}
-              onChange={(e) => setAnswers(e.target.value)}
-              rows={2}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs leading-relaxed"
-            />
+            <div
+              className="w-full relative transform-gpu typing-isolation-container"
+              style={{
+                contain: 'layout paint',
+                willChange: 'contents',
+                transform: 'translateZ(0)',
+              }}
+            >
+              <textarea
+                placeholder="Her answers, therapist suggestions, or personal takeaways..."
+                value={answers}
+                onChange={(e) => setAnswers(e.target.value)}
+                rows={2}
+                className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs leading-relaxed"
+              />
+            </div>
           </div>
 
           {/* Media Attachments (Photos / Videos) */}

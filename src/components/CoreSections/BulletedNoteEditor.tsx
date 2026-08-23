@@ -539,28 +539,37 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
           </div>
         </div>
 
-        {/* Textarea with Fluid Auto-Expanding Height & Clean Typography */}
-        <textarea
-          ref={textareaRef}
-          value={localValue}
-          onChange={handleTextChange}
-          onInput={(e) => {
-            const target = e.currentTarget;
-            target.style.height = 'auto';
-            target.style.height = `${target.scrollHeight}px`;
+        {/* Textarea with Fluid Auto-Expanding Height & Clean Typography inside Locked Compositor Layer */}
+        <div
+          className="w-full relative transform-gpu typing-isolation-container"
+          style={{
+            contain: 'layout paint',
+            willChange: 'contents',
+            transform: 'translateZ(0)',
           }}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-            setIsFocused(false);
-            flushChange();
-            onSaveImmediate?.();
-          }}
-          placeholder={placeholder}
-          rows={minRows}
-          autoFocus={autoFocus}
-          className="w-full h-auto min-h-[350px] resize-none overflow-hidden bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-stone-900 dark:text-neutral-100 placeholder:text-neutral-500 font-normal selection:bg-blue-500/20 py-2 px-1"
-        />
+        >
+          <textarea
+            ref={textareaRef}
+            value={localValue}
+            onChange={handleTextChange}
+            onInput={(e) => {
+              const target = e.currentTarget;
+              target.style.height = 'auto';
+              target.style.height = `${target.scrollHeight}px`;
+            }}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => {
+              setIsFocused(false);
+              flushChange();
+              onSaveImmediate?.();
+            }}
+            placeholder={placeholder}
+            rows={minRows}
+            autoFocus={autoFocus}
+            className="w-full h-auto min-h-[350px] resize-none overflow-hidden bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-stone-900 dark:text-neutral-100 placeholder:text-neutral-500 font-normal selection:bg-blue-500/20 py-2 px-1"
+          />
+        </div>
 
         {/* Keyboard Tip Footer */}
         <div className="flex items-center justify-between text-[10px] text-stone-400 dark:text-stone-500 pt-1 border-t border-black/5 dark:border-white/5">

@@ -66,7 +66,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
   return (
     <div
       id="add-core-category-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f0f11]/90 animate-in fade-in duration-150 overflow-y-auto transform-gpu will-change-transform isolate"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

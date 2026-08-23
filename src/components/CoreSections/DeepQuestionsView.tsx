@@ -549,14 +549,23 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                             {/* Answer Content or Inline Editor */}
                             {editingAnswerId === item.id && canEdit ? (
                               <div className="space-y-2 animate-in fade-in duration-150">
-                                <textarea
-                                  rows={3}
-                                  value={editingAnswerText}
-                                  onChange={(e) => setEditingAnswerText(e.target.value)}
-                                  placeholder="Write your honest, grounded reflection or planned response..."
-                                  className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-900 border border-blue-300 dark:border-blue-700 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                                  autoFocus
-                                />
+                                <div
+                                  className="w-full relative transform-gpu typing-isolation-container"
+                                  style={{
+                                    contain: 'layout paint',
+                                    willChange: 'contents',
+                                    transform: 'translateZ(0)',
+                                  }}
+                                >
+                                  <textarea
+                                    rows={3}
+                                    value={editingAnswerText}
+                                    onChange={(e) => setEditingAnswerText(e.target.value)}
+                                    placeholder="Write your honest, grounded reflection or planned response..."
+                                    className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-900 border border-blue-300 dark:border-blue-700 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                    autoFocus
+                                  />
+                                </div>
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => handleSaveInlineAnswer(item.id)}
@@ -611,7 +620,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
       {showAddModal && (
         <div
           id="add-question-modal-overlay"
-          className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
         >
           <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate">
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
@@ -665,27 +674,45 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                 <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
                   The Deep Question (Left Card Pane):
                 </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="e.g., When conversations feel tense, what ritual or code phrase can we use to pause and reset?"
-                  value={newQuestionText}
-                  onChange={(e) => setNewQuestionText(e.target.value)}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
-                />
+                <div
+                  className="w-full relative transform-gpu typing-isolation-container"
+                  style={{
+                    contain: 'layout paint',
+                    willChange: 'contents',
+                    transform: 'translateZ(0)',
+                  }}
+                >
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="e.g., When conversations feel tense, what ritual or code phrase can we use to pause and reset?"
+                    value={newQuestionText}
+                    onChange={(e) => setNewQuestionText(e.target.value)}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
                   My Answer / Prepared Reflection (Right Card Pane):
                 </label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g., My Answer: Agree to take a 15-minute cooling breath pause, sit together with tea, and validate each other's feelings before speaking."
-                  value={newAnswerText}
-                  onChange={(e) => setNewAnswerText(e.target.value)}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
-                />
+                <div
+                  className="w-full relative transform-gpu typing-isolation-container"
+                  style={{
+                    contain: 'layout paint',
+                    willChange: 'contents',
+                    transform: 'translateZ(0)',
+                  }}
+                >
+                  <textarea
+                    rows={3}
+                    placeholder="e.g., My Answer: Agree to take a 15-minute cooling breath pause, sit together with tea, and validate each other's feelings before speaking."
+                    value={newAnswerText}
+                    onChange={(e) => setNewAnswerText(e.target.value)}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
@@ -725,7 +752,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
       {editingItem && (
         <div
           id="edit-question-modal-overlay"
-          className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
+          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-center justify-center p-4 transform-gpu will-change-transform isolate"
         >
           <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform isolate">
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
@@ -778,25 +805,43 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                 <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
                   The Deep Question (Left Card Pane):
                 </label>
-                <textarea
-                  rows={3}
-                  required
-                  value={editingItem.content}
-                  onChange={(e) => setEditingItem({ ...editingItem, content: e.target.value })}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
-                />
+                <div
+                  className="w-full relative transform-gpu typing-isolation-container"
+                  style={{
+                    contain: 'layout paint',
+                    willChange: 'contents',
+                    transform: 'translateZ(0)',
+                  }}
+                >
+                  <textarea
+                    rows={3}
+                    required
+                    value={editingItem.content}
+                    onChange={(e) => setEditingItem({ ...editingItem, content: e.target.value })}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
                   My Answer (Right Card Pane):
                 </label>
-                <textarea
-                  rows={3}
-                  value={editingItem.answers || ''}
-                  onChange={(e) => setEditingItem({ ...editingItem, answers: e.target.value })}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
-                />
+                <div
+                  className="w-full relative transform-gpu typing-isolation-container"
+                  style={{
+                    contain: 'layout paint',
+                    willChange: 'contents',
+                    transform: 'translateZ(0)',
+                  }}
+                >
+                  <textarea
+                    rows={3}
+                    value={editingItem.answers || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, answers: e.target.value })}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center gap-2">

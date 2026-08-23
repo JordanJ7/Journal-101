@@ -163,7 +163,7 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
   return (
     <div
       id="access-management-modal-overlay"
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

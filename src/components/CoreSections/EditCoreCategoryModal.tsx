@@ -92,7 +92,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
   return (
     <div
       id="edit-core-category-modal-overlay"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-[#0f0f11]/90 animate-in fade-in duration-150 overflow-y-auto transform-gpu will-change-transform isolate"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

@@ -31,7 +31,7 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
   return (
     <div
       id="edit-subfolder-modal-overlay"
-      className="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex justify-center items-center p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
+      className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex justify-center items-center p-4 animate-in fade-in duration-150 transform-gpu will-change-transform isolate"
     >
       <div className="bg-white dark:bg-stone-900 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-2xl max-w-md w-full space-y-4 relative transform-gpu will-change-transform isolate">
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
@@ -75,12 +75,21 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
             <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
               Description / Notes (Optional)
             </label>
-            <textarea
-              rows={2}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-blue-500 resize-none"
-            />
+            <div
+              className="w-full relative transform-gpu typing-isolation-container"
+              style={{
+                contain: 'layout paint',
+                willChange: 'contents',
+                transform: 'translateZ(0)',
+              }}
+            >
+              <textarea
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">

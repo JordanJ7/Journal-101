@@ -105,18 +105,30 @@ mark.search-mark-active {
   backface-visibility: hidden;
 }
 
-[class*="backdrop-blur"],
+/* Strict Rendering Isolation for Modals and Overlays (Eliminates blur repaint flickers) */
 .modal-backdrop,
 .modal-overlay,
 [role="dialog"],
+[id*="-overlay"],
 [id*="-modal-overlay"],
 [id*="-lightbox-overlay"] {
+  background-color: rgba(15, 15, 17, 0.88) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   isolation: isolate;
+}
+
+/* Text & Editor Typing Compositor Isolation */
+.typing-isolation-container {
+  contain: layout paint;
+  will-change: contents;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* Eliminate layout shifts on images and previews */

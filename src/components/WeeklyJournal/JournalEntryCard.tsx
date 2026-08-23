@@ -334,18 +334,27 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
           <div className="w-full flex-1 min-w-0 break-words whitespace-pre-wrap text-sm text-neutral-800 dark:text-neutral-200">
             {isEditing && canEdit ? (
               <div className="space-y-3 w-full">
-                <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onBlur={() => {
-                    if (!showMediaUploader) {
-                      handleTextSubmit();
-                    }
+                <div
+                  className="w-full relative transform-gpu typing-isolation-container"
+                  style={{
+                    contain: 'layout paint',
+                    willChange: 'contents',
+                    transform: 'translateZ(0)',
                   }}
-                  className="w-full p-2.5 text-sm leading-relaxed bg-stone-50 dark:bg-neutral-800 border border-stone-300 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none whitespace-pre-wrap break-words"
-                  rows={3}
-                  autoFocus
-                />
+                >
+                  <textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onBlur={() => {
+                      if (!showMediaUploader) {
+                        handleTextSubmit();
+                      }
+                    }}
+                    className="w-full p-2.5 text-sm leading-relaxed bg-stone-50 dark:bg-neutral-800 border border-stone-300 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none whitespace-pre-wrap break-words"
+                    rows={3}
+                    autoFocus
+                  />
+                </div>
 
                 {/* Inline Media Uploader Section */}
                 {showMediaUploader && (
