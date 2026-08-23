@@ -5,13 +5,13 @@ import {
   Clock,
   CornerDownLeft,
   List,
-  Loader2,
   Minus,
   Sparkles,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { formatTimestamp } from '../../utils/storage';
 import { HighlightText } from '../HighlightText';
+import { SaveStatusBadge } from '../SaveStatusBadge';
 
 export interface BulletedNoteEditorRef {
   focus: () => void;
@@ -518,24 +518,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
 
           {/* Auto-save Telemetry */}
           <div className="flex items-center gap-2 pr-1">
-            {saveStatus === 'unsaved' && (
-              <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                <span>Unsaved</span>
-              </span>
-            )}
-            {saveStatus === 'saving' && (
-              <span className="text-[10px] text-blue-500 font-medium flex items-center gap-1">
-                <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                <span>Saving...</span>
-              </span>
-            )}
-            {saveStatus === 'saved' && (
-              <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1">
-                <Check className="w-2.5 h-2.5" />
-                <span>Saved</span>
-              </span>
-            )}
+            <SaveStatusBadge status={saveStatus || 'idle'} />
           </div>
         </div>
 

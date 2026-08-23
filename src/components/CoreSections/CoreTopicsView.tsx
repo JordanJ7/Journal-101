@@ -72,6 +72,84 @@ const CATEGORY_ICON_MAP: Record<string, React.ElementType> = {
   Activity: Activity,
 };
 
+interface CategoryNotesSectionProps {
+  category: CoreCategoryConfig;
+  onUpdateCategory?: (catId: string, updated: Partial<CoreCategoryConfig>) => void;
+  isViewer?: boolean;
+  searchQuery?: string;
+}
+
+const CategoryNotesSection: React.FC<CategoryNotesSectionProps> = React.memo(
+  ({ category, onUpdateCategory, isViewer, searchQuery }) => {
+    const [notesValue, setNotesValue] = useState(category?.notes || '');
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+      setNotesValue(category?.notes || '');
+      setSaveStatus('idle');
+    }, [category?.id, category?.notes]);
+
+    const handleNotesChange = useCallback(
+      (newNotes: string) => {
+        setNotesValue(newNotes);
+        setSaveStatus('unsaved');
+
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+          setSaveStatus('saving');
+          onUpdateCategory?.(category.id, { notes: newNotes });
+          setTimeout(() => {
+            setSaveStatus('saved');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+          }, 300);
+        }, 600);
+      },
+      [category?.id, onUpdateCategory]
+    );
+
+    const handleNotesSaveImmediate = useCallback(() => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (notesValue !== category?.notes) {
+        setSaveStatus('saving');
+        onUpdateCategory?.(category.id, { notes: notesValue });
+        setTimeout(() => {
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        }, 300);
+      }
+    }, [category?.id, category?.notes, notesValue, onUpdateCategory]);
+
+    useEffect(() => {
+      return () => {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+      };
+    }, []);
+
+    return (
+      <BulletedNoteEditor
+        entryId={category?.id}
+        value={notesValue}
+        onChange={handleNotesChange}
+        onSaveImmediate={handleNotesSaveImmediate}
+        saveStatus={saveStatus}
+        readOnly={isViewer}
+        minRows={5}
+        placeholder={`Add bullet points, reflections, or notes for "${category?.title}" (type - or • + Space to start a bullet)...`}
+        searchQuery={searchQuery}
+      />
+    );
+  }
+);
+CategoryNotesSection.displayName = 'CategoryNotesSection';
+
 interface CoreTopicsViewProps {
   items: CoreTopicItem[];
   setItems: React.Dispatch<React.SetStateAction<CoreTopicItem[]>>;
@@ -134,62 +212,6 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   const activeCategoryConfig = coreCategories[activeIndex] || coreCategories[0];
   const prevCategory = activeIndex > 0 ? coreCategories[activeIndex - 1] : null;
   const nextCategory = activeIndex < coreCategories.length - 1 ? coreCategories[activeIndex + 1] : null;
-
-  // Active Category Bullet Notes Auto-Save State
-  const [notesValue, setNotesValue] = useState(activeCategoryConfig?.notes || '');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    setNotesValue(activeCategoryConfig?.notes || '');
-    setSaveStatus('idle');
-  }, [activeCategoryConfig?.id, activeCategoryConfig?.notes]);
-
-  const handleNotesChange = useCallback(
-    (newNotes: string) => {
-      setNotesValue(newNotes);
-      setSaveStatus('unsaved');
-
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
-      saveTimeoutRef.current = setTimeout(() => {
-        setSaveStatus('saving');
-        onUpdateCoreCategory?.(activeCategoryConfig.id, { notes: newNotes });
-        console.log('[Auto-Save] Entry saved to Firestore:', activeCategoryConfig.id);
-        setTimeout(() => {
-          setSaveStatus('saved');
-          setTimeout(() => setSaveStatus('idle'), 2000);
-        }, 300);
-      }, 600);
-    },
-    [activeCategoryConfig?.id, onUpdateCoreCategory]
-  );
-
-  const handleNotesSaveImmediate = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    if (notesValue !== activeCategoryConfig?.notes) {
-      setSaveStatus('saving');
-      onUpdateCoreCategory?.(activeCategoryConfig.id, { notes: notesValue });
-      console.log('[Auto-Save] Entry saved to Firestore:', activeCategoryConfig.id);
-      setTimeout(() => {
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
-      }, 300);
-    }
-  }, [activeCategoryConfig?.id, activeCategoryConfig?.notes, notesValue, onUpdateCoreCategory]);
-
-  // Flush notes on unmount if pending changes
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const isWatchlistCategory =
     activeCategory === 'things-i-want-to-do-together' ||
@@ -545,15 +567,10 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
             </span>
           </div>
 
-          <BulletedNoteEditor
-            entryId={activeCategoryConfig?.id}
-            value={notesValue}
-            onChange={handleNotesChange}
-            onSaveImmediate={handleNotesSaveImmediate}
-            saveStatus={saveStatus}
-            readOnly={isViewer}
-            minRows={5}
-            placeholder={`Add bullet points, reflections, or notes for "${activeCategoryConfig?.title}" (type - or • + Space to start a bullet)...`}
+          <CategoryNotesSection
+            category={activeCategoryConfig}
+            onUpdateCategory={onUpdateCoreCategory}
+            isViewer={isViewer}
             searchQuery={filters.searchQuery}
           />
         </div>

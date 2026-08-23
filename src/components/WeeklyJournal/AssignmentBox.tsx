@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, Check, Clock, Edit2, Film, HelpCircle, Loader2, MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, Calendar, Clock, Edit2, Film, HelpCircle, MessageSquare, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { AccentTheme, AssignmentSwitches, DesQuestion } from '../../types';
 import { ACCENT_THEMES } from '../../utils/theme';
@@ -7,6 +7,13 @@ import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
 import { useJournalStore, useSaveStatus } from '../../store/useJournalStore';
 import { TimestampPickerPopover } from './TimestampPickerPopover';
+import { SaveStatusBadge } from '../SaveStatusBadge';
+
+const AssignmentSaveBadge = React.memo(() => {
+  const saveStatus = useSaveStatus();
+  return <SaveStatusBadge status={saveStatus === 'unsaved' ? 'countdown' : saveStatus} secondsRemaining={2} />;
+});
+AssignmentSaveBadge.displayName = 'AssignmentSaveBadge';
 
 interface AssignmentBoxProps {
   assignments: AssignmentSwitches;
@@ -31,7 +38,6 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
 }) => {
   const [newQuestionText, setNewQuestionText] = useState('');
   const [activeDateEditingQuestionId, setActiveDateEditingQuestionId] = useState<string | null>(null);
-  const saveStatus = useSaveStatus();
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   const isHomeworkHighlighted =
@@ -144,24 +150,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {saveStatus === 'unsaved' && (
-            <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-900/50">
-              <Clock className="w-3 h-3 animate-pulse" />
-              <span>Auto-saving in 2s...</span>
-            </span>
-          )}
-          {saveStatus === 'saving' && (
-            <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-900/50">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              <span>Syncing...</span>
-            </span>
-          )}
-          {saveStatus === 'saved' && (
-            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-900/50">
-              <Check className="w-3 h-3" />
-              <span>Saved</span>
-            </span>
-          )}
+          <AssignmentSaveBadge />
           {onOpenCommentSection && (
             <button
               type="button"

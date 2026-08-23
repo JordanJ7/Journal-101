@@ -1,9 +1,10 @@
-import { Check, Clock, Eye, Folder, Image as ImageIcon, Loader2, Play, Plus, Upload, Video, X } from 'lucide-react';
+import { Eye, Folder, Image as ImageIcon, Loader2, Play, Plus, Upload, Video, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { CORE_CATEGORIES_CONFIG } from '../../data/initialData';
 import { Attachment, CoreCategoryConfig, CoreCategoryId, CoreTopicItem } from '../../types';
 import { formatTimestamp } from '../../utils/storage';
 import { BulletedNoteEditor } from './BulletedNoteEditor';
+import { SaveStatusBadge, SaveStatusState } from '../SaveStatusBadge';
 import {
   createAttachmentFromUrl,
   filesToPersistentAttachments,
@@ -20,7 +21,7 @@ interface TopicItemModalProps {
   onClose: () => void;
 }
 
-export const TopicItemModal: React.FC<TopicItemModalProps> = ({
+export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
   item,
   activeCategory,
   coreCategories = CORE_CATEGORIES_CONFIG,
@@ -252,24 +253,10 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
             <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
               {item ? 'Edit Entry' : 'Add New Entry'}
             </h3>
-            {autoSaveStatus === 'unsaved' && (
-              <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-full">
-                <Clock className="w-3 h-3 animate-pulse" />
-                <span>Auto-saving in 2s...</span>
-              </span>
-            )}
-            {autoSaveStatus === 'saving' && (
-              <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-full">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                <span>Saving...</span>
-              </span>
-            )}
-            {autoSaveStatus === 'saved' && (
-              <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
-                <Check className="w-3 h-3" />
-                <span>Saved</span>
-              </span>
-            )}
+            <SaveStatusBadge
+              status={autoSaveStatus === 'unsaved' ? 'countdown' : autoSaveStatus}
+              secondsRemaining={2}
+            />
           </div>
           <button
             onClick={onClose}
@@ -594,4 +581,6 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = ({
       )}
     </div>
   );
-};
+});
+
+TopicItemModal.displayName = 'TopicItemModal';

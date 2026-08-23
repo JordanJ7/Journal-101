@@ -30,6 +30,7 @@ import { formatTimestamp } from '../../utils/storage';
 import { HighlightText } from '../HighlightText';
 import { TimestampPickerPopover } from './TimestampPickerPopover';
 import { MediaInspectModal } from '../MediaInspectModal';
+import { SaveStatusBadge } from '../SaveStatusBadge';
 import {
   createAttachmentFromUrl,
   filesToPersistentAttachments,
@@ -485,25 +486,8 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   </div>
 
                   {/* Auto-save status indicator */}
-                  <div className="flex items-center gap-1 text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                    {autoSaveState === 'unsaved' && (
-                      <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                        <Clock className="w-3 h-3 animate-pulse" />
-                        <span>Auto-saving in 600ms...</span>
-                      </span>
-                    )}
-                    {autoSaveState === 'saving' && (
-                      <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Syncing...</span>
-                      </span>
-                    )}
-                    {autoSaveState === 'saved' && (
-                      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                        <Check className="w-3 h-3" />
-                        <span>Saved</span>
-                      </span>
-                    )}
+                  <div className="flex items-center gap-1 text-[11px] font-medium">
+                    <SaveStatusBadge status={autoSaveState} />
                   </div>
                 </div>
               </div>

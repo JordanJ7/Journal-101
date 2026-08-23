@@ -61,6 +61,117 @@ interface NavbarProps {
   onToggleMobileDrawer?: () => void;
 }
 
+/**
+ * Isolated desktop save status pill to avoid re-rendering entire Navbar on store ticks
+ */
+const NavbarSaveIndicator = React.memo(() => {
+  const saveStatus = useJournalStore((s) => s.saveStatus);
+  const lastSavedAt = useJournalStore((s) => s.lastSavedAt);
+  const flushAutoSave = useJournalStore((s) => s.flushAutoSave);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (saveStatus === 'unsaved') {
+          flushAutoSave();
+        }
+      }}
+      title={
+        saveStatus === 'saving'
+          ? 'Saving changes safely in background...'
+          : saveStatus === 'unsaved'
+          ? 'Unsaved changes (saving in background, click to save immediately)'
+          : lastSavedAt
+          ? `All changes saved (${lastSavedAt})`
+          : 'All changes saved'
+      }
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all select-none hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
+      style={{
+        contain: 'layout paint',
+        willChange: 'contents',
+        transform: 'translateZ(0)',
+      }}
+    >
+      {saveStatus === 'saving' && (
+        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+          <span className="hidden sm:inline text-[10px]">Saving...</span>
+        </span>
+      )}
+      {saveStatus === 'unsaved' && (
+        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          <span className="hidden sm:inline text-[10px]">Unsaved</span>
+        </span>
+      )}
+      {saveStatus === 'saved' && (
+        <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span className="hidden sm:inline text-[10px]">Saved</span>
+        </span>
+      )}
+      {saveStatus === 'error' && (
+        <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <span className="hidden sm:inline text-[10px]">Local backup</span>
+        </span>
+      )}
+    </button>
+  );
+});
+NavbarSaveIndicator.displayName = 'NavbarSaveIndicator';
+
+/**
+ * Isolated mobile menu sync indicator
+ */
+const MobileNavbarSaveIndicator = React.memo(() => {
+  const saveStatus = useJournalStore((s) => s.saveStatus);
+  const lastSavedAt = useJournalStore((s) => s.lastSavedAt);
+  const flushAutoSave = useJournalStore((s) => s.flushAutoSave);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (saveStatus === 'unsaved') flushAutoSave();
+      }}
+      className="flex items-center gap-1.5 font-medium cursor-pointer"
+      style={{
+        contain: 'layout paint',
+        willChange: 'contents',
+        transform: 'translateZ(0)',
+      }}
+    >
+      {saveStatus === 'saving' && (
+        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          <span>Saving...</span>
+        </span>
+      )}
+      {saveStatus === 'unsaved' && (
+        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          <span>Save Now</span>
+        </span>
+      )}
+      {saveStatus === 'saved' && (
+        <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+          <Check className="w-3.5 h-3.5" />
+          <span>{lastSavedAt ? `Saved (${lastSavedAt})` : 'Saved'}</span>
+        </span>
+      )}
+      {saveStatus === 'error' && (
+        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+          <span className="w-2 h-2 rounded-full bg-amber-500" />
+          <span>Local backup</span>
+        </span>
+      )}
+    </button>
+  );
+});
+MobileNavbarSaveIndicator.displayName = 'MobileNavbarSaveIndicator';
+
 export const Navbar: React.FC<NavbarProps> = React.memo(({
   viewMode,
   setViewMode,
@@ -96,10 +207,6 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
-
-  const saveStatus = useJournalStore((s) => s.saveStatus);
-  const lastSavedAt = useJournalStore((s) => s.lastSavedAt);
-  const flushAutoSave = useJournalStore((s) => s.flushAutoSave);
 
   useEffect(() => {
     if (filters.searchQuery === '' && searchInputValue !== '') {
@@ -269,49 +376,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
 
           <div className="flex items-center gap-2">
             {/* Subtle Visual Sync Indicator */}
-            <button
-              type="button"
-              onClick={() => {
-                if (saveStatus === 'unsaved') {
-                  flushAutoSave();
-                }
-              }}
-              title={
-                saveStatus === 'saving'
-                  ? 'Saving changes safely in background...'
-                  : saveStatus === 'unsaved'
-                  ? 'Unsaved changes (saving in background, click to save immediately)'
-                  : lastSavedAt
-                  ? `All changes saved (${lastSavedAt})`
-                  : 'All changes saved'
-              }
-              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all select-none hover:bg-black/5 dark:hover:bg-white/10"
-            >
-              {saveStatus === 'saving' && (
-                <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
-                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                  <span className="hidden sm:inline text-[10px]">Saving...</span>
-                </span>
-              )}
-              {saveStatus === 'unsaved' && (
-                <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="hidden sm:inline text-[10px]">Unsaved</span>
-                </span>
-              )}
-              {saveStatus === 'saved' && (
-                <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span className="hidden sm:inline text-[10px]">Saved</span>
-                </span>
-              )}
-              {saveStatus === 'error' && (
-                <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span className="hidden sm:inline text-[10px]">Local backup</span>
-                </span>
-              )}
-            </button>
+            <NavbarSaveIndicator />
           </div>
         </div>
 
@@ -631,38 +696,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                     <Cloud className="w-4 h-4 text-stone-400" />
                     <span className="font-medium text-stone-700 dark:text-stone-300">Sync Status</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (saveStatus === 'unsaved') flushAutoSave();
-                    }}
-                    className="flex items-center gap-1.5 font-medium"
-                  >
-                    {saveStatus === 'saving' && (
-                      <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Saving...</span>
-                      </span>
-                    )}
-                    {saveStatus === 'unsaved' && (
-                      <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                        <span>Save Now</span>
-                      </span>
-                    )}
-                    {saveStatus === 'saved' && (
-                      <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                        <Check className="w-3.5 h-3.5" />
-                        <span>{lastSavedAt ? `Saved (${lastSavedAt})` : 'Saved'}</span>
-                      </span>
-                    )}
-                    {saveStatus === 'error' && (
-                      <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-                        <span className="w-2 h-2 rounded-full bg-amber-500" />
-                        <span>Local backup</span>
-                      </span>
-                    )}
-                  </button>
+                  <MobileNavbarSaveIndicator />
                 </div>
 
                 {/* Appearance / Theme Options */}
