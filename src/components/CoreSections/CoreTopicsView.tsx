@@ -1,5 +1,6 @@
 import {
   Activity,
+  ArrowUpDown,
   BookOpenCheck,
   Bookmark,
   ChevronDown,
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CurrentUserProfile } from '../../lib/firebase';
+import { useJournalStore } from '../../store/useJournalStore';
 import {
   AccentTheme,
   CommentItem,
@@ -43,6 +45,7 @@ import {
   ItemActivityStatus,
 } from '../../types';
 import { exportCoreCategoryToPDF } from '../../utils/pdfExport';
+import { parseDateTag } from '../../utils/storage';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
@@ -161,6 +164,7 @@ interface CoreTopicsViewProps {
   onDeleteCoreCategory: (catId: string) => void;
   accentTheme: AccentTheme;
   filters: FilterOptions;
+  setFilters?: React.Dispatch<React.SetStateAction<FilterOptions>> | ((filtersOrUpdater: FilterOptions | ((prev: FilterOptions) => FilterOptions)) => void);
   currentUser: CurrentUserProfile;
   pinnedCategoryIds?: string[];
   onTogglePinCategory?: (categoryId: string) => void;
@@ -181,6 +185,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   onDeleteCoreCategory,
   accentTheme,
   filters,
+  setFilters,
   currentUser,
   pinnedCategoryIds = [],
   onTogglePinCategory,
@@ -192,6 +197,9 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   const isOwner = currentUser.role === 'owner';
   const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
   const isViewer = currentUser.role === 'viewer';
+
+  const storeSetFilters = useJournalStore((s) => s.setFilters);
+  const updateFilters = setFilters || storeSetFilters;
 
   const [questionsLayoutMode, setQuestionsLayoutMode] = useState<'cards' | 'qa_dashboard'>('cards');
   const [isFolderDropdownOpen, setIsFolderDropdownOpen] = useState(false);
@@ -220,7 +228,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
     activeCategory === 'foods-to-try';
 
   const activeFolderItems = useMemo(() => {
-    return items.filter((item) => {
+    const filtered = items.filter((item) => {
       if (item.categoryId !== activeCategoryConfig?.id) return false;
       if (filters.hasMediaOnly && !item.mediaUrl) return false;
       if (filters.hasTherapistAnswersOnly && !item.isHighlightedAnswer && !item.answers) return false;
@@ -239,6 +247,16 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
       }
 
       return true;
+    });
+
+    const sortOrder = filters.sortOrder || 'newest';
+    return [...filtered].sort((a, b) => {
+      const dateA = parseDateTag(a.dateTag, a.createdAt);
+      const dateB = parseDateTag(b.dateTag, b.createdAt);
+      if (sortOrder === 'oldest') {
+        return dateA - dateB;
+      }
+      return dateB - dateA;
     });
   }, [items, activeCategoryConfig?.id, filters, isWatchlistCategory, watchlistStatusFilter]);
 
@@ -506,24 +524,46 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
           </div>
         </div>
 
-        {/* Watchlist Filter Pills */}
-        {isWatchlistCategory && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-black/5 dark:border-white/5">
-            {(['All', 'To Watch/Read', 'Done Alone', 'Done Together'] as const).map((st) => (
-              <button
-                key={st}
-                onClick={() => setWatchlistStatusFilter(st)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  watchlistStatusFilter === st
-                    ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100'
-                    : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
+        {/* Watchlist Filter Pills & Sort Control */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+          {isWatchlistCategory ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(['All', 'To Watch/Read', 'Done Alone', 'Done Together'] as const).map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setWatchlistStatusFilter(st)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                    watchlistStatusFilter === st
+                      ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100'
+                      : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-stone-400 dark:text-stone-500 font-medium flex items-center gap-1.5">
+              <span>Folder Entries</span>
+            </div>
+          )}
+
+          {/* Sort-direction toggle */}
+          <div className="flex items-center gap-1.5 ml-auto">
+            <button
+              type="button"
+              onClick={() => {
+                const nextOrder = (filters.sortOrder || 'newest') === 'newest' ? 'oldest' : 'newest';
+                updateFilters((prev) => ({ ...prev, sortOrder: nextOrder }));
+              }}
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 dark:text-stone-300 flex items-center gap-1.5 transition-colors border border-black/5 dark:border-white/10 cursor-pointer"
+              title={`Sort entries by date tag (currently ${filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}). Click to toggle.`}
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-stone-400 dark:text-stone-400" />
+              <span>{filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}</span>
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* 2. Prominent Topic Title & Integrated Bulleted Topic Notes Canvas */}
@@ -583,6 +623,18 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
             <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
               Folder Entries ({activeFolderItems.length})
             </span>
+            <button
+              type="button"
+              onClick={() => {
+                const nextOrder = (filters.sortOrder || 'newest') === 'newest' ? 'oldest' : 'newest';
+                updateFilters((prev) => ({ ...prev, sortOrder: nextOrder }));
+              }}
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 dark:text-stone-300 flex items-center gap-1.5 transition-colors border border-black/5 dark:border-white/10 cursor-pointer"
+              title={`Sort entries by date tag (currently ${filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}). Click to toggle.`}
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-stone-400 dark:text-stone-400" />
+              <span>{filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}</span>
+            </button>
           </div>
         )}
 

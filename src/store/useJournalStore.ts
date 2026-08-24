@@ -334,6 +334,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     hasMediaOnly: false,
     hasTherapistAnswersOnly: false,
     dateRange: 'all',
+    sortOrder: 'newest',
   },
   comments: Array.isArray(initialLoaded.comments) ? initialLoaded.comments : INITIAL_COMMENTS,
   viewMode: 'home',

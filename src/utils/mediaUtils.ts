@@ -2,11 +2,11 @@ import { Attachment } from '../types';
 import { uploadFileToStorage } from '../lib/firebase';
 
 /**
- * 700KB safe payload threshold.
- * Firestore enforces a strict 1MB document limit.
- * Keeping attachments under 700KB provides a comfortable safety buffer.
+ * 950KB safe payload threshold.
+ * Firestore enforces a strict 1MB (1,048,576 bytes) document limit.
+ * Keeping attachments under 950KB provides a safe headroom for document metadata.
  */
-export const MAX_SAFE_ATTACHMENTS_SIZE_BYTES = 700 * 1024; // 700 KB
+export const MAX_SAFE_ATTACHMENTS_SIZE_BYTES = 950 * 1024; // 950 KB
 
 /**
  * Calculates the total approximate storage payload size in bytes of attachments.

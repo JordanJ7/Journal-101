@@ -22,6 +22,7 @@ import { AccentTheme, CoreTopicItem, ExternalLink, ItemActivityStatus, WeeklyBlo
 import { ACCENT_THEMES } from '../../utils/theme';
 import { sanitizeUrl } from '../../utils/security';
 import { formatTimestamp } from '../../utils/storage';
+import { getNormalizedAttachments } from '../../utils/mediaUtils';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 
@@ -43,7 +44,7 @@ interface ExtractedMediaItem {
   title: string;
   url?: string;
   mediaUrl?: string;
-  type: 'apple-photos' | 'tiktok' | 'photo' | 'article' | 'watchlist';
+  type: 'apple-photos' | 'tiktok' | 'photo' | 'video' | 'article' | 'watchlist';
   categoryLabel: string;
   sourceType: 'weekly' | 'core';
   sourceId: string;
@@ -117,18 +118,21 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
 
       // Bullets with media
       week.bullets?.forEach((bullet) => {
-        if (bullet.mediaUrl) {
-          list.push({
-            id: bullet.id,
-            title: bullet.text || 'Journal Photo',
-            mediaUrl: bullet.mediaUrl,
-            type: 'photo',
-            categoryLabel: 'Photo',
-            sourceType: 'weekly',
-            sourceId: week.id,
-            sourceTitle: week.weekTitle,
-            timestamp: bullet.timestamp || week.startDate,
-            caption: bullet.mediaCaption,
+        const normAtts = getNormalizedAttachments(bullet);
+        if (normAtts.length > 0) {
+          normAtts.forEach((att, idx) => {
+            list.push({
+              id: `${bullet.id}_att_${att.id || idx}`,
+              title: bullet.text || att.name || 'Journal Photo',
+              mediaUrl: att.url,
+              type: att.type === 'video' ? 'video' : 'photo',
+              categoryLabel: att.type === 'video' ? 'Video' : 'Photo',
+              sourceType: 'weekly',
+              sourceId: week.id,
+              sourceTitle: week.weekTitle,
+              timestamp: bullet.timestamp || week.startDate,
+              caption: att.caption || bullet.mediaCaption,
+            });
           });
         }
       });
@@ -136,19 +140,23 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
 
     // 2. Core Topics
     coreItems.forEach((item) => {
-      if (item.mediaUrl) {
-        list.push({
-          id: item.id,
-          title: item.title,
-          mediaUrl: item.mediaUrl,
-          type: 'photo',
-          categoryLabel: 'Topic Photo',
-          sourceType: 'core',
-          sourceId: item.categoryId,
-          sourceTitle: item.categoryId,
-          timestamp: item.dateTag || '',
-          notes: item.content,
-          status: item.status,
+      const normAtts = getNormalizedAttachments(item);
+      if (normAtts.length > 0) {
+        normAtts.forEach((att, idx) => {
+          list.push({
+            id: `${item.id}_att_${att.id || idx}`,
+            title: item.title,
+            mediaUrl: att.url,
+            type: att.type === 'video' ? 'video' : 'photo',
+            categoryLabel: att.type === 'video' ? 'Topic Video' : 'Topic Photo',
+            sourceType: 'core',
+            sourceId: item.categoryId,
+            sourceTitle: item.categoryId,
+            timestamp: item.dateTag || '',
+            notes: item.content,
+            status: item.status,
+            caption: att.caption || item.mediaCaption,
+          });
         });
       }
 

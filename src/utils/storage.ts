@@ -74,6 +74,45 @@ export function parseDateFromTimestamp(val?: string | Date | null): Date {
 }
 
 /**
+ * Parses a dateTag (e.g. 'August 22nd, 2026 @ 12:47pm', 'Aug 22, 2026', '2026-08-22', etc.).
+ * Strips ordinal suffixes (st/nd/rd/th) and normalizes '@' before passing to Date.parse.
+ * If parsing fails or dateTag is empty, falls back to the item's createdAt field so sorting never breaks or throws.
+ */
+export function parseDateTag(dateTag?: string | null, fallbackCreatedAt?: string | null): number {
+  if (dateTag && typeof dateTag === 'string' && dateTag.trim()) {
+    try {
+      // 1. Strip ordinal suffixes from numbers (e.g. "22nd" -> "22", "1st" -> "1", "3rd" -> "3", "4th" -> "4")
+      let cleaned = dateTag.replace(/(\d+)(?:st|nd|rd|th)\b/gi, '$1');
+      // 2. Normalize the '@' symbol
+      cleaned = cleaned.replace(/@/g, ' ').replace(/\s+/g, ' ').trim();
+
+      const parsedTime = Date.parse(cleaned);
+      if (!isNaN(parsedTime)) {
+        return parsedTime;
+      }
+
+      // Secondary check with custom parser
+      const customDate = parseDateFromTimestamp(dateTag);
+      if (customDate && !isNaN(customDate.getTime())) {
+        return customDate.getTime();
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  // Fallback to createdAt
+  if (fallbackCreatedAt && typeof fallbackCreatedAt === 'string' && fallbackCreatedAt.trim()) {
+    const createdTime = Date.parse(fallbackCreatedAt);
+    if (!isNaN(createdTime)) {
+      return createdTime;
+    }
+  }
+
+  return 0;
+}
+
+/**
  * Converts a Date object to "YYYY-MM-DDTHH:mm" format for <input type="datetime-local">.
  */
 export function toDateTimeLocalString(date: Date = new Date()): string {
@@ -176,6 +215,7 @@ export function loadAppState(): AppState {
               hasMediaOnly: false,
               hasTherapistAnswersOnly: false,
               dateRange: 'all',
+              sortOrder: 'newest',
             },
           };
         }
@@ -200,6 +240,7 @@ export function loadAppState(): AppState {
       hasMediaOnly: false,
       hasTherapistAnswersOnly: false,
       dateRange: 'all',
+      sortOrder: 'newest',
     },
   };
 }

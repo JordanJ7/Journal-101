@@ -177,6 +177,7 @@ export interface FilterOptions {
   hasTherapistAnswersOnly: boolean;
   dateRange: 'all' | 'past-month' | 'past-week';
   selectedCategory?: string;
+  sortOrder?: 'newest' | 'oldest';
 }
 
 export interface AppState {

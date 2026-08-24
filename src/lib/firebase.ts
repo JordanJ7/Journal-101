@@ -312,6 +312,31 @@ export function sanitizeForFirestore<T>(val: T): T {
   return sanitizePayload(val);
 }
 
+/**
+ * Optimizes a document payload for Firestore to ensure it stays compact:
+ * - De-duplicates redundant `mediaUrl` when `attachments` is present and contains the exact same data URL.
+ * - Recursively strips undefined values and formats Dates to ISO.
+ */
+export function optimizeDocPayloadForFirestore<T extends Record<string, any>>(docData: T): T {
+  if (!docData || typeof docData !== 'object') return docData;
+
+  const clone: any = { ...docData };
+
+  // De-duplicate redundant mediaUrl if attachments is present with the same data URL
+  if (
+    clone.attachments &&
+    Array.isArray(clone.attachments) &&
+    clone.attachments.length > 0 &&
+    typeof clone.mediaUrl === 'string' &&
+    clone.mediaUrl.startsWith('data:') &&
+    clone.attachments.some((a: any) => a && a.url === clone.mediaUrl)
+  ) {
+    delete clone.mediaUrl;
+  }
+
+  return sanitizePayload(clone);
+}
+
 // -----------------------------------------------------------------------------------------
 // DIRECT ATOMIC CRUD HANDLERS (TOPICS, FOLDERS, WEEKS, ENTRIES, COMMENTS)
 // -----------------------------------------------------------------------------------------
@@ -357,32 +382,13 @@ export async function deleteFolderDoc(folderId: string): Promise<void> {
 
 /**
  * 3. Create or Update Core Topic Item (/core_topics/{itemId} and /folders/{categoryId}/notes/{itemId})
- * Checks document size limit before saving and throws descriptive errors.
  */
 export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
   if (!item || !item.id) return;
   const path = `core_topics/${item.id}`;
 
-  // Pre-save client-side size check (700KB safe ceiling to prevent Firestore 1MB dropouts)
   try {
-    const payloadStr = JSON.stringify(item);
-    const estimatedSizeBytes = new Blob([payloadStr]).size;
-    if (estimatedSizeBytes > 700 * 1024) {
-      const sizeErr = new Error(
-        `Entry payload size (${Math.round(estimatedSizeBytes / 1024)} KB) exceeds the safe 700 KB Firestore limit. Please remove photos or large attachments before saving.`
-      );
-      console.error(`[Firestore CRITICAL SIZE ERROR] Failed to save core topic ${item.id}:`, sizeErr);
-      handleFirestoreError(sizeErr, OperationType.WRITE, path);
-      throw sizeErr;
-    }
-  } catch (checkErr) {
-    if (checkErr instanceof Error && checkErr.message.includes('700 KB')) {
-      throw checkErr;
-    }
-  }
-
-  try {
-    const cleanItemData = sanitizeForFirestore({
+    const cleanItemData = optimizeDocPayloadForFirestore({
       ...item,
       clientSessionId: CLIENT_SESSION_ID,
       createdAt: item.createdAt || new Date().toISOString(),
@@ -443,27 +449,9 @@ export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<
   if (!weekId || !entry || !entry.id) return;
   const path = `weeks/${weekId}/entries/${entry.id}`;
 
-  // Pre-save client-side size check (700KB safe ceiling)
-  try {
-    const payloadStr = JSON.stringify(entry);
-    const estimatedSizeBytes = new Blob([payloadStr]).size;
-    if (estimatedSizeBytes > 700 * 1024) {
-      const sizeErr = new Error(
-        `Entry payload size (${Math.round(estimatedSizeBytes / 1024)} KB) exceeds the safe 700 KB Firestore limit. Please remove photos or large attachments before saving.`
-      );
-      console.error(`[Firestore CRITICAL SIZE ERROR] Failed to save entry ${entry.id}:`, sizeErr);
-      handleFirestoreError(sizeErr, OperationType.WRITE, path);
-      throw sizeErr;
-    }
-  } catch (checkErr) {
-    if (checkErr instanceof Error && checkErr.message.includes('700 KB')) {
-      throw checkErr;
-    }
-  }
-
   try {
     const entryDocRef = doc(db, 'weeks', weekId, 'entries', entry.id);
-    const sanitized = sanitizeForFirestore({
+    const sanitized = optimizeDocPayloadForFirestore({
       ...entry,
       clientSessionId: CLIENT_SESSION_ID,
       createdAt: entry.createdAt || new Date().toISOString(),

@@ -556,6 +556,7 @@ export default function App() {
                 onDeleteCoreCategory={deleteCoreCategory}
                 accentTheme={accentTheme}
                 filters={filters}
+                setFilters={handleSetFilters}
                 currentUser={currentUser}
                 pinnedCategoryIds={pinnedCategoryIds}
                 onTogglePinCategory={togglePinCategory}

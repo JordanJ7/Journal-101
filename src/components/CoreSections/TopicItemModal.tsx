@@ -115,7 +115,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
 
     if (isOverSizeLimit) {
       setAutoSaveStatus('error');
-      setSaveErrorMessage(`Attachment size (${attachmentSizeKB} KB) exceeds 700 KB limit.`);
+      setSaveErrorMessage(`Attachment size (${attachmentSizeKB} KB) exceeds 950 KB limit.`);
       return;
     }
 
@@ -137,7 +137,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
         status: categoryConfig?.hasDraftTracking ? status : status || undefined,
         priority: priority || undefined,
         attachments: draftAttachments,
-        mediaUrl: primaryMedia?.url || undefined,
+        mediaUrl: primaryMedia?.url?.startsWith('data:') ? undefined : primaryMedia?.url,
         mediaType: primaryMedia?.type || undefined,
         mediaCaption: primaryMedia?.caption || undefined,
         location: location.trim() || undefined,
@@ -194,7 +194,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           status: categoryConfig?.hasDraftTracking ? status : status || undefined,
           priority: priority || undefined,
           attachments: draftAttachments,
-          mediaUrl: primaryMedia?.url || undefined,
+          mediaUrl: primaryMedia?.url?.startsWith('data:') ? undefined : primaryMedia?.url,
           mediaType: primaryMedia?.type || undefined,
           mediaCaption: primaryMedia?.caption || undefined,
           location: location.trim() || undefined,
@@ -245,7 +245,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
 
     if (isOverSizeLimit) {
       setAutoSaveStatus('error');
-      setSaveErrorMessage(`Attachment size (${attachmentSizeKB} KB) exceeds the safe 700 KB limit. Please remove an attachment before saving.`);
+      setSaveErrorMessage(`Attachment size (${attachmentSizeKB} KB) exceeds the safe 950 KB limit. Please remove an attachment before saving.`);
       return;
     }
 
@@ -260,7 +260,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       status: categoryConfig?.hasDraftTracking ? status : status || undefined,
       priority: priority || undefined,
       attachments: draftAttachments,
-      mediaUrl: primaryMedia?.url || undefined,
+      mediaUrl: primaryMedia?.url?.startsWith('data:') ? undefined : primaryMedia?.url,
       mediaType: primaryMedia?.type || undefined,
       mediaCaption: primaryMedia?.caption || undefined,
       location: location.trim() || undefined,
