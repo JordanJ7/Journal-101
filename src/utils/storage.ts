@@ -207,6 +207,7 @@ export function loadAppState(): AppState {
             accentTheme: parsed.accentTheme || 'amber',
             comments: Array.isArray(parsed.comments) ? parsed.comments : INITIAL_COMMENTS,
             coreCategories: mergedCategories,
+            categoryGroups: Array.isArray(parsed.categoryGroups) ? parsed.categoryGroups : [],
             pinnedCategoryIds: Array.isArray(parsed.pinnedCategoryIds) && parsed.pinnedCategoryIds.length > 0
               ? parsed.pinnedCategoryIds
               : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
@@ -233,6 +234,7 @@ export function loadAppState(): AppState {
     theme: explicitTheme || 'dark',
     accentTheme: 'amber',
     coreCategories: CORE_CATEGORIES_CONFIG,
+    categoryGroups: [],
     pinnedCategoryIds: ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
     comments: INITIAL_COMMENTS,
     filters: {

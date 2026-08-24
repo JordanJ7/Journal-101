@@ -4,6 +4,7 @@ import {
   AccentTheme,
   AppState,
   BulletPoint,
+  CategoryGroup,
   CommentItem,
   CoreCategoryConfig,
   CoreCategoryId,
@@ -30,6 +31,9 @@ import {
   CLIENT_SESSION_ID,
   saveFolderDoc,
   deleteFolderDoc,
+  saveCategoryGroupDoc,
+  deleteCategoryGroupDoc,
+  saveCategoryGroupsDoc,
   saveCoreTopicDoc,
   deleteCoreTopicDoc,
   saveEntryDoc,
@@ -65,6 +69,7 @@ export interface JournalStoreState {
   activeCoreCategory: CoreCategoryId;
   activeCoreSubCategory?: string;
   coreCategories: CoreCategoryConfig[];
+  categoryGroups: CategoryGroup[];
   pinnedCategoryIds: string[];
   theme: 'light' | 'dark';
   accentTheme: AccentTheme;
@@ -126,11 +131,18 @@ export interface JournalStoreState {
   updateCoreCategory: (catId: string, updated: Partial<CoreCategoryConfig>) => void;
   deleteCoreCategory: (catId: string) => void;
   reorderCoreCategories: (cats: CoreCategoryConfig[]) => void;
+  setCategoryFolderGroup: (categoryId: string, groupId?: string) => void;
   addSubCategory: (categoryId: string, subCategory: CoreSubCategoryConfig) => void;
   updateSubCategory: (categoryId: string, subCategoryId: string, updated: Partial<CoreSubCategoryConfig>) => void;
   deleteSubCategory: (categoryId: string, subCategoryId: string) => void;
   reorderSubCategories: (categoryId: string, subCategories: CoreSubCategoryConfig[]) => void;
   moveCoreItemToSubCategory: (itemId: string, targetCategoryId: string, targetSubCategoryId?: string) => void;
+
+  setCategoryGroups: (groupsOrUpdater: CategoryGroup[] | ((prev: CategoryGroup[]) => CategoryGroup[])) => void;
+  addCategoryGroup: (group: CategoryGroup) => void;
+  updateCategoryGroup: (groupId: string, updated: Partial<CategoryGroup>) => void;
+  deleteCategoryGroup: (groupId: string) => void;
+  reorderCategoryGroups: (groups: CategoryGroup[]) => void;
 
   setPinnedCategoryIds: (ids: string[]) => void;
   togglePinCategory: (categoryId: string) => void;
@@ -324,6 +336,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   coreCategories: initialLoaded.coreCategories && initialLoaded.coreCategories.length > 0
     ? initialLoaded.coreCategories
     : CORE_CATEGORIES_CONFIG,
+  categoryGroups: Array.isArray(initialLoaded.categoryGroups) ? initialLoaded.categoryGroups : [],
   pinnedCategoryIds: Array.isArray(initialLoaded.pinnedCategoryIds) && initialLoaded.pinnedCategoryIds.length > 0
     ? initialLoaded.pinnedCategoryIds
     : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
@@ -867,6 +880,98 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     schedulePersistence(get);
   },
 
+  setCategoryFolderGroup: (categoryId: string, groupId?: string) => {
+    let updatedCat: CoreCategoryConfig | null = null;
+    set((state) => {
+      const nextCategories = state.coreCategories.map((c) => {
+        if (c.id === categoryId) {
+          updatedCat = { ...c, groupId, updatedAt: new Date().toISOString() };
+          return updatedCat;
+        }
+        return c;
+      });
+      return { coreCategories: nextCategories };
+    });
+    if (updatedCat) {
+      saveFolderDoc(updatedCat).catch(() => {});
+      saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+    }
+    schedulePersistence(get);
+  },
+
+  setCategoryGroups: (groupsOrUpdater) => {
+    set((state) => {
+      const nextGroups = typeof groupsOrUpdater === 'function' ? groupsOrUpdater(state.categoryGroups) : groupsOrUpdater;
+      return { categoryGroups: nextGroups };
+    });
+    saveCategoryGroupsDoc(get().categoryGroups).catch(() => {});
+    schedulePersistence(get);
+  },
+
+  addCategoryGroup: (group) => {
+    set((state) => ({
+      categoryGroups: [...state.categoryGroups, group],
+    }));
+    saveCategoryGroupDoc(group).catch((err) =>
+      console.error('[Firestore CRITICAL ERROR] Failed to save category group doc:', err)
+    );
+    saveCategoryGroupsDoc(get().categoryGroups).catch(() => {});
+    schedulePersistence(get);
+  },
+
+  updateCategoryGroup: (groupId, updated) => {
+    let updatedGroup: CategoryGroup | null = null;
+    set((state) => {
+      const nextGroups = state.categoryGroups.map((g) => {
+        if (g.id === groupId) {
+          updatedGroup = { ...g, ...updated, updatedAt: new Date().toISOString() };
+          return updatedGroup;
+        }
+        return g;
+      });
+      return { categoryGroups: nextGroups };
+    });
+    if (updatedGroup) {
+      saveCategoryGroupDoc(updatedGroup).catch((err) =>
+        console.error('[Firestore CRITICAL ERROR] Failed to update category group doc:', err)
+      );
+      saveCategoryGroupsDoc(get().categoryGroups).catch(() => {});
+    }
+    schedulePersistence(get);
+  },
+
+  deleteCategoryGroup: (groupId) => {
+    set((state) => {
+      const updatedGroups = state.categoryGroups.filter((g) => g.id !== groupId);
+      // When a group is deleted, un-assign any folders that were in this group
+      const updatedCats = state.coreCategories.map((c) => {
+        if (c.groupId === groupId) {
+          return { ...c, groupId: undefined, updatedAt: new Date().toISOString() };
+        }
+        return c;
+      });
+      return {
+        categoryGroups: updatedGroups,
+        coreCategories: updatedCats,
+      };
+    });
+    deleteCategoryGroupDoc(groupId).catch((err) =>
+      console.error('[Firestore CRITICAL ERROR] Failed to delete category group doc:', err)
+    );
+    saveCategoryGroupsDoc(get().categoryGroups).catch(() => {});
+    saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+    schedulePersistence(get);
+  },
+
+  reorderCategoryGroups: (groups) => {
+    set({ categoryGroups: groups });
+    for (const g of groups) {
+      saveCategoryGroupDoc(g).catch(() => {});
+    }
+    saveCategoryGroupsDoc(groups).catch(() => {});
+    schedulePersistence(get);
+  },
+
   setPinnedCategoryIds: (ids) => {
     set({ pinnedCategoryIds: ids });
     schedulePersistence(get);
@@ -1247,22 +1352,25 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     const incomingWeeks = cloudData.weeks && Array.isArray(cloudData.weeks) ? cloudData.weeks : state.weeks;
     const incomingCoreItems = cloudData.coreItems && Array.isArray(cloudData.coreItems) ? cloudData.coreItems : state.coreItems;
     const incomingCoreCategories = cloudData.coreCategories && Array.isArray(cloudData.coreCategories) ? cloudData.coreCategories : state.coreCategories;
+    const incomingCategoryGroups = cloudData.categoryGroups && Array.isArray(cloudData.categoryGroups) ? cloudData.categoryGroups : state.categoryGroups;
     const incomingPinnedCategoryIds = cloudData.pinnedCategoryIds && Array.isArray(cloudData.pinnedCategoryIds) ? cloudData.pinnedCategoryIds : state.pinnedCategoryIds;
     const incomingComments = cloudData.comments && Array.isArray(cloudData.comments) ? cloudData.comments : state.comments;
 
     const isWeeksEqual = incomingWeeks.length === state.weeks.length && JSON.stringify(incomingWeeks) === JSON.stringify(state.weeks);
     const isCoreItemsEqual = incomingCoreItems.length === state.coreItems.length && JSON.stringify(incomingCoreItems) === JSON.stringify(state.coreItems);
     const isCategoriesEqual = incomingCoreCategories.length === state.coreCategories.length && JSON.stringify(incomingCoreCategories) === JSON.stringify(state.coreCategories);
+    const isGroupsEqual = incomingCategoryGroups.length === state.categoryGroups.length && JSON.stringify(incomingCategoryGroups) === JSON.stringify(state.categoryGroups);
     const isPinnedEqual = incomingPinnedCategoryIds.length === state.pinnedCategoryIds.length && JSON.stringify(incomingPinnedCategoryIds) === JSON.stringify(state.pinnedCategoryIds);
     const isCommentsEqual = (incomingComments?.length || 0) === (state.comments?.length || 0) && JSON.stringify(incomingComments) === JSON.stringify(state.comments);
 
-    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isCommentsEqual) {
+    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isGroupsEqual && isPinnedEqual && isCommentsEqual) {
       return;
     }
 
     set((currentState) => {
       let nextWeeks = incomingWeeks;
       let nextCoreCategories = incomingCoreCategories;
+      let nextCategoryGroups = incomingCategoryGroups;
       let nextCoreItems = incomingCoreItems;
 
       if (isUserActivelyTyping) {
@@ -1315,6 +1423,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         weeks: nextWeeks,
         coreItems: nextCoreItems,
         coreCategories: nextCoreCategories,
+        categoryGroups: nextCategoryGroups,
         pinnedCategoryIds: incomingPinnedCategoryIds,
         comments: incomingComments,
         activeWeekId,
@@ -1333,6 +1442,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         theme: s.theme,
         accentTheme: s.accentTheme,
         coreCategories: s.coreCategories,
+        categoryGroups: s.categoryGroups,
         pinnedCategoryIds: s.pinnedCategoryIds,
         filters: s.filters,
         comments: s.comments,
@@ -1369,6 +1479,7 @@ export const useActiveWeek = () =>
 export const useCoreItems = () => useJournalStore((s) => s.coreItems);
 export const useActiveCoreCategory = () => useJournalStore((s) => s.activeCoreCategory);
 export const useCoreCategories = () => useJournalStore((s) => s.coreCategories);
+export const useCategoryGroups = () => useJournalStore((s) => s.categoryGroups);
 export const usePinnedCategoryIds = () => useJournalStore((s) => s.pinnedCategoryIds);
 export const useFilters = () => useJournalStore((s) => s.filters);
 export const useTheme = () => useJournalStore((s) => s.theme);

@@ -155,6 +155,14 @@ export interface CoreSubCategoryConfig {
   description?: string;
 }
 
+export interface CategoryGroup {
+  id: string;
+  name: string;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface CoreCategoryConfig {
   id: CoreCategoryId;
   title: string;
@@ -169,6 +177,7 @@ export interface CoreCategoryConfig {
   createdAt?: string;
   updatedAt?: string;
   order?: number;
+  groupId?: string;
 }
 
 export interface FilterOptions {
@@ -189,6 +198,7 @@ export interface AppState {
   theme: 'light' | 'dark';
   accentTheme: AccentTheme;
   coreCategories: CoreCategoryConfig[];
+  categoryGroups?: CategoryGroup[];
   pinnedCategoryIds?: string[];
   filters: FilterOptions;
   comments?: CommentItem[];
