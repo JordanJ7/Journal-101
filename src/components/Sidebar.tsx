@@ -1131,7 +1131,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {/* Desktop Sidebar (hidden on screens < md) with spacious width */}
       <aside
         id="main-desktop-sidebar"
-        className={`hidden md:flex border-r border-black/5 dark:border-white/10 bg-[#F2F2F7]/50 dark:bg-black/50 h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex border-r border-black/5 dark:border-white/10 bg-[#F2F2F7]/50 dark:bg-black/50 h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${
           isSidebarOpen
             ? 'w-80 lg:w-88 xl:w-96 p-3 opacity-100 translate-x-0'
             : 'w-0 p-0 opacity-0 -translate-x-full border-r-0 overflow-hidden pointer-events-none'
