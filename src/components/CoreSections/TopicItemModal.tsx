@@ -545,7 +545,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               </button>
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
                 disabled={isProcessingUpload}
                 className="cursor-pointer min-h-[44px] px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-1 shrink-0 transition-colors shadow-2xs disabled:opacity-50"
               >

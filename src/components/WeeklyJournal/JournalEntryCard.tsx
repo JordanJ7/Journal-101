@@ -379,7 +379,12 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     <div className="flex flex-wrap items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
                         disabled={isProcessingUpload}
                         className={`cursor-pointer px-3 py-1.5 ${currentAccent.buttonPrimary} text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors disabled:opacity-50`}
                       >
