@@ -216,13 +216,23 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                   }}
                 >
                   <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.max(52, el.scrollHeight)}px`;
+                      }
+                    }}
                     placeholder="Chapter notes, key takeaways, pages read..."
                     value={assignments.readBookProgress}
-                    onChange={(e) => updateField('readBookProgress', e.target.value)}
+                    onChange={(e) => {
+                      updateField('readBookProgress', e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
                     onBlur={() => useJournalStore.getState().flushAutoSave()}
                     readOnly={!canEdit}
-                    className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400"
                     rows={2}
+                    className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 min-h-[52px] resize-none overflow-hidden"
                   />
                 </div>
               </div>
@@ -281,13 +291,23 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                   }}
                 >
                   <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.max(52, el.scrollHeight)}px`;
+                      }
+                    }}
                     placeholder="What resonated with you? Character dynamics..."
                     value={assignments.watchMovieThoughts}
-                    onChange={(e) => updateField('watchMovieThoughts', e.target.value)}
+                    onChange={(e) => {
+                      updateField('watchMovieThoughts', e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
                     onBlur={() => useJournalStore.getState().flushAutoSave()}
                     readOnly={!canEdit}
-                    className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400"
                     rows={2}
+                    className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 min-h-[52px] resize-none overflow-hidden"
                   />
                 </div>
               </div>
@@ -376,13 +396,23 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                       }}
                     >
                       <textarea
+                        ref={(el) => {
+                          if (el) {
+                            el.style.height = 'auto';
+                            el.style.height = `${Math.max(52, el.scrollHeight)}px`;
+                          }
+                        }}
                         placeholder="Type your reflection or answer here..."
                         value={q.answer}
-                        onChange={(e) => updateDesQuestion(q.id, e.target.value)}
+                        onChange={(e) => {
+                          updateDesQuestion(q.id, e.target.value);
+                          e.target.style.height = 'auto';
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
                         onBlur={() => useJournalStore.getState().flushAutoSave()}
                         readOnly={!canEdit}
-                        className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none"
                         rows={2}
+                        className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md text-stone-900 dark:text-stone-100 font-medium placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none min-h-[52px] resize-none overflow-hidden"
                       />
                     </div>
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   Calendar,
@@ -27,6 +27,48 @@ import {
 } from '../types';
 import { ACCENT_THEMES } from '../utils/theme';
 import { CustomizePinnedTopicsModal } from './CustomizePinnedTopicsModal';
+
+// Fixed journey start date: October 25, 2021, 12:00 AM (Month index 9 is October)
+export const JOURNEY_START_DATE = new Date(2021, 9, 25, 0, 0, 0);
+
+/**
+ * Calculates continuous elapsed time from the start date to now
+ * formatted as X years, Y months, Z days
+ */
+export function formatTimeElapsed(startDate: Date): string {
+  const now = new Date();
+  let years = now.getFullYear() - startDate.getFullYear();
+  let months = now.getMonth() - startDate.getMonth();
+  let days = now.getDate() - startDate.getDate();
+  let hours = now.getHours() - startDate.getHours();
+  let minutes = now.getMinutes() - startDate.getMinutes();
+
+  if (minutes < 0) {
+    hours -= 1;
+    minutes += 60;
+  }
+  if (hours < 0) {
+    days -= 1;
+    hours += 24;
+  }
+  if (days < 0) {
+    months -= 1;
+    // Calculate days in the previous month
+    const prevMonthDays = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    days += prevMonthDays;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  const parts: string[] = [];
+  parts.push(`${years} ${years === 1 ? 'year' : 'years'}`);
+  parts.push(`${months} ${months === 1 ? 'month' : 'months'}`);
+  parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
+
+  return parts.join(', ');
+}
 
 interface HomeDashboardProps {
   weeks: WeeklyBlock[];
@@ -75,6 +117,18 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
 }) => {
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
+
+  // Live discreet counter since October 25, 2021
+  const [timeElapsed, setTimeElapsed] = useState<string>(() => formatTimeElapsed(JOURNEY_START_DATE));
+
+  useEffect(() => {
+    setTimeElapsed(formatTimeElapsed(JOURNEY_START_DATE));
+    const intervalId = setInterval(() => {
+      setTimeElapsed(formatTimeElapsed(JOURNEY_START_DATE));
+    }, 60 * 1000); // Live update once per minute
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Format today's date cleanly (e.g. Wednesday, August 19, 2026)
   const todayFormatted = useMemo(() => {
@@ -203,9 +257,17 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
       {/* 1. Greeting & Quick Overview Header */}
       <section className="space-y-1.5 pt-1 sm:pt-2">
-        <span className={`text-[11px] font-semibold tracking-wider uppercase ${currentAccent.textPrimary}`}>
-          Overview
-        </span>
+        <div className="flex items-center justify-between gap-2">
+          <span className={`text-[11px] font-semibold tracking-wider uppercase ${currentAccent.textPrimary}`}>
+            Overview
+          </span>
+          <span
+            className="text-[11px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500 font-mono"
+            title="Continuous time since October 25, 2021"
+          >
+            {timeElapsed}
+          </span>
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Welcome Back
