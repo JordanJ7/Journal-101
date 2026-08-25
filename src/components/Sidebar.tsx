@@ -946,7 +946,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           )}
 
           {/* Category Groups & Topic Folders List */}
-          <div className="flex flex-col gap-2.5 w-full overflow-y-auto p-1 pr-1 pb-16 sm:pb-6 flex-1 content-start">
+          <div className="flex flex-col gap-2.5 w-full overflow-y-scroll p-1 pr-1 pb-16 sm:pb-6 content-start" style={{ maxHeight: 'calc(100dvh - 280px)' }}>
             {filteredCategories.length === 0 && categoryGroups.length === 0 ? (
               <div className="py-8 text-center w-full">
                 <Folder className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 mb-2 stroke-[1.5]" />
