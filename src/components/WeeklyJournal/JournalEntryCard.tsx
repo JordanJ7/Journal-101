@@ -377,8 +377,11 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
 
                     {/* File Picker & URL Inputs */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <label
-                        className={`cursor-pointer px-3 py-1.5 ${currentAccent.buttonPrimary} text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors`}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isProcessingUpload}
+                        className={`cursor-pointer px-3 py-1.5 ${currentAccent.buttonPrimary} text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors disabled:opacity-50`}
                       >
                         {isProcessingUpload ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -386,16 +389,16 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                           <Upload className="w-3.5 h-3.5" />
                         )}
                         <span>Upload Photos / Videos</span>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          multiple
-                          accept="image/*,video/*"
-                          onChange={handleMultipleFilesUpload}
-                          className="hidden"
-                          disabled={isProcessingUpload}
-                        />
-                      </label>
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*,video/*"
+                        onChange={handleMultipleFilesUpload}
+                        className="hidden"
+                        disabled={isProcessingUpload}
+                      />
                       <span className="text-[10px] text-stone-400 dark:text-stone-500 font-medium">
                         OR add URL:
                       </span>

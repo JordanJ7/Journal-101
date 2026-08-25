@@ -543,23 +543,28 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               >
                 Add URL
               </button>
-              <label className="cursor-pointer min-h-[44px] px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-1 shrink-0 transition-colors shadow-2xs">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isProcessingUpload}
+                className="cursor-pointer min-h-[44px] px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-1 shrink-0 transition-colors shadow-2xs disabled:opacity-50"
+              >
                 {isProcessingUpload ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
                 <span>{isProcessingUpload ? 'Uploading to Storage...' : 'Upload Media'}</span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={handleMultipleFilesUpload}
-                  className="hidden"
-                  disabled={isProcessingUpload}
-                />
-              </label>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*"
+                onChange={handleMultipleFilesUpload}
+                className="hidden"
+                disabled={isProcessingUpload}
+              />
             </div>
 
             {/* Thumbnail Carousel / List */}
