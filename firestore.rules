@@ -77,11 +77,6 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // Category Groups
-    match /category_groups/{groupId} {
-      allow read, write: if true;
-    }
-
     // 5. App State Backup & Sync
     match /app_state/{docId} {
       allow read, write: if true;

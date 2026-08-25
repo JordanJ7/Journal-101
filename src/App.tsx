@@ -20,7 +20,6 @@ import {
   useCoreItems,
   useActiveCoreCategory,
   useCoreCategories,
-  useCategoryGroups,
   usePinnedCategoryIds,
   useFilters,
   useTheme,
@@ -66,7 +65,6 @@ export default function App() {
   const coreItems = useCoreItems();
   const activeCoreCategory = useActiveCoreCategory();
   const coreCategories = useCoreCategories();
-  const categoryGroups = useCategoryGroups();
   const pinnedCategoryIds = usePinnedCategoryIds();
   const filters = useFilters();
   const theme = useTheme();
@@ -94,11 +92,6 @@ export default function App() {
     updateCoreCategory,
     deleteCoreCategory,
     reorderCoreCategories,
-    setCategoryFolderGroup,
-    addCategoryGroup,
-    updateCategoryGroup,
-    deleteCategoryGroup,
-    reorderCategoryGroups,
     setActiveCoreCategory,
     setTheme,
     setAccentTheme,
@@ -143,11 +136,6 @@ export default function App() {
       updateCoreCategory: s.updateCoreCategory,
       deleteCoreCategory: s.deleteCoreCategory,
       reorderCoreCategories: s.reorderCoreCategories,
-      setCategoryFolderGroup: s.setCategoryFolderGroup,
-      addCategoryGroup: s.addCategoryGroup,
-      updateCategoryGroup: s.updateCategoryGroup,
-      deleteCategoryGroup: s.deleteCategoryGroup,
-      reorderCategoryGroups: s.reorderCategoryGroups,
       setActiveCoreCategory: s.setActiveCoreCategory,
       setTheme: s.setTheme,
       setAccentTheme: s.setAccentTheme,
@@ -477,7 +465,6 @@ export default function App() {
             activeWeekId={activeWeekId}
             setActiveWeekId={handleSetActiveWeekId}
             coreCategories={coreCategories}
-            categoryGroups={categoryGroups}
             activeCoreCategory={activeCoreCategory}
             setActiveCoreCategory={handleSetActiveCoreCategory}
             onAddWeek={addWeek}
@@ -486,11 +473,6 @@ export default function App() {
             onDeleteCoreCategory={deleteCoreCategory}
             onReorderWeeks={reorderWeeks}
             onReorderCoreCategories={reorderCoreCategories}
-            onAddCategoryGroup={addCategoryGroup}
-            onUpdateCategoryGroup={updateCategoryGroup}
-            onDeleteCategoryGroup={deleteCategoryGroup}
-            onReorderCategoryGroups={reorderCategoryGroups}
-            onSetCategoryFolderGroup={setCategoryFolderGroup}
             accentTheme={accentTheme}
             isOpenMobile={isOpenMobile}
             setIsOpenMobile={setIsOpenMobile}

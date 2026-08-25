@@ -29,7 +29,6 @@ import {
 import {
   AppState,
   BulletPoint,
-  CategoryGroup,
   CoreCategoryConfig,
   CoreTopicItem,
   WeeklyBlock,
@@ -382,45 +381,6 @@ export async function deleteFolderDoc(folderId: string): Promise<void> {
 }
 
 /**
- * 2b. Create or Update Category Group (/category_groups/{groupId})
- */
-export async function saveCategoryGroupDoc(group: CategoryGroup): Promise<void> {
-  if (!group || !group.id) return;
-  const path = `category_groups/${group.id}`;
-  try {
-    const groupDocRef = doc(db, 'category_groups', group.id);
-    const sanitized = sanitizeForFirestore({
-      ...group,
-      clientSessionId: CLIENT_SESSION_ID,
-      updatedAt: new Date().toISOString(),
-    });
-    await setDoc(groupDocRef, sanitized, { merge: true });
-    console.log(`[Firestore SUCCESS] Category group saved: ${group.id}`);
-  } catch (err) {
-    console.error(`[Firestore CRITICAL ERROR] Failed to save category group ${group?.id}:`, err);
-    handleFirestoreError(err, OperationType.WRITE, path);
-    throw err;
-  }
-}
-
-/**
- * 2c. Delete Category Group (/category_groups/{groupId})
- */
-export async function deleteCategoryGroupDoc(groupId: string): Promise<void> {
-  if (!groupId) return;
-  const path = `category_groups/${groupId}`;
-  try {
-    const groupDocRef = doc(db, 'category_groups', groupId);
-    await deleteDoc(groupDocRef);
-    console.log(`[Firestore SUCCESS] Category group deleted: ${groupId}`);
-  } catch (err) {
-    console.error(`[Firestore CRITICAL ERROR] Failed to delete category group ${groupId}:`, err);
-    handleFirestoreError(err, OperationType.DELETE, path);
-    throw err;
-  }
-}
-
-/**
  * 3. Create or Update Core Topic Item (/core_topics/{itemId} and /folders/{categoryId}/notes/{itemId})
  */
 export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
@@ -656,35 +616,6 @@ export async function saveCoreCategoriesDoc(categories: CoreCategoryConfig[]): P
   }
 }
 
-/**
- * 13. Save Category Groups collection fallback
- */
-export async function saveCategoryGroupsDoc(groups: CategoryGroup[]): Promise<void> {
-  const path = 'category_groups/settings';
-  try {
-    const docRef = doc(db, 'category_groups', 'settings');
-    await setDoc(
-      docRef,
-      {
-        groups: sanitizeForFirestore(groups),
-        clientSessionId: CLIENT_SESSION_ID,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
-    // Also mirror each group to /category_groups/{groupId}
-    for (const group of groups) {
-      if (group.id !== 'settings') {
-        await saveCategoryGroupDoc(group);
-      }
-    }
-  } catch (err) {
-    console.error('[Firestore Error] Failed to save category groups config:', err);
-    handleFirestoreError(err, OperationType.WRITE, path);
-    throw err;
-  }
-}
-
 // -----------------------------------------------------------------------------------------
 // REAL-TIME MULTI-COLLECTION LISTENER & HYDRATION ENGINE
 // -----------------------------------------------------------------------------------------
@@ -710,7 +641,7 @@ export function subscribeJournalData(
     if (e.key === CLOUD_SYNC_STORAGE_KEY && e.newValue) {
       try {
         const parsed = JSON.parse(e.newValue);
-        if (parsed && (parsed.weeks || parsed.coreItems || parsed.coreCategories || parsed.categoryGroups)) {
+        if (parsed && (parsed.weeks || parsed.coreItems || parsed.coreCategories)) {
           // If the storage event was written by ourselves, skip to avoid double execution
           if (parsed.clientSessionId === CLIENT_SESSION_ID) {
             return;
@@ -719,7 +650,6 @@ export function subscribeJournalData(
             weeks: parsed.weeks,
             coreItems: parsed.coreItems,
             coreCategories: parsed.coreCategories,
-            categoryGroups: parsed.categoryGroups,
             comments: parsed.comments,
             updatedAt: parsed.updatedAt,
             clientSessionId: parsed.clientSessionId,
@@ -740,16 +670,13 @@ export function subscribeJournalData(
   const entriesPerWeekMap = new Map<string, Map<string, BulletPoint>>();
   const coreItemsMap = new Map<string, CoreTopicItem>();
   const foldersMap = new Map<string, CoreCategoryConfig>();
-  const categoryGroupsMap = new Map<string, CategoryGroup>();
   let coreCategoriesFallback: CoreCategoryConfig[] | null = null;
-  let categoryGroupsFallback: CategoryGroup[] | null = null;
   let commentsList: CommentItem[] = [];
 
   // Cached stable array references to prevent full-tree re-renders when only 1 item changes
   let cachedConsolidatedWeeks: WeeklyBlock[] = [];
   let cachedConsolidatedCoreItems: CoreTopicItem[] = [];
   let cachedConsolidatedFolders: CoreCategoryConfig[] = [];
-  let cachedConsolidatedCategoryGroups: CategoryGroup[] = [];
   let cachedComments: CommentItem[] = [];
 
   let broadcastDebounceTimer: any = null;
@@ -764,7 +691,6 @@ export function subscribeJournalData(
         weeks: cachedConsolidatedWeeks,
         coreItems: cachedConsolidatedCoreItems,
         ...(cachedConsolidatedFolders.length > 0 ? { coreCategories: cachedConsolidatedFolders } : {}),
-        categoryGroups: cachedConsolidatedCategoryGroups,
         comments: cachedComments,
         updatedAt: new Date().toISOString(),
         clientSessionId: CLIENT_SESSION_ID,
@@ -1073,65 +999,6 @@ export function subscribeJournalData(
   );
   activeUnsubscribes.push(coreCategoriesUnsub);
 
-  // 6b. Real-Time Category Groups Collection Listener (/category_groups)
-  const categoryGroupsUnsub = onSnapshot(
-    collection(db, 'category_groups'),
-    (snap) => {
-      if (snap.metadata.hasPendingWrites) return;
-
-      if (!snap.empty) {
-        let hasChanges = false;
-        snap.docChanges().forEach((change) => {
-          if (change.doc.metadata.hasPendingWrites) return;
-          if (change.doc.id === 'settings') return;
-
-          const group = { id: change.doc.id, ...change.doc.data() } as CategoryGroup;
-          if (change.type === 'removed') {
-            categoryGroupsMap.delete(group.id);
-            hasChanges = true;
-          } else {
-            categoryGroupsMap.set(group.id, group);
-            hasChanges = true;
-          }
-        });
-
-        if (hasChanges) {
-          cachedConsolidatedCategoryGroups = Array.from(categoryGroupsMap.values()).sort(
-            (a, b) => (a.order ?? 0) - (b.order ?? 0)
-          );
-          scheduleBroadcast();
-        }
-      }
-    },
-    (err) => {
-      console.warn('Category groups subscription note:', err.message);
-    }
-  );
-  activeUnsubscribes.push(categoryGroupsUnsub);
-
-  // 6c. Real-Time Category Groups Settings Listener (/category_groups/settings)
-  const categoryGroupsSettingsUnsub = onSnapshot(
-    doc(db, 'category_groups', 'settings'),
-    (snap) => {
-      if (snap.metadata.hasPendingWrites) return;
-
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data && Array.isArray(data.groups)) {
-          categoryGroupsFallback = data.groups as CategoryGroup[];
-          if (categoryGroupsMap.size === 0) {
-            cachedConsolidatedCategoryGroups = categoryGroupsFallback;
-            scheduleBroadcast();
-          }
-        }
-      }
-    },
-    (err) => {
-      console.warn('Category groups settings note:', err.message);
-    }
-  );
-  activeUnsubscribes.push(categoryGroupsSettingsUnsub);
-
   // 7. Real-Time Comments Listener (/comments)
   const commentsUnsub = onSnapshot(
     collection(db, 'comments'),
@@ -1221,14 +1088,6 @@ export async function saveJournalDataToCloud(
     }
     if (state.coreCategories && state.coreCategories.length > 0) {
       await saveCoreCategoriesDoc(state.coreCategories);
-    }
-
-    // Save Category Groups
-    for (const group of state.categoryGroups || []) {
-      await saveCategoryGroupDoc(group);
-    }
-    if (state.categoryGroups && state.categoryGroups.length > 0) {
-      await saveCategoryGroupsDoc(state.categoryGroups);
     }
 
     // Save Core Topic Notes

@@ -20,34 +20,6 @@
       },
       "required": ["globalShareEnabled", "ownerEmail", "users"]
     },
-    "CategoryGroupDoc": {
-      "title": "CategoryGroupDoc",
-      "description": "User-created custom category group / collection folder containing topic folders.",
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique category group ID."
-        },
-        "name": {
-          "type": "string",
-          "description": "Custom display name of the category group."
-        },
-        "order": {
-          "type": "number",
-          "description": "Display order index."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "ISO timestamp of creation."
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "ISO timestamp of last update."
-        }
-      },
-      "required": ["id", "name"]
-    },
     "FolderDoc": {
       "title": "FolderDoc",
       "description": "Individual atomic core topic folder / category configuration document.",
@@ -357,10 +329,6 @@
     "/app_state/{docId}": {
       "schema": "WeeklyBlockMeta",
       "description": "Legacy backup document."
-    },
-    "/category_groups/{groupId}": {
-      "schema": "CategoryGroupDoc",
-      "description": "User-created custom category groups configuration document."
     },
     "/comments/{commentId}": {
       "schema": "CommentItem",
