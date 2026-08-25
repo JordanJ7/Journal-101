@@ -478,6 +478,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     </button>
                     <button
                       type="button"
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => setShowMediaUploader(!showMediaUploader)}
                       className="px-2.5 py-1.5 bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-medium rounded-lg flex items-center gap-1 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
                     >
