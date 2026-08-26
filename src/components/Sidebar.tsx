@@ -37,6 +37,7 @@ import { AccentTheme, CoreCategoryConfig, CoreCategoryId, ViewMode, WeeklyBlock 
 import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface SidebarProps {
   weeks: WeeklyBlock[];
@@ -139,8 +140,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   } | null>(null);
 
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
-  const isOwner = currentUser.role === 'owner';
-  const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
+  const permissions = usePermissions();
+  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
+  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
   const { confirmDelete } = useConfirmDelete();
 
   const handleSelectWeek = useCallback(

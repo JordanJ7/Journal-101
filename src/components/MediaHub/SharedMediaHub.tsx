@@ -25,6 +25,7 @@ import { formatTimestamp } from '../../utils/storage';
 import { getNormalizedAttachments } from '../../utils/mediaUtils';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface SharedMediaHubProps {
   weeks: WeeklyBlock[];
@@ -79,8 +80,9 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
   const [newNotes, setNewNotes] = useState('');
   const [targetWeekId, setTargetWeekId] = useState(weeks[0]?.id || '');
 
-  const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
-  const canDelete = currentUser.role === 'owner' || currentUser.role === 'editor';
+  const permissions = usePermissions();
+  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const canDelete = permissions.canDelete || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
 
   // Aggregate media
   const allMediaItems = useMemo<ExtractedMediaItem[]>(() => {

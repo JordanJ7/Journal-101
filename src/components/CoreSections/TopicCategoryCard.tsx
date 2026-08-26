@@ -51,9 +51,9 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
   onToggleComplete,
   onUpdateStatus,
   onNavigateToWeek,
-  canEdit = true,
-  canDelete = true,
-  isOwner = true,
+  canEdit = false,
+  canDelete = false,
+  isOwner = false,
   onOpenCommentSection,
   activeCommentSectionTag,
   searchQuery,
@@ -405,6 +405,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
         <MediaInspectModal
           isOpen={showInspectModal}
           attachments={attachments}
+          canEdit={canEdit}
           title={item.title}
           accentTheme={accentTheme}
           onClose={() => setShowInspectModal(false)}

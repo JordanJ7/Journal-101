@@ -23,6 +23,7 @@ import { ACCENT_THEMES } from '../../utils/theme';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
 import { TopicCategoryCard } from './TopicCategoryCard';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   MessageSquareText,
@@ -73,8 +74,9 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
   accentTheme,
   onDeleteCategory,
 }) => {
-  const isOwner = currentUser.role === 'owner';
-  const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
+  const permissions = usePermissions();
+  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
+  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
 
   // Filter items specifically for this topic folder

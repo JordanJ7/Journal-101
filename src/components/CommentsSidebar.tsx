@@ -20,6 +20,7 @@ import { AccentTheme, CommentItem, UserRole } from '../types';
 import { ACCENT_THEMES } from '../utils/theme';
 import { formatTimestamp } from '../utils/storage';
 import { useConfirmDelete } from './ConfirmDeleteModal';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface CommentsSidebarProps {
   isOpen: boolean;
@@ -77,7 +78,9 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
   }, [activeSectionTag]);
 
   // Can comment if owner, editor, or commenter
-  const canComment = currentUser.role === 'owner' || currentUser.role === 'editor' || currentUser.role === 'commenter';
+  const permissions = usePermissions();
+  const canComment = permissions.canComment || (currentUser?.role === 'owner' || currentUser?.role === 'editor' || currentUser?.role === 'commenter');
+  const canDeleteAny = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
 
   // Filter comments for this scope and state
   const scopeComments = comments.filter((c) => {

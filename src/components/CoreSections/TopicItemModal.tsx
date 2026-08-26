@@ -5,6 +5,7 @@ import { Attachment, CoreCategoryConfig, CoreCategoryId, CoreTopicItem } from '.
 import { formatTimestamp } from '../../utils/storage';
 import { BulletedNoteEditor } from './BulletedNoteEditor';
 import { SaveStatusBadge, SaveStatusState } from '../SaveStatusBadge';
+import { usePermissions } from '../../hooks/usePermissions';
 import {
   createAttachmentFromUrl,
   filesToPersistentAttachments,
@@ -22,6 +23,7 @@ interface TopicItemModalProps {
   coreCategories?: CoreCategoryConfig[];
   onSave: (item: CoreTopicItem, shouldClose?: boolean) => Promise<void> | void;
   onClose: () => void;
+  canEdit?: boolean;
 }
 
 export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
@@ -30,7 +32,10 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
   coreCategories = CORE_CATEGORIES_CONFIG,
   onSave,
   onClose,
+  canEdit: propCanEdit,
 }) => {
+  const { canEdit: hookCanEdit } = usePermissions();
+  const canEdit = propCanEdit !== undefined ? propCanEdit : hookCanEdit;
   const [selectedCategoryId, setSelectedCategoryId] = useState<CoreCategoryId>(
     item?.categoryId || activeCategory
   );
@@ -613,21 +618,23 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] px-4 py-2 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl font-bold text-sm sm:text-xs"
+              className="min-h-[44px] px-4 py-2 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl font-bold text-sm sm:text-xs cursor-pointer"
             >
-              Cancel
+              {canEdit ? 'Cancel' : 'Close'}
             </button>
-            <button
-              type="submit"
-              disabled={isOverSizeLimit || isProcessingUpload}
-              className={`min-h-[44px] px-5 py-2 rounded-xl font-bold text-sm sm:text-xs shadow-2xs transition-colors ${
-                isOverSizeLimit || isProcessingUpload
-                  ? 'bg-stone-400 cursor-not-allowed text-stone-200'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              {item ? 'Save Changes' : 'Create Entry'}
-            </button>
+            {canEdit && (
+              <button
+                type="submit"
+                disabled={isOverSizeLimit || isProcessingUpload}
+                className={`min-h-[44px] px-5 py-2 rounded-xl font-bold text-sm sm:text-xs shadow-2xs transition-colors cursor-pointer ${
+                  isOverSizeLimit || isProcessingUpload
+                    ? 'bg-stone-400 cursor-not-allowed text-stone-200'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {item ? 'Save Changes' : 'Create Entry'}
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -636,6 +643,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
         <MediaInspectModal
           isOpen={showInspectModal}
           attachments={draftAttachments}
+          canEdit={canEdit}
           title={title || 'Topic Entry Media'}
           onClose={() => setShowInspectModal(false)}
           onDeleteAttachment={(attId) => {

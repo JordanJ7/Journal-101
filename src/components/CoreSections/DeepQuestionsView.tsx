@@ -20,6 +20,7 @@ import { CoreTopicItem } from '../../types';
 import { formatTimestamp } from '../../utils/storage';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface DeepQuestionsViewProps {
   items: CoreTopicItem[];
@@ -87,9 +88,10 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
   // Edit Modal State
   const [editingItem, setEditingItem] = useState<CoreTopicItem | null>(null);
 
-  const isOwner = currentUser.role === 'owner';
-  const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
-  const canDelete = isOwner || currentUser.role === 'editor';
+  const permissions = usePermissions();
+  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
+  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const canDelete = permissions.canDelete || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
 
   // Toggle group collapse
   const toggleGroup = (groupId: string) => {

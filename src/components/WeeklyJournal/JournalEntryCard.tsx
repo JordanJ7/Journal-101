@@ -60,8 +60,8 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
   onIndentChange,
   onTogglePinTakeaway,
   onPreviewMedia,
-  canEdit = true,
-  canDelete = true,
+  canEdit = false,
+  canDelete = false,
   searchQuery,
   accentTheme = 'amber',
 }) => {

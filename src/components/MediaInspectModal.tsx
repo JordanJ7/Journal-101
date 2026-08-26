@@ -52,7 +52,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
   onRemoveAttachment,
   onDeleteAttachment,
   onUpdateCaption,
-  canEdit = true,
+  canEdit = false,
   accentTheme = 'amber',
   initialIndex = 0,
 }) => {

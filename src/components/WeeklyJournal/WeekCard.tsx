@@ -28,6 +28,7 @@ import { AssignmentBox } from './AssignmentBox';
 import { BulletItem } from './BulletItem';
 import { TimestampPickerPopover } from './TimestampPickerPopover';
 import { WeeklyTimestampModal } from './WeeklyTimestampModal';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface WeekCardProps {
   week: WeeklyBlock;
@@ -54,9 +55,10 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
   onTogglePinTakeaway,
   searchQuery,
 }) => {
-  const isOwner = currentUser.role === 'owner';
-  const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
-  const canDelete = isOwner || currentUser.role === 'editor';
+  const permissions = usePermissions();
+  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
+  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const canDelete = permissions.canDelete || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
 
   const themeConfig = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const [isJournalOpen, setIsJournalOpen] = useState(true);

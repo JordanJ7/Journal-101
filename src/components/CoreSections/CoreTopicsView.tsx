@@ -35,6 +35,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CurrentUserProfile } from '../../lib/firebase';
 import { useJournalStore } from '../../store/useJournalStore';
+import { usePermissions } from '../../hooks/usePermissions';
 import {
   AccentTheme,
   CommentItem,
@@ -194,9 +195,10 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   activeCommentSectionTag,
   onNavigateToWeek,
 }) => {
-  const isOwner = currentUser.role === 'owner';
-  const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
-  const isViewer = currentUser.role === 'viewer';
+  const permissions = usePermissions();
+  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
+  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const isViewer = permissions.isViewer || currentUser?.role === 'viewer';
 
   const storeSetFilters = useJournalStore((s) => s.setFilters);
   const updateFilters = setFilters || storeSetFilters;
@@ -684,6 +686,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
           item={editingItem}
           activeCategory={editingItem?.categoryId || activeCategory}
           coreCategories={coreCategories}
+          canEdit={canEdit}
           onSave={handleSaveItem}
           onClose={() => {
             setShowItemModal(false);

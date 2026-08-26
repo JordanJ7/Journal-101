@@ -29,8 +29,8 @@ interface AssignmentBoxProps {
 export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
   assignments,
   onUpdate,
-  canEdit = true,
-  canDelete = true,
+  canEdit = false,
+  canDelete = false,
   onOpenCommentSection,
   activeCommentSectionTag,
   searchQuery,

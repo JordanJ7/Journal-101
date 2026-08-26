@@ -26,6 +26,7 @@ import { exportCoreCategoryToPDF } from '../../utils/pdfExport';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { HighlightText } from '../HighlightText';
 import { TopicCategoryCard } from './TopicCategoryCard';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface CategoryFolderAccordionProps {
   category: CoreCategoryConfig;
@@ -74,9 +75,10 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
   accentTheme,
   onDeleteCategory,
 }) => {
-  const isOwner = currentUser.role === 'owner';
-  const canEdit = currentUser.role === 'owner' || currentUser.role === 'editor';
-  const canDelete = isOwner || currentUser.role === 'editor';
+  const permissions = usePermissions();
+  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
+  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const canDelete = permissions.canDelete || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
 
   const [activeSubMenuId, setActiveSubMenuId] = useState<string | null>(null);
 
