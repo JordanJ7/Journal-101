@@ -45,6 +45,18 @@ service cloud.firestore {
         getPermissions().users[getUserEmail()].role == 'commenter';
     }
 
+    function isViewer() {
+      return isSignedIn() && hasPermissions() &&
+        'users' in getPermissions() &&
+        getUserEmail() in getPermissions().users &&
+        getPermissions().users[getUserEmail()].role == 'viewer';
+    }
+
+    function canRead() {
+      // Unauthenticated simulated dev sessions allowed, all authenticated roles allowed
+      return !isSignedIn() || isOwner() || isEditor() || isCommenter() || isViewer();
+    }
+
     function canEditContent() {
       // Unauthenticated simulated dev sessions allowed for local dev / preview
       return !isSignedIn() || isOwner() || isEditor();
@@ -67,82 +79,82 @@ service cloud.firestore {
 
     // 2. Folders & Subcollection Notes (/folders/{folderId}/notes/{noteId})
     match /folders/{folderId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
 
       match /notes/{noteId} {
-        allow read: if true;
+        allow read: if canRead();
         allow write: if canEditContent();
       }
     }
 
     // 3. Weekly Blocks & Atomic Entries Subcollections
     match /weeks/{weekId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
 
       // Atomic Entry Subcollection: /weeks/{weekId}/entries/{entryId}
       match /entries/{entryId} {
-        allow read: if true;
+        allow read: if canRead();
         allow write: if canEditContent();
 
         // Nested Media Attachments: /weeks/{weekId}/entries/{entryId}/attachments/{attachmentId}
         match /attachments/{attachmentId} {
-          allow read: if true;
+          allow read: if canRead();
           allow write: if canEditContent();
         }
       }
 
       // Legacy bullets subcollection alias
       match /bullets/{bulletId} {
-        allow read: if true;
+        allow read: if canRead();
         allow write: if canEditContent();
       }
     }
 
     // Collection Group Queries for entries and notes across all folders and weeks
     match /{path=**}/entries/{entryId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
     }
 
     match /{path=**}/notes/{noteId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
     }
 
     match /{path=**}/attachments/{attachmentId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
     }
 
     // 4. Core Topics & Core Categories (Atomic Documents)
     match /core_topics/{topicId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
     }
 
     match /core_categories/{docId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
     }
 
     // 5. App State Backup & Sync
     match /app_state/{docId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
     }
 
     // 6. Comments Collection: Restrict write/create/update to commenters, editors, and owner
     match /comments/{commentId} {
-      allow read: if true;
+      allow read: if canRead();
       allow create, update: if canCommentContent();
       allow delete: if canEditContent();
     }
 
     // 7. Shared Media Hub Items
     match /shared_media/{mediaId} {
-      allow read: if true;
+      allow read: if canRead();
       allow write: if canEditContent();
     }
 
