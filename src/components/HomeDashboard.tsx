@@ -30,6 +30,7 @@ import { CustomizePinnedTopicsModal } from './CustomizePinnedTopicsModal';
 
 // Fixed journey start date: October 25, 2021, 12:00 AM (Month index 9 is October)
 export const JOURNEY_START_DATE = new Date(2021, 9, 25, 0, 0, 0);
+export const SECOND_START_DATE = new Date(2026, 5, 11, 0, 0, 0); // Month index 5 is June
 
 /**
  * Calculates continuous elapsed time from the start date to now
@@ -118,13 +119,16 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
-  // Live discreet counter since October 25, 2021
+  // Live discreet counters
   const [timeElapsed, setTimeElapsed] = useState<string>(() => formatTimeElapsed(JOURNEY_START_DATE));
+  const [timeElapsed2, setTimeElapsed2] = useState<string>(() => formatTimeElapsed(SECOND_START_DATE));
 
   useEffect(() => {
     setTimeElapsed(formatTimeElapsed(JOURNEY_START_DATE));
+    setTimeElapsed2(formatTimeElapsed(SECOND_START_DATE));
     const intervalId = setInterval(() => {
       setTimeElapsed(formatTimeElapsed(JOURNEY_START_DATE));
+      setTimeElapsed2(formatTimeElapsed(SECOND_START_DATE));
     }, 60 * 1000); // Live update once per minute
 
     return () => clearInterval(intervalId);
@@ -261,12 +265,20 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
           <span className={`text-[11px] font-semibold tracking-wider uppercase ${currentAccent.textPrimary}`}>
             Overview
           </span>
-          <span
-            className="text-[11px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500 font-mono"
-            title="Continuous time since October 25, 2021"
-          >
-            {timeElapsed}
-          </span>
+          <div className="flex flex-col items-end gap-0.5">
+            <span
+              className="text-[11px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500 font-mono"
+              title="Continuous time since October 25, 2021"
+            >
+              {timeElapsed}
+            </span>
+            <span
+              className="text-[11px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500 font-mono"
+              title="Continuous time since June 11, 2026"
+            >
+              {timeElapsed2}
+            </span>
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
