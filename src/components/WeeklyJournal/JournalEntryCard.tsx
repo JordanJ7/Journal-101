@@ -8,6 +8,7 @@ import {
   Edit2,
   Edit3,
   Eye,
+  FileText,
   FileVideo,
   Image as ImageIcon,
   Loader2,
@@ -35,6 +36,7 @@ import {
   createAttachmentFromUrl,
   filesToPersistentAttachments,
   getNormalizedAttachments,
+  isPdfMedia,
   isVideoMedia,
 } from '../../utils/mediaUtils';
 import { LightboxMedia } from '../MediaLightboxModal';
@@ -393,13 +395,13 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                         ) : (
                           <Upload className="w-3.5 h-3.5" />
                         )}
-                        <span>Upload Photos / Videos</span>
+                        <span>Upload Files</span>
                       </button>
                       <input
                         ref={fileInputRef}
                         type="file"
                         multiple
-                        accept="image/*,video/*"
+                        accept="image/*,video/*,application/pdf"
                         onChange={handleMultipleFilesUpload}
                         className="hidden"
                         disabled={isProcessingUpload}
@@ -410,7 +412,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                       <div className="flex items-center gap-1 flex-1 min-w-[200px]">
                         <input
                           type="text"
-                          placeholder="Paste image or video URL..."
+                          placeholder="Paste image, video, or PDF URL..."
                           value={urlInput}
                           onChange={(e) => setUrlInput(e.target.value)}
                           onKeyDown={(e) => {
@@ -432,13 +434,21 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     {draftAttachments.length > 0 && (
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1">
                         {draftAttachments.map((att) => {
-                          const isVid = isVideoMedia(att.url, att.type);
+                          const isPdf = isPdfMedia(att.url, att.type);
+                          const isVid = !isPdf && isVideoMedia(att.url, att.type);
                           return (
                             <div
                               key={att.id}
                               className="relative group/att rounded-lg overflow-hidden border border-stone-300 dark:border-stone-700 bg-black aspect-square"
                             >
-                              {isVid ? (
+                              {isPdf ? (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-1 text-center select-none">
+                                  <FileText className="w-5 h-5 mb-0.5" />
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 truncate w-full px-0.5">
+                                    PDF
+                                  </span>
+                                </div>
+                              ) : isVid ? (
                                 att.thumbnailUrl ? (
                                   <div className="relative w-full h-full">
                                     <img
@@ -541,7 +551,8 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                 {/* Small Micro-Thumbnails Carousel (Max 2 items) */}
                 <div className="flex items-center gap-1.5">
                   {previewAttachments.map((att, idx) => {
-                    const isVid = isVideoMedia(att.url, att.type);
+                    const isPdf = isPdfMedia(att.url, att.type);
+                    const isVid = !isPdf && isVideoMedia(att.url, att.type);
                     return (
                       <div
                         key={att.id || idx}
@@ -552,7 +563,14 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                         className="relative w-11 h-11 rounded-lg overflow-hidden border border-stone-300 dark:border-white/10 bg-stone-900 cursor-pointer pointer-events-auto shadow-2xs hover:scale-105 transition-transform"
                         title="Click to inspect all attachments"
                       >
-                        {isVid ? (
+                        {isPdf ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-0.5 text-center select-none">
+                            <FileText className="w-4 h-4" />
+                            <span className="text-[8px] font-bold tracking-tight text-stone-600 dark:text-stone-300">
+                              PDF
+                            </span>
+                          </div>
+                        ) : isVid ? (
                           att.thumbnailUrl ? (
                             <div className="relative w-full h-full">
                               <img

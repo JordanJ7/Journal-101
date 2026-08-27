@@ -2,6 +2,7 @@ import {
   Check,
   Copy,
   ExternalLink,
+  FileText,
   Film,
   Image as ImageIcon,
   Maximize2,
@@ -10,12 +11,13 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { sanitizeUrl } from '../utils/security';
+import { isPdfMedia } from '../utils/mediaUtils';
 
 export interface LightboxMedia {
   url: string;
   title?: string;
   caption?: string;
-  type?: 'image' | 'video' | 'link';
+  type?: 'image' | 'video' | 'pdf' | 'link';
   categoryLabel?: string;
   sourceTitle?: string;
   timestamp?: string;
@@ -45,16 +47,19 @@ export const MediaLightboxModal: React.FC<MediaLightboxModalProps> = ({ media, o
   const url = media.url.trim();
   const lowerUrl = url.toLowerCase();
 
+  const isPdf = media.type === 'pdf' || isPdfMedia(url);
+
   // Video detection
   const isDirectVideo =
-    media.type === 'video' ||
-    lowerUrl.endsWith('.mp4') ||
-    lowerUrl.endsWith('.webm') ||
-    lowerUrl.endsWith('.ogg') ||
-    lowerUrl.endsWith('.mov');
+    !isPdf &&
+    (media.type === 'video' ||
+      lowerUrl.endsWith('.mp4') ||
+      lowerUrl.endsWith('.webm') ||
+      lowerUrl.endsWith('.ogg') ||
+      lowerUrl.endsWith('.mov'));
 
-  const isYouTube = lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be');
-  const isVimeo = lowerUrl.includes('vimeo.com');
+  const isYouTube = !isPdf && (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be'));
+  const isVimeo = !isPdf && lowerUrl.includes('vimeo.com');
 
   const getYouTubeEmbedUrl = (ytUrl: string) => {
     try {
@@ -108,7 +113,9 @@ export const MediaLightboxModal: React.FC<MediaLightboxModalProps> = ({ media, o
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-stone-950/70 border-b border-stone-800 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0 pr-2">
             <div className="p-1.5 rounded-xl bg-stone-800 text-sky-400 shrink-0">
-              {isDirectVideo || isYouTube || isVimeo ? (
+              {isPdf ? (
+                <FileText className="w-4 h-4 text-rose-400" />
+              ) : isDirectVideo || isYouTube || isVimeo ? (
                 <Video className="w-4 h-4" />
               ) : (
                 <ImageIcon className="w-4 h-4" />
@@ -116,7 +123,7 @@ export const MediaLightboxModal: React.FC<MediaLightboxModalProps> = ({ media, o
             </div>
             <div className="min-w-0">
               <h3 className="text-xs sm:text-sm font-bold text-stone-100 truncate">
-                {media.title || 'Media Viewer'}
+                {media.title || (isPdf ? 'PDF Document' : 'Media Viewer')}
               </h3>
               {(media.sourceTitle || media.categoryLabel) && (
                 <p className="text-[11px] text-stone-400 truncate">
@@ -175,7 +182,15 @@ export const MediaLightboxModal: React.FC<MediaLightboxModalProps> = ({ media, o
 
         {/* Lightbox Main Media Content Stage */}
         <div className="flex-1 flex items-center justify-center p-3 sm:p-6 overflow-hidden min-h-[300px] max-h-[70vh] bg-stone-950/50">
-          {isDirectVideo ? (
+          {isPdf ? (
+            <div className="w-full h-[65vh] rounded-2xl overflow-hidden shadow-2xl bg-white">
+              <iframe
+                src={media.url}
+                title={media.title || 'PDF Document'}
+                className="w-full h-full border-0"
+              />
+            </div>
+          ) : isDirectVideo ? (
             <video
               src={media.url}
               controls

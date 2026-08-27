@@ -6,6 +6,7 @@ import {
   Download,
   ExternalLink,
   Eye,
+  FileText,
   FileVideo,
   Film,
   Image as ImageIcon,
@@ -22,7 +23,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AccentTheme, Attachment } from '../types';
 import { ACCENT_THEMES } from '../utils/theme';
-import { filesToPersistentAttachments, isVideoMedia } from '../utils/mediaUtils';
+import { filesToPersistentAttachments, isPdfMedia, isVideoMedia } from '../utils/mediaUtils';
 import { sanitizeUrl } from '../utils/security';
 
 export interface MediaInspectModalProps {
@@ -137,7 +138,8 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
     setEditingCaption(false);
   };
 
-  const isCurrentVideo = currentAttachment ? isVideoMedia(currentAttachment.url, currentAttachment.type) : false;
+  const isCurrentPdf = currentAttachment ? isPdfMedia(currentAttachment.url, currentAttachment.type) : false;
+  const isCurrentVideo = currentAttachment && !isCurrentPdf ? isVideoMedia(currentAttachment.url, currentAttachment.type) : false;
 
   const modalContent = (
     <div
@@ -213,7 +215,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${currentAccent.buttonPrimary} text-white text-xs font-semibold shadow-2xs hover:opacity-90 transition-all cursor-pointer`}
-                  title="Upload photos or videos"
+                  title="Upload photos, videos, or PDFs"
                 >
                   {isUploading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -226,7 +228,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                   ref={fileInputRef}
                   type="file"
                   multiple
-                  accept="image/*,video/*"
+                  accept="image/*,video/*,application/pdf"
                   onChange={handleFilesUpload}
                   className="hidden"
                 />
@@ -265,7 +267,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
             </div>
             <p className="text-base font-semibold text-stone-200">No attachments found</p>
             <p className="text-xs text-stone-400 mt-1 max-w-sm">
-              Upload photos or videos from your device to keep visual memories and notes safely attached to this entry.
+              Upload photos, videos, or PDF documents from your device to keep memories and notes safely attached.
             </p>
             {canEdit && onAddAttachments && (
               <button
@@ -274,7 +276,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                 className={`mt-4 px-4 py-2 rounded-xl ${currentAccent.buttonPrimary} text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer`}
               >
                 <Upload className="w-4 h-4" />
-                <span>Upload Photos & Videos</span>
+                <span>Upload Media & Docs</span>
               </button>
             )}
           </div>
@@ -282,7 +284,8 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
           /* Grid View Mode */
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 auto-rows-max">
             {attachments.map((att, idx) => {
-              const isVid = isVideoMedia(att.url, att.type);
+              const isPdf = isPdfMedia(att.url, att.type);
+              const isVid = !isPdf && isVideoMedia(att.url, att.type);
               const isSelected = idx === selectedIndex;
               return (
                 <div
@@ -297,7 +300,19 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                       : 'border-stone-800 hover:border-stone-600'
                   }`}
                 >
-                  {isVid ? (
+                  {isPdf ? (
+                    <div className="relative w-full h-full flex flex-col items-center justify-center bg-stone-900 text-rose-500 p-4 text-center select-none">
+                      <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                        <FileText className="w-6 h-6 text-rose-400" />
+                      </div>
+                      <span className="text-xs font-semibold text-stone-200 truncate max-w-full px-1">
+                        {att.name || 'PDF Document'}
+                      </span>
+                      <span className="mt-1 px-1.5 py-0.5 rounded bg-rose-500/20 text-[10px] font-bold text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+                        PDF
+                      </span>
+                    </div>
+                  ) : isVid ? (
                     <div className="relative w-full h-full flex items-center justify-center bg-stone-950">
                       {att.thumbnailUrl ? (
                         <img
@@ -389,7 +404,14 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
               {/* Media Element */}
               {currentAttachment && (
                 <div className="relative w-full h-full flex items-center justify-center max-w-full max-h-full">
-                  {isCurrentVideo ? (
+                  {isCurrentPdf ? (
+                    <iframe
+                      key={currentAttachment.id || currentAttachment.url}
+                      src={currentAttachment.url}
+                      className="w-full h-full rounded-2xl bg-white border-0 shadow-2xl"
+                      title={currentAttachment.name || currentAttachment.caption || 'PDF Document'}
+                    />
+                  ) : isCurrentVideo ? (
                     <video
                       key={currentAttachment.id || currentAttachment.url}
                       src={currentAttachment.url}
@@ -507,7 +529,8 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
             {attachments.length > 1 && (
               <div className="p-2 sm:p-2.5 bg-stone-950 border-t border-stone-800/80 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-thin">
                 {attachments.map((att, idx) => {
-                  const isVid = isVideoMedia(att.url, att.type);
+                  const isPdf = isPdfMedia(att.url, att.type);
+                  const isVid = !isPdf && isVideoMedia(att.url, att.type);
                   const isSelected = idx === selectedIndex;
                   return (
                     <button
@@ -520,7 +543,12 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                           : 'border-stone-800 opacity-60 hover:opacity-100'
                       }`}
                     >
-                      {isVid ? (
+                      {isPdf ? (
+                        <div className="w-full h-full bg-stone-900 flex flex-col items-center justify-center text-rose-500 p-1 text-center select-none">
+                          <FileText className="w-5 h-5 mb-0.5" />
+                          <span className="text-[8px] font-bold text-stone-300">PDF</span>
+                        </div>
+                      ) : isVid ? (
                         att.thumbnailUrl ? (
                           <div className="relative w-full h-full">
                             <img

@@ -6,6 +6,7 @@ import {
   Copy,
   ExternalLink,
   Eye,
+  FileText,
   HeartHandshake,
   Image as ImageIcon,
   MapPin,
@@ -25,7 +26,7 @@ import { ACCENT_THEMES } from '../../utils/theme';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 import { HighlightText } from '../HighlightText';
 import { BulletedNoteEditor } from './BulletedNoteEditor';
-import { getNormalizedAttachments, isVideoMedia } from '../../utils/mediaUtils';
+import { getNormalizedAttachments, isPdfMedia, isVideoMedia } from '../../utils/mediaUtils';
 import { MediaInspectModal } from '../MediaInspectModal';
 
 interface TopicCategoryCardProps {
@@ -329,7 +330,8 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             {/* Micro Thumbnails Carousel */}
             <div className="flex items-center gap-1.5 overflow-x-auto">
               {attachments.slice(0, 3).map((att) => {
-                const isVid = isVideoMedia(att.url, att.type);
+                const isPdf = isPdfMedia(att.url, att.type);
+                const isVid = !isPdf && isVideoMedia(att.url, att.type);
                 return (
                   <button
                     key={att.id}
@@ -341,7 +343,14 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
                     className="relative w-9 h-9 rounded-lg overflow-hidden border border-stone-300 dark:border-stone-700 bg-stone-950 shrink-0 group hover:opacity-90 transition-opacity cursor-pointer pointer-events-auto"
                     title={att.caption || 'Click to view'}
                   >
-                    {isVid ? (
+                    {isPdf ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-0.5 text-center">
+                        <FileText className="w-3.5 h-3.5" />
+                        <span className="text-[7px] font-bold text-stone-600 dark:text-stone-300">
+                          PDF
+                        </span>
+                      </div>
+                    ) : isVid ? (
                       att.thumbnailUrl ? (
                         <div className="relative w-full h-full">
                           <img

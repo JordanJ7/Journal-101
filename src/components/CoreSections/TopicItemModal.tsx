@@ -1,4 +1,4 @@
-import { AlertCircle, Eye, Folder, Image as ImageIcon, Loader2, Play, Plus, Upload, Video, X } from 'lucide-react';
+import { AlertCircle, Eye, FileText, Folder, Image as ImageIcon, Loader2, Play, Plus, Upload, Video, X } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CORE_CATEGORIES_CONFIG } from '../../data/initialData';
 import { Attachment, CoreCategoryConfig, CoreCategoryId, CoreTopicItem } from '../../types';
@@ -10,6 +10,7 @@ import {
   createAttachmentFromUrl,
   filesToPersistentAttachments,
   getNormalizedAttachments,
+  isPdfMedia,
   isVideoMedia,
   calculateAttachmentsSize,
   isAttachmentsSizeExceeded,
@@ -564,13 +565,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                <span>{isProcessingUpload ? 'Uploading to Storage...' : 'Upload Media'}</span>
+                <span>{isProcessingUpload ? 'Uploading to Storage...' : 'Upload Media & Docs'}</span>
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept="image/*,video/*"
+                accept="image/*,video/*,application/pdf"
                 onChange={handleMultipleFilesUpload}
                 className="hidden"
                 disabled={isProcessingUpload}
@@ -581,13 +582,21 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             {draftAttachments.length > 0 && (
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                 {draftAttachments.map((att) => {
-                  const isVid = isVideoMedia(att.url, att.type);
+                  const isPdf = isPdfMedia(att.url, att.type);
+                  const isVid = !isPdf && isVideoMedia(att.url, att.type);
                   return (
                     <div
                       key={att.id}
                       className="relative group rounded-xl overflow-hidden border border-stone-300 dark:border-stone-700 aspect-square bg-stone-950"
                     >
-                      {isVid ? (
+                      {isPdf ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-1 text-center select-none">
+                          <FileText className="w-5 h-5 mb-0.5" />
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 truncate w-full px-0.5">
+                            PDF
+                          </span>
+                        </div>
+                      ) : isVid ? (
                         att.thumbnailUrl ? (
                           <div className="relative w-full h-full">
                             <img

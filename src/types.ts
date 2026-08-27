@@ -19,7 +19,7 @@ export interface CommentItem {
 export interface Attachment {
   id: string;
   url: string; // Persistent Base64 Data URL or Firebase Storage URL
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'pdf';
   name: string;
   createdAt: string;
   size?: number;

@@ -68,6 +68,23 @@ export function isVideoMedia(url?: string, mimeType?: string): boolean {
 }
 
 /**
+ * Checks if a URL or MIME type indicates a PDF document.
+ */
+export function isPdfMedia(url?: string, mimeType?: string): boolean {
+  if (mimeType && (mimeType === 'pdf' || mimeType === 'application/pdf')) return true;
+  if (!url) return false;
+  const lowerUrl = url.toLowerCase();
+  if (
+    lowerUrl.startsWith('data:application/pdf') ||
+    lowerUrl.endsWith('.pdf') ||
+    lowerUrl.includes('.pdf?')
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Generates a first-frame thumbnail from a video File or URL.
  * Seeks to currentTime = 0.1 to avoid blank/black initial frames.
  */
@@ -248,6 +265,18 @@ export function compressImageToBase64(
 }
 
 /**
+ * Reads PDF file into Data URL with safety guard (fallback only).
+ */
+export function readPdfFileAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Reads video file into Data URL with safety guard (fallback only).
  */
 export function readVideoFileAsBase64(file: File): Promise<string> {
@@ -267,19 +296,26 @@ export function readVideoFileAsBase64(file: File): Promise<string> {
  * Stores only the lightweight download URL in the Firestore entry document.
  */
 export async function fileToPersistentAttachment(file: File): Promise<Attachment> {
-  const isVideo = file.type.startsWith('video/') || isVideoMedia(file.name);
+  const isPdf = file.type === 'application/pdf' || isPdfMedia(file.name, file.type);
+  const isVideo = !isPdf && (file.type.startsWith('video/') || isVideoMedia(file.name));
   let persistentUrl: string;
   let thumbnailUrl: string | undefined;
 
   try {
     // 1. Primary path: Upload to Firebase Cloud Storage
-    const folder = isVideo ? 'attachments/videos' : 'attachments/images';
+    const folder = isPdf
+      ? 'attachments/pdfs'
+      : isVideo
+      ? 'attachments/videos'
+      : 'attachments/images';
     persistentUrl = await uploadFileToStorage(file, folder);
     console.log(`[Attachment Upload] Successfully stored file in Cloud Storage: ${file.name}`);
   } catch (storageErr) {
     console.warn('[Attachment Upload] Cloud Storage direct upload failed or offline. Falling back to local Base64:', storageErr);
-    // 2. Fallback path: Compress to Base64 data URL
-    if (isVideo) {
+    // 2. Fallback path:
+    if (isPdf) {
+      persistentUrl = await readPdfFileAsBase64(file);
+    } else if (isVideo) {
       persistentUrl = await readVideoFileAsBase64(file);
     } else {
       persistentUrl = await compressImageToBase64(file);
@@ -301,8 +337,8 @@ export async function fileToPersistentAttachment(file: File): Promise<Attachment
   return {
     id: generateAttachmentId(),
     url: persistentUrl,
-    type: isVideo ? 'video' : 'image',
-    name: file.name || (isVideo ? 'Video Attachment' : 'Photo Attachment'),
+    type: isPdf ? 'pdf' : isVideo ? 'video' : 'image',
+    name: file.name || (isPdf ? 'PDF Document' : isVideo ? 'Video Attachment' : 'Photo Attachment'),
     createdAt: new Date().toISOString(),
     size: file.size,
     thumbnailUrl,
@@ -326,12 +362,13 @@ export function createAttachmentFromUrl(
   name?: string,
   caption?: string
 ): Attachment {
-  const isVideo = isVideoMedia(url);
+  const isPdf = isPdfMedia(url);
+  const isVideo = !isPdf && isVideoMedia(url);
   return {
     id: generateAttachmentId(),
     url: url.trim(),
-    type: isVideo ? 'video' : 'image',
-    name: name || (isVideo ? 'External Video' : 'External Image'),
+    type: isPdf ? 'pdf' : isVideo ? 'video' : 'image',
+    name: name || (isPdf ? 'External PDF' : isVideo ? 'External Video' : 'External Image'),
     createdAt: new Date().toISOString(),
     caption: caption?.trim() || undefined,
   };
@@ -355,7 +392,11 @@ export function getNormalizedAttachments(item: {
     result.push({
       id: `legacy_${item.mediaUrl.slice(-10)}`,
       url: item.mediaUrl.trim(),
-      type: item.mediaType === 'video' || isVideoMedia(item.mediaUrl) ? 'video' : 'image',
+      type: item.mediaType === 'video' || isVideoMedia(item.mediaUrl)
+        ? 'video'
+        : isPdfMedia(item.mediaUrl)
+        ? 'pdf'
+        : 'image',
       name: item.mediaCaption || 'Attached Media',
       createdAt: new Date().toISOString(),
       caption: item.mediaCaption,
