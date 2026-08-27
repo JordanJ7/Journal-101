@@ -342,9 +342,23 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
                     title={att.caption || 'Click to view'}
                   >
                     {isVid ? (
-                      <div className="w-full h-full flex items-center justify-center bg-stone-900 text-sky-400">
-                        <Play className="w-3.5 h-3.5 fill-current" />
-                      </div>
+                      att.thumbnailUrl ? (
+                        <div className="relative w-full h-full">
+                          <img
+                            src={att.thumbnailUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-sky-400">
+                            <Play className="w-3 h-3 fill-current drop-shadow-sm" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-stone-900 text-sky-400">
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                        </div>
+                      )
                     ) : (
                       <img
                         src={att.url}

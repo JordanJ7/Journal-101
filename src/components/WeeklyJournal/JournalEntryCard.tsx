@@ -439,9 +439,22 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                               className="relative group/att rounded-lg overflow-hidden border border-stone-300 dark:border-stone-700 bg-black aspect-square"
                             >
                               {isVid ? (
-                                <div className="w-full h-full flex items-center justify-center bg-stone-900 text-sky-400">
-                                  <Video className="w-5 h-5" />
-                                </div>
+                                att.thumbnailUrl ? (
+                                  <div className="relative w-full h-full">
+                                    <img
+                                      src={att.thumbnailUrl}
+                                      alt=""
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-sky-400">
+                                      <Play className="w-4 h-4 fill-current drop-shadow-sm" />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-stone-900 text-sky-400">
+                                    <Video className="w-5 h-5" />
+                                  </div>
+                                )
                               ) : (
                                 <img
                                   src={att.url}
@@ -540,9 +553,23 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                         title="Click to inspect all attachments"
                       >
                         {isVid ? (
-                          <div className="w-full h-full flex items-center justify-center bg-stone-950 text-amber-400">
-                            <Play className="w-4 h-4 fill-current" />
-                          </div>
+                          att.thumbnailUrl ? (
+                            <div className="relative w-full h-full">
+                              <img
+                                src={att.thumbnailUrl}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-amber-400">
+                                <Play className="w-3.5 h-3.5 fill-current drop-shadow-sm" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-stone-950 text-amber-400">
+                              <Play className="w-4 h-4 fill-current" />
+                            </div>
+                          )
                         ) : (
                           <img
                             src={att.url}

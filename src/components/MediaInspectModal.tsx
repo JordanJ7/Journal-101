@@ -299,10 +299,19 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                 >
                   {isVid ? (
                     <div className="relative w-full h-full flex items-center justify-center bg-stone-950">
-                      <video
-                        src={att.url}
-                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                      />
+                      {att.thumbnailUrl ? (
+                        <img
+                          src={att.thumbnailUrl}
+                          alt={att.name || 'Video attachment'}
+                          loading="lazy"
+                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        />
+                      ) : (
+                        <video
+                          src={att.url}
+                          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                         <div className="w-10 h-10 rounded-full bg-white/90 text-stone-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                           <Play className="w-4 h-4 ml-0.5 fill-current" />
@@ -512,9 +521,22 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                       }`}
                     >
                       {isVid ? (
-                        <div className="w-full h-full bg-stone-900 flex items-center justify-center">
-                          <Video className="w-5 h-5 text-sky-400" />
-                        </div>
+                        att.thumbnailUrl ? (
+                          <div className="relative w-full h-full">
+                            <img
+                              src={att.thumbnailUrl}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                              <Play className="w-3.5 h-3.5 fill-current text-white drop-shadow-sm" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-full bg-stone-900 flex items-center justify-center">
+                            <Video className="w-5 h-5 text-sky-400" />
+                          </div>
+                        )
                       ) : (
                         <img
                           src={att.url}

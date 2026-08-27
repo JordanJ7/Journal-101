@@ -588,9 +588,22 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                       className="relative group rounded-xl overflow-hidden border border-stone-300 dark:border-stone-700 aspect-square bg-stone-950"
                     >
                       {isVid ? (
-                        <div className="w-full h-full flex items-center justify-center text-sky-400 bg-stone-900">
-                          <Video className="w-5 h-5" />
-                        </div>
+                        att.thumbnailUrl ? (
+                          <div className="relative w-full h-full">
+                            <img
+                              src={att.thumbnailUrl}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-sky-400">
+                              <Play className="w-4 h-4 fill-current drop-shadow-sm" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-sky-400 bg-stone-900">
+                            <Video className="w-5 h-5" />
+                          </div>
+                        )
                       ) : (
                         <img
                           src={att.url}

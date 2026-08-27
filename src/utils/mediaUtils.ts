@@ -45,15 +45,19 @@ export function generateAttachmentId(): string {
  * Checks if a URL or MIME type indicates a video.
  */
 export function isVideoMedia(url?: string, mimeType?: string): boolean {
+  if (mimeType && (mimeType === 'video' || mimeType.startsWith('video/'))) return true;
   if (!url) return false;
   const lowerUrl = url.toLowerCase();
-  if (mimeType && mimeType.startsWith('video/')) return true;
   if (
     lowerUrl.startsWith('data:video/') ||
     lowerUrl.endsWith('.mp4') ||
     lowerUrl.endsWith('.webm') ||
     lowerUrl.endsWith('.mov') ||
     lowerUrl.endsWith('.ogg') ||
+    lowerUrl.includes('.mp4?') ||
+    lowerUrl.includes('.webm?') ||
+    lowerUrl.includes('.mov?') ||
+    lowerUrl.includes('.ogg?') ||
     lowerUrl.includes('youtube.com') ||
     lowerUrl.includes('youtu.be') ||
     lowerUrl.includes('vimeo.com')
@@ -61,6 +65,95 @@ export function isVideoMedia(url?: string, mimeType?: string): boolean {
     return true;
   }
   return false;
+}
+
+/**
+ * Generates a first-frame thumbnail from a video File or URL.
+ * Seeks to currentTime = 0.1 to avoid blank/black initial frames.
+ */
+export function generateVideoThumbnail(
+  source: string | File
+): Promise<string | undefined> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      resolve(undefined);
+      return;
+    }
+
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.playsInline = true;
+    video.crossOrigin = 'anonymous';
+
+    let objectUrlToRevoke: string | null = null;
+    if (source instanceof File) {
+      objectUrlToRevoke = URL.createObjectURL(source);
+      video.src = objectUrlToRevoke;
+    } else {
+      video.src = source;
+    }
+
+    let isResolved = false;
+    const cleanup = () => {
+      if (objectUrlToRevoke) {
+        URL.revokeObjectURL(objectUrlToRevoke);
+        objectUrlToRevoke = null;
+      }
+      video.removeAttribute('src');
+      video.load();
+    };
+
+    const finish = (result?: string) => {
+      if (isResolved) return;
+      isResolved = true;
+      clearTimeout(timer);
+      cleanup();
+      resolve(result);
+    };
+
+    // Safety timeout in case video metadata/seek fails
+    const timer = setTimeout(() => {
+      finish(undefined);
+    }, 6000);
+
+    video.onloadedmetadata = () => {
+      try {
+        const targetTime = video.duration && video.duration > 0.1 ? 0.1 : 0;
+        video.currentTime = targetTime;
+      } catch {
+        finish(undefined);
+      }
+    };
+
+    video.onseeked = () => {
+      try {
+        const width = video.videoWidth || 640;
+        const height = video.videoHeight || 360;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          finish(undefined);
+          return;
+        }
+
+        ctx.drawImage(video, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        finish(dataUrl);
+      } catch (err) {
+        console.warn('[Video Thumbnail] Canvas export failed:', err);
+        finish(undefined);
+      }
+    };
+
+    video.onerror = () => {
+      finish(undefined);
+    };
+  });
 }
 
 /**
@@ -176,6 +269,7 @@ export function readVideoFileAsBase64(file: File): Promise<string> {
 export async function fileToPersistentAttachment(file: File): Promise<Attachment> {
   const isVideo = file.type.startsWith('video/') || isVideoMedia(file.name);
   let persistentUrl: string;
+  let thumbnailUrl: string | undefined;
 
   try {
     // 1. Primary path: Upload to Firebase Cloud Storage
@@ -192,6 +286,18 @@ export async function fileToPersistentAttachment(file: File): Promise<Attachment
     }
   }
 
+  // Generate a first-frame thumbnail on upload for videos
+  if (isVideo) {
+    try {
+      thumbnailUrl = await generateVideoThumbnail(file);
+      if (!thumbnailUrl && persistentUrl) {
+        thumbnailUrl = await generateVideoThumbnail(persistentUrl);
+      }
+    } catch (thumbErr) {
+      console.warn('[Attachment Upload] Video thumbnail generation skipped:', thumbErr);
+    }
+  }
+
   return {
     id: generateAttachmentId(),
     url: persistentUrl,
@@ -199,6 +305,7 @@ export async function fileToPersistentAttachment(file: File): Promise<Attachment
     name: file.name || (isVideo ? 'Video Attachment' : 'Photo Attachment'),
     createdAt: new Date().toISOString(),
     size: file.size,
+    thumbnailUrl,
   };
 }
 

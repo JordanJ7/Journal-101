@@ -24,6 +24,7 @@ export interface Attachment {
   createdAt: string;
   size?: number;
   caption?: string;
+  thumbnailUrl?: string;
 }
 
 export interface BulletPoint {
