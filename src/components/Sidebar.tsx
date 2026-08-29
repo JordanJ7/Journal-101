@@ -38,6 +38,8 @@ import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
 import { usePermissions } from '../hooks/usePermissions';
+import { isDateWithinWeek } from '../utils/dateUtils';
+import { parseDateFromTimestamp } from '../utils/storage';
 
 interface SidebarProps {
   weeks: WeeklyBlock[];
@@ -205,6 +207,28 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   const handleCreateWeek = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWeekTitle.trim()) return;
+
+    const trimmedTitle = newWeekTitle.trim().toLowerCase();
+    const existingWeek = weeks.find((w) => {
+      if (newWeekStartDate && newWeekEndDate && w.startDate === newWeekStartDate && w.endDate === newWeekEndDate) {
+        return true;
+      }
+      if (w.weekTitle && w.weekTitle.trim().toLowerCase() === trimmedTitle) {
+        return true;
+      }
+      if (newWeekStartDate) {
+        const d = parseDateFromTimestamp(newWeekStartDate);
+        if (isDateWithinWeek(d, w)) return true;
+      }
+      return false;
+    });
+
+    if (existingWeek) {
+      handleSelectWeek(existingWeek.id);
+      setShowAddWeekModal(false);
+      setNewWeekTitle('');
+      return;
+    }
 
     const newWeek: WeeklyBlock = {
       id: 'week-' + Date.now(),

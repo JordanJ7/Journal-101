@@ -31,9 +31,7 @@ import {
   deleteFolderDoc,
   saveCoreTopicDoc,
   deleteCoreTopicDoc,
-  saveEntryDoc,
-  updateEntryDoc,
-  deleteEntryDoc,
+  saveWeekDoc,
   saveWeekMetaDoc,
   deleteWeekDoc,
   saveCommentDoc,
@@ -397,6 +395,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   saveEntry: async (weekId, entryData) => {
+    let updatedWeek: WeeklyBlock | undefined;
     set((state) => ({
       weeks: state.weeks.map((w) => {
         if (w.id !== weekId) return w;
@@ -404,34 +403,43 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         const nextBullets = exists
           ? w.bullets.map((b) => (b.id === entryData.id ? entryData : b))
           : [...w.bullets, entryData];
-        return { ...w, updatedAt: new Date().toISOString(), bullets: nextBullets };
+        const wUpdated = { ...w, updatedAt: new Date().toISOString(), bullets: nextBullets };
+        updatedWeek = wUpdated;
+        return wUpdated;
       }),
     }));
-    try {
-      await saveEntryDoc(weekId, entryData);
-      console.log('[Firestore SUCCESS] Entry saved:', entryData.id);
-    } catch (err) {
-      console.error('[Firestore CRITICAL ERROR] Failed to save entry:', err);
+    if (updatedWeek) {
+      try {
+        await saveWeekDoc(updatedWeek);
+        console.log('[Firestore SUCCESS] Week saved with entry:', entryData.id);
+      } catch (err) {
+        console.error('[Firestore CRITICAL ERROR] Failed to save week with entry:', err);
+      }
     }
     schedulePersistence(get, AUTO_SAVE_DEBOUNCE_MS, entryData.id);
   },
 
   deleteEntry: async (weekId, entryId) => {
+    let updatedWeek: WeeklyBlock | undefined;
     set((state) => ({
       weeks: state.weeks.map((w) => {
         if (w.id !== weekId) return w;
-        return {
+        const wUpdated = {
           ...w,
           updatedAt: new Date().toISOString(),
           bullets: w.bullets.filter((b) => b.id !== entryId),
         };
+        updatedWeek = wUpdated;
+        return wUpdated;
       }),
     }));
-    try {
-      await deleteEntryDoc(weekId, entryId);
-      console.log('[Firestore SUCCESS] Entry deleted:', entryId);
-    } catch (err) {
-      console.error('[Firestore CRITICAL ERROR] Failed to delete entry:', err);
+    if (updatedWeek) {
+      try {
+        await saveWeekDoc(updatedWeek);
+        console.log('[Firestore SUCCESS] Week saved after deleting entry:', entryId);
+      } catch (err) {
+        console.error('[Firestore CRITICAL ERROR] Failed to save week after deleting entry:', err);
+      }
     }
     schedulePersistence(get);
   },
@@ -446,65 +454,42 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addWeek: (newWeek) => {
+    const existingWeeks = get().weeks;
+    const existingMatch = existingWeeks.find(
+      (w) =>
+        (newWeek.startDate &&
+          newWeek.endDate &&
+          w.startDate === newWeek.startDate &&
+          w.endDate === newWeek.endDate) ||
+        (newWeek.weekTitle &&
+          w.weekTitle &&
+          w.weekTitle.trim().toLowerCase() === newWeek.weekTitle.trim().toLowerCase())
+    );
+
+    if (existingMatch) {
+      set({ activeWeekId: existingMatch.id, viewMode: 'weekly' });
+      return;
+    }
+
     set((state) => ({
       weeks: [newWeek, ...state.weeks],
       activeWeekId: newWeek.id,
       viewMode: 'weekly',
     }));
-    saveWeekMetaDoc(newWeek).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save new week meta:', err)
+    saveWeekDoc(newWeek).catch((err) =>
+      console.error('[Firestore CRITICAL ERROR] Failed to save new week:', err)
     );
-    if (newWeek.bullets && newWeek.bullets.length > 0) {
-      for (const bullet of newWeek.bullets) {
-        saveEntryDoc(newWeek.id, bullet).catch((err) =>
-          console.error('[Firestore CRITICAL ERROR] Failed to save initial bullet:', err)
-        );
-      }
-    }
     schedulePersistence(get);
   },
 
   updateWeek: (updatedWeek) => {
-    const prevWeek = get().weeks.find((w) => w.id === updatedWeek.id);
-
     set((state) => ({
       weeks: state.weeks.map((w) => (w.id === updatedWeek.id ? updatedWeek : w)),
     }));
 
-    // Direct atomic commits for the week shell and bullet diffs
-    saveWeekMetaDoc(updatedWeek).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save updated week meta:', err)
+    saveWeekDoc(updatedWeek).catch((err) =>
+      console.error('[Firestore CRITICAL ERROR] Failed to save updated week:', err)
     );
-
-    if (prevWeek) {
-      const prevBulletIds = new Set(prevWeek.bullets.map((b) => b.id));
-      const nextBulletIds = new Set(updatedWeek.bullets.map((b) => b.id));
-
-      // Save modified or added bullets
-      for (const bullet of updatedWeek.bullets) {
-        const prevBullet = prevWeek.bullets.find((b) => b.id === bullet.id);
-        if (!prevBullet || JSON.stringify(prevBullet) !== JSON.stringify(bullet)) {
-          saveEntryDoc(updatedWeek.id, bullet).catch((err) =>
-            console.error(`[Firestore CRITICAL ERROR] Failed to atomic save bullet ${bullet.id}:`, err)
-          );
-        }
-      }
-
-      // Delete removed bullets
-      for (const prevId of prevBulletIds) {
-        if (!nextBulletIds.has(prevId)) {
-          deleteEntryDoc(updatedWeek.id, prevId).catch((err) =>
-            console.error(`[Firestore CRITICAL ERROR] Failed to atomic delete bullet ${prevId}:`, err)
-          );
-        }
-      }
-    } else {
-      for (const bullet of updatedWeek.bullets) {
-        saveEntryDoc(updatedWeek.id, bullet).catch((err) =>
-          console.error(`[Firestore CRITICAL ERROR] Failed to atomic save bullet ${bullet.id}:`, err)
-        );
-      }
-    }
 
     schedulePersistence(get);
   },
@@ -512,7 +497,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   deleteWeek: (weekId) => {
     set((state) => {
       const updated = state.weeks.filter((w) => w.id !== weekId);
-      const nextActiveId = state.activeWeekId === weekId ? (updated[0]?.id || '') : state.activeWeekId;
+      const nextActiveId = state.activeWeekId === weekId ? updated[0]?.id || '' : state.activeWeekId;
       return {
         weeks: updated,
         activeWeekId: nextActiveId,
@@ -527,7 +512,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   reorderWeeks: (weeks) => {
     set({ weeks });
     for (const w of weeks) {
-      saveWeekMetaDoc(w).catch(() => {});
+      saveWeekDoc(w).catch(() => {});
     }
     schedulePersistence(get);
   },
@@ -553,13 +538,14 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       if (isDateWithinWeek(dateObj, sourceWeek)) {
         const otherBullets = sourceWeek.bullets.filter((b) => b.id !== bulletId);
         const sortedBullets = sortBulletsByDate([...otherBullets, updatedBullet], 'asc');
-        const nextWeeks = state.weeks.map((w) =>
-          w.id === weekId
-            ? { ...w, updatedAt: new Date().toISOString(), bullets: sortedBullets }
-            : w
-        );
-        saveEntryDoc(weekId, updatedBullet).catch((err) =>
-          console.error('[Firestore CRITICAL ERROR] Failed to save timestamp updated bullet:', err)
+        const updatedWeek = {
+          ...sourceWeek,
+          updatedAt: new Date().toISOString(),
+          bullets: sortedBullets,
+        };
+        const nextWeeks = state.weeks.map((w) => (w.id === weekId ? updatedWeek : w));
+        saveWeekDoc(updatedWeek).catch((err) =>
+          console.error('[Firestore CRITICAL ERROR] Failed to save timestamp updated week:', err)
         );
         return { weeks: nextWeeks };
       }
@@ -570,11 +556,10 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         state.weeks
       );
 
-      // Relocate bullet in Firestore
-      deleteEntryDoc(weekId, bulletId).catch(() => {});
-      if (targetWeekId) {
-        saveEntryDoc(targetWeekId, updatedBullet).catch(() => {});
-      }
+      const newSourceWeek = updatedWeeks.find((w) => w.id === weekId);
+      const newTargetWeek = updatedWeeks.find((w) => w.id === targetWeekId);
+      if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(() => {});
+      if (newTargetWeek && newTargetWeek.id !== weekId) saveWeekDoc(newTargetWeek).catch(() => {});
 
       return {
         weeks: updatedWeeks,
@@ -635,12 +620,13 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       if (isDateWithinWeek(dateObj, sourceWeek)) {
         const otherBullets = sourceWeek.bullets.filter((b) => b.id !== entryId);
         const sortedBullets = sortBulletsByDate([...otherBullets, updatedBullet], 'asc');
-        const nextWeeks = state.weeks.map((w) =>
-          w.id === targetWeekId
-            ? { ...w, updatedAt: new Date().toISOString(), bullets: sortedBullets }
-            : w
-        );
-        saveEntryDoc(targetWeekId, updatedBullet).catch(() => {});
+        const updatedWeek = {
+          ...sourceWeek,
+          updatedAt: new Date().toISOString(),
+          bullets: sortedBullets,
+        };
+        const nextWeeks = state.weeks.map((w) => (w.id === targetWeekId ? updatedWeek : w));
+        saveWeekDoc(updatedWeek).catch(() => {});
         return { weeks: nextWeeks };
       }
 
@@ -650,10 +636,10 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         state.weeks
       );
 
-      deleteEntryDoc(targetWeekId, entryId).catch(() => {});
-      if (newWeekId) {
-        saveEntryDoc(newWeekId, updatedBullet).catch(() => {});
-      }
+      const newSourceWeek = updatedWeeks.find((w) => w.id === targetWeekId);
+      const newTargetWeek = updatedWeeks.find((w) => w.id === newWeekId);
+      if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(() => {});
+      if (newTargetWeek && newTargetWeek.id !== targetWeekId) saveWeekDoc(newTargetWeek).catch(() => {});
 
       return {
         weeks: updatedWeeks,
@@ -669,7 +655,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     if (isNaN(dateObj.getTime())) return;
     const isoString = dateObj.toISOString();
     const formattedTimestamp = formatTimestamp(dateObj);
-    const { weekTitle: newWeekTitle, startDate: newStartDate, endDate: newEndDate } = getWeekTitleAndRangeForDate(dateObj);
+    const { weekTitle: newWeekTitle, startDate: newStartDate, endDate: newEndDate } =
+      getWeekTitleAndRangeForDate(dateObj);
 
     set((state) => {
       const targetWeek = state.weeks.find((w) => w.id === weekId);
@@ -689,7 +676,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       const updatedWeeks = state.weeks.map((w) => (w.id === weekId ? updatedWeek : w));
       const sortedWeeks = sortWeeksChronologically(updatedWeeks, 'desc');
 
-      saveWeekMetaDoc(updatedWeek).catch(() => {});
+      saveWeekDoc(updatedWeek).catch(() => {});
 
       return {
         weeks: sortedWeeks,
@@ -1130,15 +1117,21 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       const newPinnedState = !isCurrentlyPinned;
 
       const updatedBullet = { ...bullet, pinnedToLearned: newPinnedState };
+      let targetWeek: WeeklyBlock | undefined;
       const updatedWeeks = state.weeks.map((w) => {
         if (w.id !== week.id) return w;
-        return {
+        const wUp = {
           ...w,
+          updatedAt: new Date().toISOString(),
           bullets: w.bullets.map((b) => (b.id === bullet.id ? updatedBullet : b)),
         };
+        targetWeek = wUp;
+        return wUp;
       });
 
-      saveEntryDoc(week.id, updatedBullet).catch(() => {});
+      if (targetWeek) {
+        saveWeekDoc(targetWeek).catch(() => {});
+      }
 
       let updatedCoreItems = [...state.coreItems];
       if (newPinnedState) {

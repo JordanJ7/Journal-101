@@ -462,93 +462,76 @@ export async function deleteCoreTopicDoc(itemId: string, categoryId?: string): P
 }
 
 /**
- * 5. Create or Update Journal Entry (/weeks/{weekId}/entries/{entryId})
+ * 5. Create or Update Week Document (/weeks/{weekId})
+ * Persists the entire weekly block including its bullets array directly to Firestore.
  */
-export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<void> {
-  if (!weekId || !entry || !entry.id) return;
-  const path = `weeks/${weekId}/entries/${entry.id}`;
-
-  try {
-    const entryDocRef = doc(db, 'weeks', weekId, 'entries', entry.id);
-    const sanitized = optimizeDocPayloadForFirestore({
-      ...entry,
-      clientSessionId: CLIENT_SESSION_ID,
-      createdAt: entry.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-    await setDoc(entryDocRef, sanitized, { merge: true });
-    console.log(`[Firestore SUCCESS] Entry saved: /weeks/${weekId}/entries/${entry.id}`);
-  } catch (err) {
-    console.error(`[Firestore CRITICAL ERROR] Failed to save entry ${entry.id}:`, err);
-    handleFirestoreError(err, OperationType.WRITE, path);
-    throw err;
-  }
-}
-
-/**
- * 6. Partial Update Journal Entry (/weeks/{weekId}/entries/{entryId})
- */
-export async function updateEntryDoc(
-  weekId: string,
-  entryId: string,
-  updates: Partial<BulletPoint>
-): Promise<void> {
-  if (!weekId || !entryId) return;
-  const path = `weeks/${weekId}/entries/${entryId}`;
-  try {
-    const entryDocRef = doc(db, 'weeks', weekId, 'entries', entryId);
-    const sanitized = sanitizeForFirestore({
-      ...updates,
-      clientSessionId: CLIENT_SESSION_ID,
-      updatedAt: new Date().toISOString(),
-    });
-    await setDoc(entryDocRef, sanitized, { merge: true });
-    console.log(`[Firestore SUCCESS] Entry updated: /weeks/${weekId}/entries/${entryId}`);
-  } catch (err) {
-    console.error(`[Firestore CRITICAL ERROR] Failed to update entry ${entryId}:`, err);
-    handleFirestoreError(err, OperationType.UPDATE, path);
-    throw err;
-  }
-}
-
-/**
- * 7. Delete Journal Entry (/weeks/{weekId}/entries/{entryId})
- */
-export async function deleteEntryDoc(weekId: string, entryId: string): Promise<void> {
-  if (!weekId || !entryId) return;
-  const path = `weeks/${weekId}/entries/${entryId}`;
-  try {
-    const entryDocRef = doc(db, 'weeks', weekId, 'entries', entryId);
-    await deleteDoc(entryDocRef);
-    console.log(`[Firestore SUCCESS] Entry deleted: /weeks/${weekId}/entries/${entryId}`);
-  } catch (err) {
-    console.error(`[Firestore CRITICAL ERROR] Failed to delete entry ${entryId}:`, err);
-    handleFirestoreError(err, OperationType.DELETE, path);
-    throw err;
-  }
-}
-
-/**
- * 8. Create or Update Week Metadata (/weeks/{weekId})
- */
-export async function saveWeekMetaDoc(week: WeeklyBlock): Promise<void> {
+export async function saveWeekDoc(week: WeeklyBlock): Promise<void> {
   if (!week || !week.id) return;
   const path = `weeks/${week.id}`;
+
   try {
-    const { bullets, ...weekMeta } = week;
     const weekDocRef = doc(db, 'weeks', week.id);
+    const sanitizedBullets = (week.bullets || []).map((b) => optimizeDocPayloadForFirestore(b));
     const sanitized = sanitizeForFirestore({
-      ...weekMeta,
+      ...week,
+      bullets: sanitizedBullets,
       clientSessionId: CLIENT_SESSION_ID,
       createdAt: week.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
     await setDoc(weekDocRef, sanitized, { merge: true });
-    console.log(`[Firestore SUCCESS] Week metadata saved: /weeks/${week.id}`);
+    console.log(`[Firestore SUCCESS] Week document saved with ${sanitizedBullets.length} bullets: /weeks/${week.id}`);
   } catch (err) {
     console.error(`[Firestore CRITICAL ERROR] Failed to save week ${week.id}:`, err);
     handleFirestoreError(err, OperationType.WRITE, path);
     throw err;
+  }
+}
+
+/**
+ * Compatibility alias for saveWeekDoc
+ */
+export const saveWeekMetaDoc = saveWeekDoc;
+
+/**
+ * 6. Save or Update Journal Entry (routes to saveWeekDoc via full week document)
+ */
+export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<void> {
+  if (!weekId || !entry || !entry.id) return;
+  try {
+    const weekDocRef = doc(db, 'weeks', weekId);
+    const weekSnap = await getDoc(weekDocRef);
+    if (weekSnap.exists()) {
+      const weekData = weekSnap.data() as WeeklyBlock;
+      const bullets = Array.isArray(weekData.bullets) ? [...weekData.bullets] : [];
+      const idx = bullets.findIndex((b) => b.id === entry.id);
+      if (idx >= 0) {
+        bullets[idx] = entry;
+      } else {
+        bullets.push(entry);
+      }
+      await saveWeekDoc({ ...weekData, id: weekId, bullets });
+    }
+  } catch (err) {
+    console.warn('saveEntryDoc fallback notice:', err);
+  }
+}
+
+/**
+ * 7. Delete Journal Entry
+ */
+export async function deleteEntryDoc(weekId: string, entryId: string): Promise<void> {
+  if (!weekId || !entryId) return;
+  try {
+    const weekDocRef = doc(db, 'weeks', weekId);
+    const weekSnap = await getDoc(weekDocRef);
+    if (weekSnap.exists()) {
+      const weekData = weekSnap.data() as WeeklyBlock;
+      const bullets = (weekData.bullets || []).filter((b) => b.id !== entryId);
+      await saveWeekDoc({ ...weekData, id: weekId, bullets });
+    }
+  } catch (err) {
+    console.warn('deleteEntryDoc fallback notice:', err);
   }
 }
 
@@ -1070,39 +1053,27 @@ export async function saveJournalDataToCloud(
     console.warn('Failed to sync journal state locally:', err);
   }
 
-  // 2. Targeted Atomic Entry Write if specific entryId is provided
-  if (targetEntryId) {
-    let targetBullet: BulletPoint | null = null;
-    let parentWeekId = targetWeekId || '';
+  // 2. Targeted Atomic Week / Entry Write if specific entryId or weekId is provided
+  if (targetEntryId || targetWeekId) {
+    let targetWeek: WeeklyBlock | undefined;
 
-    if (!parentWeekId) {
-      for (const w of state.weeks || []) {
-        const found = w.bullets?.find((b) => b.id === targetEntryId);
-        if (found) {
-          targetBullet = found;
-          parentWeekId = w.id;
-          break;
-        }
-      }
-    } else {
-      const w = state.weeks?.find((week) => week.id === parentWeekId);
-      targetBullet = w?.bullets?.find((b) => b.id === targetEntryId) || null;
+    if (targetWeekId) {
+      targetWeek = state.weeks?.find((w) => w.id === targetWeekId);
+    } else if (targetEntryId) {
+      targetWeek = state.weeks?.find((w) => w.bullets?.some((b) => b.id === targetEntryId));
     }
 
-    if (targetBullet && parentWeekId) {
-      await saveEntryDoc(parentWeekId, targetBullet);
+    if (targetWeek) {
+      await saveWeekDoc(targetWeek);
       return;
     }
   }
 
-  // 3. Full Atomic Dispatch: Write week shells, entries, folders, and core topics independently
+  // 3. Full Atomic Dispatch: Write week blocks, folders, and core topics independently
   try {
-    // Save Weeks & Entries
+    // Save Weeks (each week document contains its complete bullets array)
     for (const week of state.weeks || []) {
-      await saveWeekMetaDoc(week);
-      for (const bullet of week.bullets || []) {
-        await saveEntryDoc(week.id, bullet);
-      }
+      await saveWeekDoc(week);
     }
 
     // Save Folders / Categories

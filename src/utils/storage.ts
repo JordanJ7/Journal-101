@@ -30,28 +30,35 @@ export function formatTimestamp(date = new Date()): string {
 
 /**
  * Parses any timestamp string (e.g., "August 16th, 2026 @ 11:01pm", ISO string, or Date) into a valid Date object.
+ * Protects against timezone day-shifts for date-only formats.
  */
 export function parseDateFromTimestamp(val?: string | Date | null): Date {
   if (!val) return new Date();
   if (val instanceof Date) return isNaN(val.getTime()) ? new Date() : val;
 
-  // 1. If standard ISO or parseable by new Date()
-  const direct = new Date(val);
-  if (!isNaN(direct.getTime())) {
-    return direct;
+  const str = String(val).trim();
+  if (!str) return new Date();
+
+  // 1. Date-only ISO format YYYY-MM-DD (construct in local time to avoid UTC off-by-one shifts)
+  const ymdMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (ymdMatch) {
+    const y = parseInt(ymdMatch[1], 10);
+    const m = parseInt(ymdMatch[2], 10) - 1;
+    const d = parseInt(ymdMatch[3], 10);
+    const dt = new Date(y, m, d, 12, 0, 0);
+    if (!isNaN(dt.getTime())) return dt;
   }
 
-  // 2. Parse custom journal format: "Month Day(st/nd/rd/th), Year @ H:MMam/pm"
+  // 2. Custom journal format: "Month Day(st/nd/rd/th), Year @ H:MMam/pm"
   try {
-    // Example: "August 16th, 2026 @ 11:01pm" or "July 21st, 2026 @ 2:40am"
-    const regex = /^([A-Za-z]+)\s+(\d+)(?:st|nd|rd|th)?,\s+(\d{4})\s*@\s*(\d+):(\d+)(am|pm)$/i;
-    const match = val.trim().match(regex);
+    const regex = /^([A-Za-z]+)\s+(\d+)(?:st|nd|rd|th)?,\s*(\d{4})\s*@\s*(\d+):(\d+)(am|pm)$/i;
+    const match = str.match(regex);
     if (match) {
       const monthNames = [
         'january', 'february', 'march', 'april', 'may', 'june',
         'july', 'august', 'september', 'october', 'november', 'december'
       ];
-      const monthIndex = monthNames.indexOf(match[1].toLowerCase());
+      const monthIndex = monthNames.findIndex((m) => match[1].toLowerCase().startsWith(m.substring(0, 3)));
       const day = parseInt(match[2], 10);
       const year = parseInt(match[3], 10);
       let hours = parseInt(match[4], 10);
@@ -69,6 +76,33 @@ export function parseDateFromTimestamp(val?: string | Date | null): Date {
   } catch (err) {
     console.warn('Custom timestamp parsing error:', err);
   }
+
+  // 3. Month Day, Year format: "Aug 17, 2026", "August 17th, 2026"
+  try {
+    const dateOnlyRegex = /^([A-Za-z]+)\s+(\d+)(?:st|nd|rd|th)?(?:,)?\s+(\d{4})$/i;
+    const match = str.match(dateOnlyRegex);
+    if (match) {
+      const monthNames = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december'
+      ];
+      const monthIndex = monthNames.findIndex((m) => match[1].toLowerCase().startsWith(m.substring(0, 3)));
+      if (monthIndex !== -1) {
+        const day = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+        const parsed = new Date(year, monthIndex, day, 12, 0, 0);
+        if (!isNaN(parsed.getTime())) return parsed;
+      }
+    }
+  } catch {}
+
+  // 4. Fallback: Direct Date parsing
+  try {
+    const direct = new Date(str);
+    if (!isNaN(direct.getTime())) {
+      return direct;
+    }
+  } catch {}
 
   return new Date();
 }
