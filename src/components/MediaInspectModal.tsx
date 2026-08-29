@@ -337,6 +337,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                           src={att.thumbnailUrl}
                           alt={att.name || 'Video attachment'}
                           loading="lazy"
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                         />
                       ) : (
@@ -360,6 +361,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                         src={att.url}
                         alt={att.name || att.caption || 'Attachment'}
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
@@ -572,6 +574,8 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                             <img
                               src={att.thumbnailUrl}
                               alt=""
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -587,6 +591,8 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                         <img
                           src={att.url}
                           alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
                         />
                       )}

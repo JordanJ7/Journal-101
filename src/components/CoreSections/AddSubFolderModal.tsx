@@ -118,13 +118,32 @@ export const AddSubFolderModal: React.FC<AddSubFolderModalProps> = ({
             <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
               Description / Notes (Optional)
             </label>
-            <textarea
-              rows={2}
-              placeholder="Brief context on what belongs in this sub-folder..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-blue-500 resize-none"
-            />
+            <div
+              className="w-full relative transform-gpu typing-isolation-container"
+              style={{
+                contain: 'layout paint',
+                willChange: 'contents',
+                transform: 'translateZ(0)',
+              }}
+            >
+              <textarea
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = 'auto';
+                    el.style.height = `${Math.max(56, el.scrollHeight)}px`;
+                  }
+                }}
+                rows={2}
+                placeholder="Brief context on what belongs in this sub-folder..."
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden min-h-[56px]"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">

@@ -560,11 +560,21 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                                   }}
                                 >
                                   <textarea
+                                    ref={(el) => {
+                                      if (el) {
+                                        el.style.height = 'auto';
+                                        el.style.height = `${Math.max(68, el.scrollHeight)}px`;
+                                      }
+                                    }}
                                     rows={3}
                                     value={editingAnswerText}
-                                    onChange={(e) => setEditingAnswerText(e.target.value)}
+                                    onChange={(e) => {
+                                      setEditingAnswerText(e.target.value);
+                                      e.target.style.height = 'auto';
+                                      e.target.style.height = `${e.target.scrollHeight}px`;
+                                    }}
                                     placeholder="Write your honest, grounded reflection or planned response..."
-                                    className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-900 border border-blue-300 dark:border-blue-700 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                    className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-900 border border-blue-300 dark:border-blue-700 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none overflow-hidden min-h-[68px]"
                                     autoFocus
                                   />
                                 </div>
@@ -698,12 +708,22 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   }}
                 >
                   <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.max(68, el.scrollHeight)}px`;
+                      }
+                    }}
                     rows={3}
                     required
                     placeholder="e.g., When conversations feel tense, what ritual or code phrase can we use to pause and reset?"
                     value={newQuestionText}
-                    onChange={(e) => setNewQuestionText(e.target.value)}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                    onChange={(e) => {
+                      setNewQuestionText(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>
@@ -721,11 +741,21 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   }}
                 >
                   <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.max(68, el.scrollHeight)}px`;
+                      }
+                    }}
                     rows={3}
                     placeholder="e.g., My Answer: Agree to take a 15-minute cooling breath pause, sit together with tea, and validate each other's feelings before speaking."
                     value={newAnswerText}
-                    onChange={(e) => setNewAnswerText(e.target.value)}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                    onChange={(e) => {
+                      setNewAnswerText(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>
@@ -842,11 +872,21 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   }}
                 >
                   <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.max(68, el.scrollHeight)}px`;
+                      }
+                    }}
                     rows={3}
                     required
                     value={editingItem.content}
-                    onChange={(e) => setEditingItem({ ...editingItem, content: e.target.value })}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                    onChange={(e) => {
+                      setEditingItem({ ...editingItem, content: e.target.value });
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>
@@ -864,10 +904,20 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   }}
                 >
                   <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.max(68, el.scrollHeight)}px`;
+                      }
+                    }}
                     rows={3}
                     value={editingItem.answers || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, answers: e.target.value })}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                    onChange={(e) => {
+                      setEditingItem({ ...editingItem, answers: e.target.value });
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>

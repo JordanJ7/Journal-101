@@ -337,6 +337,25 @@ export function optimizeDocPayloadForFirestore<T extends Record<string, any>>(do
   return sanitizePayload(clone);
 }
 
+/**
+ * Strips large Base64 data URLs from state before saving to localStorage to prevent exceeding the browser quota.
+ */
+export function sanitizeStateForLocalStorage(state: any): any {
+  if (!state || typeof state !== 'object') return state;
+  try {
+    return JSON.parse(
+      JSON.stringify(state, (k, v) => {
+        if (typeof v === 'string' && v.startsWith('data:') && v.length > 500) {
+          return '[local-media-cached]';
+        }
+        return v;
+      })
+    );
+  } catch {
+    return state;
+  }
+}
+
 // -----------------------------------------------------------------------------------------
 // DIRECT ATOMIC CRUD HANDLERS (TOPICS, FOLDERS, WEEKS, ENTRIES, COMMENTS)
 // -----------------------------------------------------------------------------------------
@@ -697,9 +716,13 @@ export function subscribeJournalData(
       };
 
       try {
-        localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(payload));
-        localStorage.setItem('journal_backup', JSON.stringify(payload));
-      } catch {}
+        const localSafe = sanitizeStateForLocalStorage(payload);
+        const serialized = JSON.stringify(localSafe);
+        localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, serialized);
+        localStorage.setItem('journal_backup', serialized);
+      } catch (err) {
+        console.warn('[LocalStorage] Safe backup notice:', err);
+      }
 
       onUpdate(payload);
     }, 25);
@@ -1036,12 +1059,12 @@ export async function saveJournalDataToCloud(
   targetEntryId?: string,
   targetWeekId?: string
 ): Promise<void> {
-  // 1. Immediate Local Backup Guarantee
+  // 1. Immediate Local Backup Guarantee (with large Base64 media stripped to prevent quota exhaustion)
   try {
-    const backupJson = JSON.stringify(state);
+    const localSafeState = sanitizeStateForLocalStorage(state);
+    const backupJson = JSON.stringify(localSafeState);
     localStorage.setItem(BACKUP_PAYLOAD_STORAGE_KEY, backupJson);
     localStorage.setItem('journal_backup', backupJson);
-    localStorage.setItem('journal_failsafe_backup', backupJson);
     localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, backupJson);
   } catch (err) {
     console.warn('Failed to sync journal state locally:', err);

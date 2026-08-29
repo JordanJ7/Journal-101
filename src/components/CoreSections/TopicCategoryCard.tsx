@@ -358,6 +358,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
                             alt=""
                             className="w-full h-full object-cover"
                             loading="lazy"
+                            referrerPolicy="no-referrer"
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-sky-400">
                             <Play className="w-3 h-3 fill-current drop-shadow-sm" />
@@ -374,6 +375,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
                         alt=""
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                       />
                     )}
                   </button>

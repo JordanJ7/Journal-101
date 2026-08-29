@@ -68,6 +68,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
 }) => {
   const [selectedFilter, setSelectedFilter] = useState<MediaFilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState<number>(24);
   const [showAddModal, setShowAddModal] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<LightboxMedia | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -208,6 +209,16 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
     });
   }, [allMediaItems, selectedFilter, searchQuery]);
 
+  const handleFilterChange = (filter: MediaFilterType) => {
+    setSelectedFilter(filter);
+    setVisibleCount(24);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setVisibleCount(24);
+  };
+
   const copyUrl = (id: string, url?: string) => {
     if (!url) return;
     navigator.clipboard.writeText(url);
@@ -327,7 +338,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
           ].map((f) => (
             <button
               key={f.key}
-              onClick={() => setSelectedFilter(f.key as MediaFilterType)}
+              onClick={() => handleFilterChange(f.key as MediaFilterType)}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
                 selectedFilter === f.key
                   ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100'
@@ -359,115 +370,142 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {filteredMedia.map((item) => {
-            const hasDirectImg = Boolean(item.mediaUrl);
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {filteredMedia.slice(0, visibleCount).map((item) => {
+              const hasDirectImg = Boolean(item.mediaUrl);
 
-            return (
-              <div
-                key={item.id}
-                className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between space-y-3 group hover:border-black/15 dark:hover:border-white/20 transition-all"
-              >
-                {/* Thumbnail if photo */}
-                {hasDirectImg && (
-                  <div
-                    onClick={() =>
-                      setPreviewMedia({
-                        url: item.mediaUrl!,
-                        title: item.title,
-                        categoryLabel: item.categoryLabel,
-                        sourceTitle: item.sourceTitle,
-                        caption: item.caption,
-                      })
-                    }
-                    className="relative aspect-video rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 cursor-pointer"
-                  >
-                    <img
-                      src={item.mediaUrl}
-                      alt={item.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <Maximize2 className="w-5 h-5 text-white" />
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between space-y-3 group hover:border-black/15 dark:hover:border-white/20 transition-all"
+                >
+                  {/* Thumbnail if photo */}
+                  {hasDirectImg && (
+                    <div
+                      onClick={() =>
+                        setPreviewMedia({
+                          url: item.mediaUrl!,
+                          title: item.title,
+                          categoryLabel: item.categoryLabel,
+                          sourceTitle: item.sourceTitle,
+                          caption: item.caption,
+                        })
+                      }
+                      className="relative aspect-video rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 cursor-pointer"
+                    >
+                      <img
+                        src={item.mediaUrl}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Maximize2 className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 text-[10px] text-stone-400 font-mono">
+                      <span className="font-semibold uppercase">{item.categoryLabel}</span>
+                      <span>{item.timestamp}</span>
+                    </div>
+
+                    <h3 className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+                      {item.title}
+                    </h3>
+
+                    {item.notes && (
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                        {item.notes}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5 text-xs">
+                    {item.sourceType === 'weekly' && onNavigateToWeek ? (
+                      <button
+                        onClick={() => onNavigateToWeek(item.sourceId)}
+                        className="text-[11px] text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 font-medium truncate max-w-[120px]"
+                      >
+                        {item.sourceTitle}
+                      </button>
+                    ) : (
+                      <span className="text-[11px] text-stone-400 truncate max-w-[120px]">
+                        {item.sourceTitle}
+                      </span>
+                    )}
+
+                    <div className="flex items-center gap-1">
+                      {item.url && (
+                        <>
+                          <button
+                            onClick={() => copyUrl(item.id, item.url)}
+                            title="Copy Link"
+                            className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                          >
+                            {copiedId === item.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                          <a
+                            href={sanitizeUrl(item.url)}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Open Link"
+                            className={`p-1 text-stone-400 hover:${currentAccent.textPrimary}`}
+                          >
+                            <LinkIcon className="w-3.5 h-3.5" />
+                          </a>
+                        </>
+                      )}
+
+                      {canDelete && item.sourceType === 'weekly' && (
+                        <button
+                          onClick={() => handleDeleteMedia(item)}
+                          className="p-1 text-stone-400 hover:text-rose-500"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
-                )}
-
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1 text-[10px] text-stone-400 font-mono">
-                    <span className="font-semibold uppercase">{item.categoryLabel}</span>
-                    <span>{item.timestamp}</span>
-                  </div>
-
-                  <h3 className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
-                    {item.title}
-                  </h3>
-
-                  {item.notes && (
-                    <p className="text-[11px] text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">
-                      {item.notes}
-                    </p>
-                  )}
                 </div>
+              );
+            })}
+          </div>
 
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5 text-xs">
-                  {item.sourceType === 'weekly' && onNavigateToWeek ? (
-                    <button
-                      onClick={() => onNavigateToWeek(item.sourceId)}
-                      className="text-[11px] text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 font-medium truncate max-w-[120px]"
-                    >
-                      {item.sourceTitle}
-                    </button>
-                  ) : (
-                    <span className="text-[11px] text-stone-400 truncate max-w-[120px]">
-                      {item.sourceTitle}
-                    </span>
-                  )}
-
-                  <div className="flex items-center gap-1">
-                    {item.url && (
-                      <>
-                        <button
-                          onClick={() => copyUrl(item.id, item.url)}
-                          title="Copy Link"
-                          className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
-                        >
-                          {copiedId === item.id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-500" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                        <a
-                          href={sanitizeUrl(item.url)}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="Open Link"
-                          className={`p-1 text-stone-400 hover:${currentAccent.textPrimary}`}
-                        >
-                          <LinkIcon className="w-3.5 h-3.5" />
-                        </a>
-                      </>
-                    )}
-
-                    {canDelete && item.sourceType === 'weekly' && (
-                      <button
-                        onClick={() => handleDeleteMedia(item)}
-                        className="p-1 text-stone-400 hover:text-rose-500"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
+          {/* Pagination / Load More Bar */}
+          {filteredMedia.length > visibleCount && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-black/5 dark:border-white/5 text-xs text-stone-500 dark:text-stone-400">
+              <span>
+                Showing <strong className="text-stone-800 dark:text-stone-200">{Math.min(visibleCount, filteredMedia.length)}</strong> of <strong className="text-stone-800 dark:text-stone-200">{filteredMedia.length}</strong> media items
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => prev + 24)}
+                  className={`px-3.5 py-1.5 ${currentAccent.buttonPrimary} text-white font-semibold text-xs rounded-xl shadow-2xs transition-colors cursor-pointer`}
+                >
+                  Load More (+24)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(filteredMedia.length)}
+                  className="px-3 py-1.5 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-stone-700 dark:text-stone-300 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Show All ({filteredMedia.length})
+                </button>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Add Media Modal */}

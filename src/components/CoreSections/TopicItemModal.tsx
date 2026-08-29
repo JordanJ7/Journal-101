@@ -504,11 +504,21 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               }}
             >
               <textarea
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = 'auto';
+                    el.style.height = `${Math.max(56, el.scrollHeight)}px`;
+                  }
+                }}
                 placeholder="Her answers, therapist suggestions, or personal takeaways..."
                 value={answers}
-                onChange={(e) => setAnswers(e.target.value)}
+                onChange={(e) => {
+                  setAnswers(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
                 rows={2}
-                className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs leading-relaxed"
+                className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs leading-relaxed resize-none overflow-hidden min-h-[56px]"
               />
             </div>
           </div>
@@ -619,6 +629,8 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                             <img
                               src={att.thumbnailUrl}
                               alt=""
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-sky-400">
@@ -634,6 +646,8 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                         <img
                           src={att.url}
                           alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
                         />
                       )}
