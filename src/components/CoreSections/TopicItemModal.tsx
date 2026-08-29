@@ -51,7 +51,8 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
     item ? getNormalizedAttachments(item) : []
   );
   const [urlInput, setUrlInput] = useState('');
-  const [isProcessingUpload, setIsProcessingUpload] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'converting' | 'uploading'>('idle');
+  const isProcessingUpload = uploadStatus !== 'idle';
   const [showInspectModal, setShowInspectModal] = useState(false);
   const [location, setLocation] = useState(item?.location || '');
   const [dateTag, setDateTag] = useState(item?.dateTag || formatTimestamp());
@@ -221,15 +222,25 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
     if (!files || files.length === 0) return;
 
     try {
-      setIsProcessingUpload(true);
-      const newAtts = await filesToPersistentAttachments(files);
+      const hasHeic = Array.from(files).some(
+        (f: File) =>
+          f.type === 'image/heic' ||
+          f.type === 'image/heif' ||
+          f.name.toLowerCase().endsWith('.heic') ||
+          f.name.toLowerCase().endsWith('.heif')
+      );
+      setUploadStatus(hasHeic ? 'converting' : 'uploading');
+
+      const newAtts = await filesToPersistentAttachments(files, (status) => {
+        setUploadStatus(status);
+      });
       setDraftAttachments((prev) => [...prev, ...newAtts]);
     } catch (err: any) {
       console.error('Failed to upload files to Cloud Storage:', err);
       setAutoSaveStatus('error');
       setSaveErrorMessage(err?.message || 'Failed to upload media');
     } finally {
-      setIsProcessingUpload(false);
+      setUploadStatus('idle');
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -565,13 +576,19 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                <span>{isProcessingUpload ? 'Uploading to Storage...' : 'Upload Media & Docs'}</span>
+                <span>
+                  {uploadStatus === 'converting'
+                    ? 'Converting...'
+                    : uploadStatus === 'uploading'
+                    ? 'Uploading to Storage...'
+                    : 'Upload Media & Docs'}
+                </span>
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept="image/*,video/*,application/pdf"
+                accept="image/*,image/heic,image/heif,.heic,.heif,video/*,application/pdf"
                 onChange={handleMultipleFilesUpload}
                 className="hidden"
                 disabled={isProcessingUpload}

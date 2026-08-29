@@ -63,7 +63,8 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [viewMode, setViewMode] = useState<'focused' | 'grid'>('focused');
   const [copied, setCopied] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'converting' | 'uploading'>('idle');
+  const isUploading = uploadStatus !== 'idle';
   const [editingCaption, setEditingCaption] = useState(false);
   const [captionDraft, setCaptionDraft] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,15 +118,25 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
     if (!files || files.length === 0 || !onAddAttachments) return;
 
     try {
-      setIsUploading(true);
-      const newItems = await filesToPersistentAttachments(files);
+      const hasHeic = Array.from(files).some(
+        (f: File) =>
+          f.type === 'image/heic' ||
+          f.type === 'image/heif' ||
+          f.name.toLowerCase().endsWith('.heic') ||
+          f.name.toLowerCase().endsWith('.heif')
+      );
+      setUploadStatus(hasHeic ? 'converting' : 'uploading');
+
+      const newItems = await filesToPersistentAttachments(files, (status) => {
+        setUploadStatus(status);
+      });
       onAddAttachments(newItems);
       // Select the newly added attachment
       setSelectedIndex(attachments.length);
     } catch (err) {
       console.error('Failed to upload attachments:', err);
     } finally {
-      setIsUploading(false);
+      setUploadStatus('idle');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -222,15 +233,22 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                   ) : (
                     <Plus className="w-3.5 h-3.5" />
                   )}
-                  <span className="hidden sm:inline">Add Files</span>
+                  <span className="hidden sm:inline">
+                    {uploadStatus === 'converting'
+                      ? 'Converting...'
+                      : uploadStatus === 'uploading'
+                      ? 'Uploading...'
+                      : 'Add Files'}
+                  </span>
                 </button>
                 <input
                   ref={fileInputRef}
                   type="file"
                   multiple
-                  accept="image/*,video/*,application/pdf"
+                  accept="image/*,image/heic,image/heif,.heic,.heif,video/*,application/pdf"
                   onChange={handleFilesUpload}
                   className="hidden"
+                  disabled={isUploading}
                 />
               </>
             )}

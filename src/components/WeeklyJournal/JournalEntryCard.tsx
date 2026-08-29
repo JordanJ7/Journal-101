@@ -80,7 +80,8 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
   const [autoSaveState, setAutoSaveState] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
   const [showTimestampPicker, setShowTimestampPicker] = useState(false);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
-  const [isProcessingUpload, setIsProcessingUpload] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'converting' | 'uploading'>('idle');
+  const isProcessingUpload = uploadStatus !== 'idle';
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isTypingRef = useRef(false);
@@ -156,13 +157,23 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
     };
   }, [canEdit, draftAttachments, text]);
 
-  // Multi-File upload handler (converts to persistent Base64)
+  // Multi-File upload handler (converts to persistent Base64 / Storage, with HEIC support)
   const handleMultipleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!canEdit || !e.target.files || e.target.files.length === 0) return;
 
     try {
-      setIsProcessingUpload(true);
-      const newAttachments = await filesToPersistentAttachments(e.target.files);
+      const hasHeic = Array.from(e.target.files).some(
+        (f: File) =>
+          f.type === 'image/heic' ||
+          f.type === 'image/heif' ||
+          f.name.toLowerCase().endsWith('.heic') ||
+          f.name.toLowerCase().endsWith('.heif')
+      );
+      setUploadStatus(hasHeic ? 'converting' : 'uploading');
+
+      const newAttachments = await filesToPersistentAttachments(e.target.files, (status) => {
+        setUploadStatus(status);
+      });
       const combined = [...draftAttachments, ...newAttachments];
       setDraftAttachments(combined);
 
@@ -178,7 +189,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
     } catch (err) {
       console.error('Error reading attached files:', err);
     } finally {
-      setIsProcessingUpload(false);
+      setUploadStatus('idle');
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -395,13 +406,19 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                         ) : (
                           <Upload className="w-3.5 h-3.5" />
                         )}
-                        <span>Upload Files</span>
+                        <span>
+                          {uploadStatus === 'converting'
+                            ? 'Converting...'
+                            : uploadStatus === 'uploading'
+                            ? 'Uploading...'
+                            : 'Upload Files'}
+                        </span>
                       </button>
                       <input
                         ref={fileInputRef}
                         type="file"
                         multiple
-                        accept="image/*,video/*,application/pdf"
+                        accept="image/*,image/heic,image/heif,.heic,.heif,video/*,application/pdf"
                         onChange={handleMultipleFilesUpload}
                         className="hidden"
                         disabled={isProcessingUpload}

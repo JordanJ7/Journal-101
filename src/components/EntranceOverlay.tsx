@@ -213,19 +213,25 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
       id="entrance-overlay"
       role="region"
       aria-label="Welcome Quote"
+      style={{
+        backdropFilter: isDismissing ? 'blur(0px)' : 'blur(25px)',
+        WebkitBackdropFilter: isDismissing ? 'blur(0px)' : 'blur(25px)',
+      }}
       className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-600 ease-out ${
         isDismissing
           ? 'bg-transparent opacity-0 pointer-events-none'
           : isDark
-          ? 'bg-[#0f0f11] opacity-100 text-neutral-100'
-          : 'bg-[#f8f9fa] opacity-100 text-neutral-900'
+          ? 'bg-[#0f0f11]/90 opacity-100 text-neutral-100'
+          : 'bg-[#f8f9fa]/90 opacity-100 text-neutral-900'
       }`}
     >
-      {/* Ambient subtle dynamic vignette / radiant depth based on theme */}
+      {/* Ambient subtle dynamic vignette / radiant depth with 25% increased blur */}
       <div
         className="absolute inset-0 pointer-events-none transition-colors duration-500"
         style={{
           background: `radial-gradient(circle at center, ${glowColor} 0%, transparent 70%)`,
+          filter: 'blur(50px)',
+          WebkitFilter: 'blur(50px)',
         }}
         aria-hidden="true"
       />

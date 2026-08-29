@@ -104,10 +104,9 @@ mark.search-mark-active {
   backface-visibility: hidden;
 }
 
-/* Strict Rendering Isolation for Modals and Overlays (Eliminates blur repaint flickers) */
+/* Strict Rendering Isolation for Modals and Overlays (Eliminates blur repaint flickers for standard modals) */
 .modal-backdrop,
 .modal-overlay,
-[id*="-overlay"],
 [id*="-modal-overlay"],
 [id*="-lightbox-overlay"],
 [id*="modal-backdrop"] {
@@ -119,6 +118,12 @@ mark.search-mark-active {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   isolation: isolate;
+}
+
+/* Intro Animation Overlay with 25% enhanced blur (25px backdrop filter + 50px radial aura) */
+#entrance-overlay {
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
 }
 
 /* Text & Editor Typing Compositor Isolation */

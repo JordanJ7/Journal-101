@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { useShallow } from 'zustand/react/shallow';
 import {
   AccentTheme,
   AppState,
@@ -1363,9 +1362,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 export const useWeeks = () => useJournalStore((s) => s.weeks);
 export const useActiveWeekId = () => useJournalStore((s) => s.activeWeekId);
 export const useActiveWeek = () =>
-  useJournalStore(
-    useShallow((s) => s.weeks.find((w) => w.id === s.activeWeekId) || s.weeks[0])
-  );
+  useJournalStore((s) => s.weeks.find((w) => w.id === s.activeWeekId) || s.weeks[0]);
 export const useCoreItems = () => useJournalStore((s) => s.coreItems);
 export const useActiveCoreCategory = () => useJournalStore((s) => s.activeCoreCategory);
 export const useCoreCategories = () => useJournalStore((s) => s.coreCategories);

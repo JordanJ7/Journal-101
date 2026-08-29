@@ -294,10 +294,45 @@ export function readVideoFileAsBase64(file: File): Promise<string> {
 /**
  * Converts a browser File into a persistent Attachment by uploading directly to Firebase Cloud Storage.
  * Stores only the lightweight download URL in the Firestore entry document.
+ * Automatically converts HEIC/HEIF files to standard JPEG client-side for full browser compatibility.
  */
-export async function fileToPersistentAttachment(file: File): Promise<Attachment> {
-  const isPdf = file.type === 'application/pdf' || isPdfMedia(file.name, file.type);
-  const isVideo = !isPdf && (file.type.startsWith('video/') || isVideoMedia(file.name));
+export async function fileToPersistentAttachment(
+  file: File,
+  onStatusChange?: (status: 'converting' | 'uploading') => void
+): Promise<Attachment> {
+  let targetFile = file;
+
+  // Check if the file is an Apple HEIC/HEIF image
+  const isHeic =
+    file.type === 'image/heic' ||
+    file.type === 'image/heif' ||
+    file.name.toLowerCase().endsWith('.heic') ||
+    file.name.toLowerCase().endsWith('.heif');
+
+  if (isHeic) {
+    try {
+      onStatusChange?.('converting');
+      const heic2anyModule = await import('heic2any');
+      const heic2any = heic2anyModule.default || heic2anyModule;
+      const conversionResult = await (heic2any as any)({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.8,
+      });
+
+      const blobResult = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+      const newFileName = file.name.replace(/\.(heic|heif)$/i, '') + '.jpg';
+      targetFile = new File([blobResult], newFileName, { type: 'image/jpeg' });
+      console.log(`[HEIC Conversion] Successfully converted ${file.name} to JPEG (${targetFile.size} bytes)`);
+    } catch (conversionErr) {
+      console.error('[HEIC Conversion] Failed to convert HEIC/HEIF, using original file:', conversionErr);
+    }
+  }
+
+  onStatusChange?.('uploading');
+
+  const isPdf = targetFile.type === 'application/pdf' || isPdfMedia(targetFile.name, targetFile.type);
+  const isVideo = !isPdf && (targetFile.type.startsWith('video/') || isVideoMedia(targetFile.name));
   let persistentUrl: string;
   let thumbnailUrl: string | undefined;
 
@@ -308,24 +343,24 @@ export async function fileToPersistentAttachment(file: File): Promise<Attachment
       : isVideo
       ? 'attachments/videos'
       : 'attachments/images';
-    persistentUrl = await uploadFileToStorage(file, folder);
-    console.log(`[Attachment Upload] Successfully stored file in Cloud Storage: ${file.name}`);
+    persistentUrl = await uploadFileToStorage(targetFile, folder);
+    console.log(`[Attachment Upload] Successfully stored file in Cloud Storage: ${targetFile.name}`);
   } catch (storageErr) {
     console.warn('[Attachment Upload] Cloud Storage direct upload failed or offline. Falling back to local Base64:', storageErr);
     // 2. Fallback path:
     if (isPdf) {
-      persistentUrl = await readPdfFileAsBase64(file);
+      persistentUrl = await readPdfFileAsBase64(targetFile);
     } else if (isVideo) {
-      persistentUrl = await readVideoFileAsBase64(file);
+      persistentUrl = await readVideoFileAsBase64(targetFile);
     } else {
-      persistentUrl = await compressImageToBase64(file);
+      persistentUrl = await compressImageToBase64(targetFile);
     }
   }
 
   // Generate a first-frame thumbnail on upload for videos
   if (isVideo) {
     try {
-      thumbnailUrl = await generateVideoThumbnail(file);
+      thumbnailUrl = await generateVideoThumbnail(targetFile);
       if (!thumbnailUrl && persistentUrl) {
         thumbnailUrl = await generateVideoThumbnail(persistentUrl);
       }
@@ -338,9 +373,9 @@ export async function fileToPersistentAttachment(file: File): Promise<Attachment
     id: generateAttachmentId(),
     url: persistentUrl,
     type: isPdf ? 'pdf' : isVideo ? 'video' : 'image',
-    name: file.name || (isPdf ? 'PDF Document' : isVideo ? 'Video Attachment' : 'Photo Attachment'),
+    name: targetFile.name || (isPdf ? 'PDF Document' : isVideo ? 'Video Attachment' : 'Photo Attachment'),
     createdAt: new Date().toISOString(),
-    size: file.size,
+    size: targetFile.size,
     thumbnailUrl,
   };
 }
@@ -348,9 +383,12 @@ export async function fileToPersistentAttachment(file: File): Promise<Attachment
 /**
  * Converts multiple browser Files into persistent Cloud Storage Attachment objects in parallel.
  */
-export async function filesToPersistentAttachments(files: FileList | File[]): Promise<Attachment[]> {
+export async function filesToPersistentAttachments(
+  files: FileList | File[],
+  onStatusChange?: (status: 'converting' | 'uploading') => void
+): Promise<Attachment[]> {
   const fileArray = Array.from(files);
-  const promises = fileArray.map((file) => fileToPersistentAttachment(file));
+  const promises = fileArray.map((file) => fileToPersistentAttachment(file, onStatusChange));
   return Promise.all(promises);
 }
 
