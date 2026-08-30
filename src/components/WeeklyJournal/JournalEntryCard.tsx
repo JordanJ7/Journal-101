@@ -48,6 +48,7 @@ export interface JournalEntryCardProps {
   onIndentChange: (newIndent: number) => void;
   onTogglePinTakeaway?: (bullet: BulletPoint) => void;
   onPreviewMedia?: (media: LightboxMedia) => void;
+  onOpenCommentSection?: (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => void;
   canEdit?: boolean;
   canDelete?: boolean;
   searchQuery?: string;
@@ -62,9 +63,11 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
   onIndentChange,
   onTogglePinTakeaway,
   onPreviewMedia,
+  onOpenCommentSection,
   canEdit = false,
   canDelete = false,
   searchQuery,
+  weekId,
   accentTheme = 'amber',
 }) => {
   const { updateEntryTimestamp } = useJournalStore();
@@ -280,7 +283,10 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
 
   return (
     <div
-      className={`group relative ${indentPadding} mb-3 w-full min-w-0 max-w-full ${
+      id={`bullet-${bullet.id}`}
+      data-item-id={bullet.id}
+      data-bullet-id={bullet.id}
+      className={`group relative ${indentPadding} mb-3 w-full min-w-0 max-w-full transition-all duration-300 ${
         showTimestampPicker ? 'z-30' : 'z-0'
       }`}
     >
@@ -712,6 +718,19 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   >
                     <Edit3 className="w-3 h-3" />
                     <span>Edit</span>
+                  </button>
+                )}
+
+                {/* Comment Button */}
+                {onOpenCommentSection && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenCommentSection('Journal Bullets', bullet.id, 'weekly', weekId)}
+                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-stone-700 dark:text-neutral-300 border border-stone-200 dark:border-white/5 transition-colors cursor-pointer flex items-center gap-1"
+                    title="Comment on this entry"
+                  >
+                    <MessageSquare className="w-3 h-3 text-stone-400" />
+                    <span>Comment</span>
                   </button>
                 )}
 

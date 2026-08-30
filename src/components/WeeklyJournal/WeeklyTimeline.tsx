@@ -15,7 +15,7 @@ interface WeeklyTimelineProps {
   accentTheme?: AccentTheme;
   currentUser: CurrentUserProfile;
   comments?: CommentItem[];
-  onOpenCommentSection?: (sectionTag: string) => void;
+  onOpenCommentSection?: (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => void;
   activeCommentSectionTag?: string;
   onTogglePinTakeaway?: (bullet: BulletPoint, week: WeeklyBlock) => void;
 }

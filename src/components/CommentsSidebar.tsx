@@ -30,8 +30,10 @@ interface CommentsSidebarProps {
   onResolveComment: (id: string) => void;
   onDeleteComment: (id: string) => void;
   onEditComment?: (id: string, newContent: string) => void;
+  onNavigateToComment?: (comment: CommentItem) => void;
   targetType: 'weekly' | 'core';
   targetId: string;
+  activeItemId?: string;
   targetTitle: string;
   currentUser: {
     email: string;
@@ -52,8 +54,10 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
   onResolveComment,
   onDeleteComment,
   onEditComment,
+  onNavigateToComment,
   targetType,
   targetId,
+  activeItemId,
   targetTitle,
   currentUser,
   activeSectionTag,
@@ -105,6 +109,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
     onAddComment({
       targetType,
       targetId,
+      itemId: activeItemId,
       sectionKey: selectedSection || 'General',
       authorName: currentUser.displayName || (currentUser.role === 'commenter' ? 'Dr. Des (Therapist)' : currentUser.email),
       authorEmail: currentUser.email,
@@ -300,7 +305,13 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
               <div
                 key={comment.id}
                 onMouseEnter={() => onSelectActiveSectionTag?.(comment.sectionKey || 'General')}
-                onClick={() => onSelectActiveSectionTag?.(comment.sectionKey || 'General')}
+                onClick={() => {
+                  if (onNavigateToComment) {
+                    onNavigateToComment(comment);
+                  } else {
+                    onSelectActiveSectionTag?.(comment.sectionKey || 'General');
+                  }
+                }}
                 className={`p-3.5 rounded-2xl border transition-all space-y-2.5 cursor-pointer ${
                   activeSectionTag && comment.sectionKey === activeSectionTag
                     ? `ring-2 ${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-sm`
@@ -478,6 +489,25 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                   <option value="Core Topic">Section: Core Topic</option>
                 </select>
               </div>
+
+              {activeItemId && (
+                <div className="flex items-center justify-between px-2.5 py-1 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 rounded-lg text-[11px] text-amber-800 dark:text-amber-300 animate-in fade-in duration-150">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
+                    <span className="font-semibold truncate">Targeting item/bullet directly</span>
+                  </div>
+                  {onClearActiveSectionTag && (
+                    <button
+                      type="button"
+                      onClick={onClearActiveSectionTag}
+                      className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 ml-1 p-0.5"
+                      title="Clear targeted item selection"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div
                 className="relative typing-isolation-container"

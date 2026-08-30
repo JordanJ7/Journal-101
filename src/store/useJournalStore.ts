@@ -15,7 +15,7 @@ import {
 } from '../types';
 import { CORE_CATEGORIES_CONFIG, INITIAL_COMMENTS, INITIAL_CORE_ITEMS, INITIAL_WEEKS } from '../data/initialData';
 import { formatTimestamp, loadAppState, saveAppState, parseDateFromTimestamp, getWeekTitleAndRangeForDate } from '../utils/storage';
-import { relocateBulletToMatchingWeek, sortBulletsByDate, sortWeeksChronologically, isDateWithinWeek, getEntryDate } from '../utils/dateUtils';
+import { relocateBulletToMatchingWeek, sortBulletsByDate, sortWeeksChronologically, isDateWithinWeek, getEntryDate, findMatchingWeekForDate } from '../utils/dateUtils';
 import {
   CurrentUserProfile,
   DEFAULT_PERMISSIONS,
@@ -396,22 +396,65 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   saveEntry: async (weekId, entryData) => {
     let updatedWeek: WeeklyBlock | undefined;
-    set((state) => ({
-      weeks: state.weeks.map((w) => {
-        if (w.id !== weekId) return w;
-        const exists = w.bullets.some((b) => b.id === entryData.id);
-        const nextBullets = exists
-          ? w.bullets.map((b) => (b.id === entryData.id ? entryData : b))
-          : [...w.bullets, entryData];
-        const wUpdated = { ...w, updatedAt: new Date().toISOString(), bullets: nextBullets };
-        updatedWeek = wUpdated;
-        return wUpdated;
-      }),
-    }));
+    const currentWeeks = get().weeks;
+    let targetWeek = currentWeeks.find((w) => w.id === weekId);
+
+    // If no direct weekId match, search for an existing week covering the entry's target date
+    if (!targetWeek) {
+      const entryDate = getEntryDate(entryData.isoDate || entryData.timestamp || entryData.createdAt);
+      targetWeek = findMatchingWeekForDate(entryDate, currentWeeks);
+    }
+
+    if (targetWeek) {
+      const exists = targetWeek.bullets.some((b) => b.id === entryData.id);
+      const nextBullets = exists
+        ? targetWeek.bullets.map((b) => (b.id === entryData.id ? entryData : b))
+        : sortBulletsByDate([...targetWeek.bullets, entryData], 'asc');
+      updatedWeek = { ...targetWeek, updatedAt: new Date().toISOString(), bullets: nextBullets };
+
+      set((state) => ({
+        weeks: state.weeks.map((w) => (w.id === targetWeek!.id ? updatedWeek! : w)),
+        activeWeekId: targetWeek!.id,
+      }));
+    } else {
+      const entryDate = getEntryDate(entryData.isoDate || entryData.timestamp || entryData.createdAt);
+      const { weekTitle, startDate, endDate } = getWeekTitleAndRangeForDate(entryDate);
+      const newWeek: WeeklyBlock = {
+        id: weekId && weekId.startsWith('week-') ? weekId : 'week-' + Date.now(),
+        weekTitle,
+        startDate,
+        endDate,
+        createdAt: entryData.isoDate || entryData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        bullets: [entryData],
+        assignments: {
+          readBookEnabled: false,
+          readBookTitle: '',
+          readBookProgress: '',
+          watchMovieEnabled: false,
+          watchMovieTitle: '',
+          watchMovieThoughts: '',
+          answerDesQuestionsEnabled: false,
+          desQuestions: [],
+        },
+        therapistSection: {
+          title: 'Session Notes',
+          notes: '',
+          externalLinks: [],
+          itemsToShow: [],
+        },
+      };
+      updatedWeek = newWeek;
+      set((state) => ({
+        weeks: sortWeeksChronologically([newWeek, ...state.weeks], 'desc'),
+        activeWeekId: newWeek.id,
+      }));
+    }
+
     if (updatedWeek) {
       try {
         await saveWeekDoc(updatedWeek);
-        console.log('[Firestore SUCCESS] Week saved with entry:', entryData.id);
+        console.log('[Firestore SUCCESS] Week saved with entry into bullets array:', entryData.id);
       } catch (err) {
         console.error('[Firestore CRITICAL ERROR] Failed to save week with entry:', err);
       }
@@ -455,7 +498,10 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   addWeek: (newWeek) => {
     const existingWeeks = get().weeks;
-    const existingMatch = existingWeeks.find(
+    const targetDate = parseDateFromTimestamp(newWeek.startDate || newWeek.createdAt || newWeek.weekTitle);
+
+    // 1. Check matching start/end dates or title
+    let existingMatch = existingWeeks.find(
       (w) =>
         (newWeek.startDate &&
           newWeek.endDate &&
@@ -466,16 +512,36 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
           w.weekTitle.trim().toLowerCase() === newWeek.weekTitle.trim().toLowerCase())
     );
 
+    // 2. Check if an existing week covers the target date range
+    if (!existingMatch && !isNaN(targetDate.getTime())) {
+      existingMatch = findMatchingWeekForDate(targetDate, existingWeeks);
+    }
+
     if (existingMatch) {
+      if (newWeek.bullets && newWeek.bullets.length > 0) {
+        const existingBullets = [...(existingMatch.bullets || [])];
+        for (const b of newWeek.bullets) {
+          if (!existingBullets.some((eb) => eb.id === b.id)) {
+            existingBullets.push(b);
+          }
+        }
+        const updatedWeek: WeeklyBlock = {
+          ...existingMatch,
+          updatedAt: new Date().toISOString(),
+          bullets: sortBulletsByDate(existingBullets, 'asc'),
+        };
+        get().updateWeek(updatedWeek);
+      }
       set({ activeWeekId: existingMatch.id, viewMode: 'weekly' });
       return;
     }
 
-    set((state) => ({
-      weeks: [newWeek, ...state.weeks],
+    const sortedWeeks = sortWeeksChronologically([newWeek, ...existingWeeks], 'desc');
+    set({
+      weeks: sortedWeeks,
       activeWeekId: newWeek.id,
       viewMode: 'weekly',
-    }));
+    });
     saveWeekDoc(newWeek).catch((err) =>
       console.error('[Firestore CRITICAL ERROR] Failed to save new week:', err)
     );

@@ -20,10 +20,11 @@ interface AssignmentBoxProps {
   onUpdate: (updated: AssignmentSwitches) => void;
   canEdit?: boolean;
   canDelete?: boolean;
-  onOpenCommentSection?: (sectionTag: string) => void;
+  onOpenCommentSection?: (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => void;
   activeCommentSectionTag?: string;
   searchQuery?: string;
   accentTheme?: AccentTheme;
+  weekId?: string;
 }
 
 export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
@@ -35,6 +36,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
   activeCommentSectionTag,
   searchQuery,
   accentTheme = 'amber',
+  weekId,
 }) => {
   const [newQuestionText, setNewQuestionText] = useState('');
   const [activeDateEditingQuestionId, setActiveDateEditingQuestionId] = useState<string | null>(null);
@@ -154,7 +156,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
           {onOpenCommentSection && (
             <button
               type="button"
-              onClick={() => onOpenCommentSection('Homework & Reading')}
+              onClick={() => onOpenCommentSection('Homework & Reading', undefined, 'weekly', weekId)}
               className="px-2.5 py-1 text-xs font-semibold bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg flex items-center gap-1.5 transition-colors"
             >
               <MessageSquare className="w-3 h-3 text-[#2563EB]" />
@@ -165,7 +167,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div id="homework-reading-section" data-section-key="Homework & Reading" className="space-y-4">
         {/* Switch 1: Read a Book */}
         <div
           className={`p-3.5 rounded-xl border transition-all duration-200 ${
@@ -317,6 +319,8 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
 
         {/* Switch 3: Answer Questions from Des */}
         <div
+          id="des-qa-section"
+          data-section-key="Des Q&A"
           className={`p-3.5 rounded-xl border transition-all duration-200 ${
             isDesQAHighlighted
               ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder}`
@@ -332,7 +336,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
               {onOpenCommentSection && (
                 <button
                   type="button"
-                  onClick={() => onOpenCommentSection('Des Q&A')}
+                  onClick={() => onOpenCommentSection('Des Q&A', undefined, 'weekly', weekId)}
                   className="px-2 py-0.5 text-[11px] font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md flex items-center gap-1 transition-colors"
                 >
                   <MessageSquare className={`w-3 h-3 ${currentAccent.textPrimary}`} />
@@ -361,6 +365,9 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                   return (
                     <div
                       key={q.id}
+                      id={`des-question-${q.id}`}
+                      data-item-id={q.id}
+                      data-qa-id={q.id}
                       className={`p-3.5 rounded-lg border transition-all duration-200 relative ${
                         activeDateEditingQuestionId === q.id ? 'z-30' : 'z-0'
                       } ${
@@ -465,7 +472,7 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                         {onOpenCommentSection && (
                           <button
                             type="button"
-                            onClick={() => onOpenCommentSection(`Des Q&A: "${q.question.slice(0, 25)}..."`)}
+                            onClick={() => onOpenCommentSection(`Des Q&A: "${q.question.slice(0, 25)}..."`, q.id, 'weekly', weekId)}
                             className="px-2 py-1 rounded-md text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-700 flex items-center gap-1 transition-colors"
                             title="Add comment or feedback on this question"
                           >

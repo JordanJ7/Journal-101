@@ -39,7 +39,7 @@ interface TopicCategoryCardProps {
   canEdit?: boolean;
   canDelete?: boolean;
   isOwner?: boolean;
-  onOpenCommentSection?: (sectionTag: string) => void;
+  onOpenCommentSection?: (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => void;
   activeCommentSectionTag?: string;
   searchQuery?: string;
   accentTheme?: AccentTheme;
@@ -106,6 +106,9 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
 
   return (
     <div
+      id={`core-item-${item.id}`}
+      data-item-id={item.id}
+      data-entry-id={item.id}
       className={`rounded-2xl p-4 sm:p-5 border transition-all duration-300 ${
         isHighlighted
           ? 'bg-sky-50/70 dark:bg-sky-950/60 border-sky-300 dark:border-sky-700 ring-2 ring-sky-400/50 shadow-md'
@@ -197,7 +200,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
 
           {onOpenCommentSection && (
             <button
-              onClick={() => onOpenCommentSection(`Item: "${item.title.slice(0, 25)}"`)}
+              onClick={() => onOpenCommentSection(`Item: "${item.title.slice(0, 25)}"`, item.id, 'core', item.categoryId)}
               title="Add comment or feedback for this item"
               className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
             >

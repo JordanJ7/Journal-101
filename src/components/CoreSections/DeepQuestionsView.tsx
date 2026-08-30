@@ -26,7 +26,7 @@ interface DeepQuestionsViewProps {
   items: CoreTopicItem[];
   currentUser: CurrentUserProfile;
   onUpdateItems: (items: CoreTopicItem[]) => void;
-  onOpenCommentSection?: (sectionTag?: string) => void;
+  onOpenCommentSection?: (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => void;
   searchQuery?: string;
 }
 
@@ -414,6 +414,9 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                     group.items.map((item) => (
                       <div
                         key={item.id}
+                        id={`deep-question-${item.id}`}
+                        data-item-id={item.id}
+                        data-entry-id={item.id}
                         className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-2xs ${
                           item.isHighlightedAnswer
                             ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/80 ring-1 ring-blue-300/40'
@@ -458,7 +461,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                             {/* Comment Button */}
                             {onOpenCommentSection && (
                               <button
-                                onClick={() => onOpenCommentSection(`Deep Question: "${item.title.slice(0, 25)}"`)}
+                                onClick={() => onOpenCommentSection(`Deep Question: "${item.title.slice(0, 25)}"`, item.id, 'core', 'questions-to-ask-her')}
                                 title="Add comment"
                                 className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 rounded-md text-xs font-semibold flex items-center gap-1"
                               >

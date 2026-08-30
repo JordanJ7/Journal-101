@@ -37,7 +37,7 @@ interface WeekCardProps {
   accentTheme?: AccentTheme;
   currentUser: CurrentUserProfile;
   commentsCount?: number;
-  onOpenCommentSection?: (sectionTag: string) => void;
+  onOpenCommentSection?: (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => void;
   activeCommentSectionTag?: string;
   onTogglePinTakeaway?: (bullet: BulletPoint, week: WeeklyBlock) => void;
   searchQuery?: string;
@@ -307,7 +307,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
         <div className="flex items-center gap-1">
           {onOpenCommentSection && (
             <button
-              onClick={() => onOpenCommentSection('General')}
+              onClick={() => onOpenCommentSection('General', undefined, 'weekly', week.id)}
               title="Comments"
               className="min-h-[44px] min-w-[44px] p-2 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center gap-1 text-xs"
             >
@@ -375,7 +375,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
             {onOpenCommentSection && (
               <button
                 type="button"
-                onClick={() => onOpenCommentSection('Journal Bullets')}
+                onClick={() => onOpenCommentSection('Journal Bullets', undefined, 'weekly', week.id)}
                 className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
                 title="Comment"
               >
@@ -404,6 +404,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                       onIndentChange={(newIndent) => handleIndentChange(bullet.id, newIndent)}
                       onTogglePinTakeaway={onTogglePinTakeaway ? (b) => onTogglePinTakeaway(b, week) : undefined}
                       onPreviewMedia={setPreviewMedia}
+                      onOpenCommentSection={onOpenCommentSection}
                       canEdit={canEdit}
                       canDelete={canDelete}
                       searchQuery={searchQuery}
@@ -441,7 +442,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
             {onOpenCommentSection && (
               <button
                 type="button"
-                onClick={() => onOpenCommentSection('Therapist Notes')}
+                onClick={() => onOpenCommentSection('Therapist Notes', undefined, 'weekly', week.id)}
                 className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
                 title="Comment"
               >

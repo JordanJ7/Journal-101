@@ -717,10 +717,19 @@ export function subscribeJournalData(
     if (!week) return;
 
     const weekEntriesMap = entriesPerWeekMap.get(weekId);
-    const bullets = weekEntriesMap
-      ? Array.from(weekEntriesMap.values())
-      : [...(week.bullets || [])];
+    const combinedMap = new Map<string, BulletPoint>();
+    (week.bullets || []).forEach((b) => {
+      if (b && b.id) combinedMap.set(b.id, b);
+    });
+    if (weekEntriesMap) {
+      weekEntriesMap.forEach((b, id) => {
+        if (!combinedMap.has(id)) {
+          combinedMap.set(id, b);
+        }
+      });
+    }
 
+    const bullets = Array.from(combinedMap.values());
     bullets.sort((a, b) => {
       const timeA = a.isoDate ? new Date(a.isoDate).getTime() : new Date(a.createdAt || a.timestamp).getTime() || 0;
       const timeB = b.isoDate ? new Date(b.isoDate).getTime() : new Date(b.createdAt || b.timestamp).getTime() || 0;
@@ -749,12 +758,20 @@ export function subscribeJournalData(
   const syncConsolidatedWeeks = () => {
     const nextWeeks: WeeklyBlock[] = [];
     weeksMap.forEach((week, weekId) => {
-      const existingInCache = cachedConsolidatedWeeks.find((w) => w.id === weekId);
       const weekEntriesMap = entriesPerWeekMap.get(weekId);
-      const bullets = weekEntriesMap
-        ? Array.from(weekEntriesMap.values())
-        : week.bullets || [];
+      const combinedMap = new Map<string, BulletPoint>();
+      (week.bullets || []).forEach((b) => {
+        if (b && b.id) combinedMap.set(b.id, b);
+      });
+      if (weekEntriesMap) {
+        weekEntriesMap.forEach((b, id) => {
+          if (!combinedMap.has(id)) {
+            combinedMap.set(id, b);
+          }
+        });
+      }
 
+      const bullets = Array.from(combinedMap.values());
       bullets.sort((a, b) => {
         const timeA = a.isoDate ? new Date(a.isoDate).getTime() : new Date(a.createdAt || a.timestamp).getTime() || 0;
         const timeB = b.isoDate ? new Date(b.isoDate).getTime() : new Date(b.createdAt || b.timestamp).getTime() || 0;

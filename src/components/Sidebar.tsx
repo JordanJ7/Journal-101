@@ -38,8 +38,8 @@ import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
 import { usePermissions } from '../hooks/usePermissions';
-import { isDateWithinWeek } from '../utils/dateUtils';
-import { parseDateFromTimestamp } from '../utils/storage';
+import { findMatchingWeekForDate, isDateWithinWeek } from '../utils/dateUtils';
+import { getWeekTitleAndRangeForDate, parseDateFromTimestamp } from '../utils/storage';
 
 interface SidebarProps {
   weeks: WeeklyBlock[];
@@ -206,35 +206,46 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
   const handleCreateWeek = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newWeekTitle.trim()) return;
+    if (!newWeekTitle.trim() && !newWeekStartDate) return;
 
-    const trimmedTitle = newWeekTitle.trim().toLowerCase();
-    const existingWeek = weeks.find((w) => {
-      if (newWeekStartDate && newWeekEndDate && w.startDate === newWeekStartDate && w.endDate === newWeekEndDate) {
+    const targetDate = parseDateFromTimestamp(newWeekStartDate || newWeekTitle);
+    const { weekTitle: calcTitle, startDate: calcStart, endDate: calcEnd } = getWeekTitleAndRangeForDate(
+      !isNaN(targetDate.getTime()) ? targetDate : new Date()
+    );
+
+    const finalTitle = newWeekTitle.trim() || calcTitle;
+    const finalStartDate = newWeekStartDate || calcStart;
+    const finalEndDate = newWeekEndDate || calcEnd;
+
+    // Check if an existing week matches the exact dates, week title, or covers the target date range
+    let existingWeek = weeks.find((w) => {
+      if (finalStartDate && finalEndDate && w.startDate === finalStartDate && w.endDate === finalEndDate) {
         return true;
       }
-      if (w.weekTitle && w.weekTitle.trim().toLowerCase() === trimmedTitle) {
+      if (w.weekTitle && w.weekTitle.trim().toLowerCase() === finalTitle.trim().toLowerCase()) {
         return true;
-      }
-      if (newWeekStartDate) {
-        const d = parseDateFromTimestamp(newWeekStartDate);
-        if (isDateWithinWeek(d, w)) return true;
       }
       return false;
     });
+
+    if (!existingWeek && !isNaN(targetDate.getTime())) {
+      existingWeek = findMatchingWeekForDate(targetDate, weeks);
+    }
 
     if (existingWeek) {
       handleSelectWeek(existingWeek.id);
       setShowAddWeekModal(false);
       setNewWeekTitle('');
+      setNewWeekStartDate('');
+      setNewWeekEndDate('');
       return;
     }
 
     const newWeek: WeeklyBlock = {
       id: 'week-' + Date.now(),
-      weekTitle: newWeekTitle.trim(),
-      startDate: newWeekStartDate || new Date().toISOString().split('T')[0],
-      endDate: newWeekEndDate || new Date().toISOString().split('T')[0],
+      weekTitle: finalTitle,
+      startDate: finalStartDate,
+      endDate: finalEndDate,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       bullets: [],
@@ -260,6 +271,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     handleSelectWeek(newWeek.id);
     setShowAddWeekModal(false);
     setNewWeekTitle('');
+    setNewWeekStartDate('');
+    setNewWeekEndDate('');
   };
 
   const handleCreateCategory = (e: React.FormEvent) => {

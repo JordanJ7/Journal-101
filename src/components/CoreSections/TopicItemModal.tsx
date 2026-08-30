@@ -310,6 +310,8 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       onClick={onClose}
     >
       <div
+        id={item?.id ? `topic-item-modal-${item.id}` : 'topic-item-modal'}
+        data-item-id={item?.id}
         className="relative w-full max-w-lg bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
         style={{
           contain: 'layout paint',

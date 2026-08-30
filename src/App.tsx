@@ -11,8 +11,9 @@ import { SharedMediaHub } from './components/MediaHub/SharedMediaHub';
 import { LoginScreen } from './components/Auth/LoginScreen';
 import { AccessRestrictedScreen } from './components/AccessRestrictedScreen';
 import { ConfirmDeleteProvider } from './components/ConfirmDeleteModal';
-import { AccentTheme, CoreCategoryId, FilterOptions, ViewMode, WeeklyBlock, CoreTopicItem, BulletPoint, CoreCategoryConfig } from './types';
+import { AccentTheme, CoreCategoryId, FilterOptions, ViewMode, WeeklyBlock, CoreTopicItem, BulletPoint, CoreCategoryConfig, CommentItem } from './types';
 import { ACCENT_THEMES } from './utils/theme';
+import { navigateToComment } from './utils/commentNavigation';
 import {
   useJournalStore,
   useWeeks,
@@ -351,12 +352,32 @@ export default function App() {
   const handleOpenAccessManagement = useCallback(() => setIsAccessManagementOpen(true), [setIsAccessManagementOpen]);
   const handleCloseAccessManagement = useCallback(() => setIsAccessManagementOpen(false), [setIsAccessManagementOpen]);
 
+  const [activeCommentItemId, setActiveCommentItemId] = React.useState<string | undefined>();
+  const [activeCommentTargetType, setActiveCommentTargetType] = React.useState<'weekly' | 'core' | undefined>();
+  const [activeCommentTargetId, setActiveCommentTargetId] = React.useState<string | undefined>();
+
   const handleOpenCommentSection = useCallback(
-    (sectionTag?: string) => {
+    (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => {
       setActiveCommentSectionTag(sectionTag);
+      setActiveCommentItemId(itemId);
+      setActiveCommentTargetType(targetType);
+      setActiveCommentTargetId(targetId);
       setIsCommentsSidebarOpen(true);
     },
     [setActiveCommentSectionTag, setIsCommentsSidebarOpen]
+  );
+
+  const handleNavigateToComment = useCallback(
+    (comment: CommentItem) => {
+      navigateToComment(comment, {
+        onNavigateView: (mode) => handleSetViewMode(mode),
+        onSelectWeek: (wId) => handleSetActiveWeekId(wId),
+        onSelectCoreCategory: (cId) => handleSetActiveCoreCategory(cId),
+        onSelectSectionTag: (tag) => setActiveCommentSectionTag(tag),
+        setHighlightedItemId: (itemId) => setActiveCommentItemId(itemId || undefined),
+      });
+    },
+    [handleSetViewMode, handleSetActiveWeekId, handleSetActiveCoreCategory, setActiveCommentSectionTag]
   );
 
   useEffect(() => {
@@ -657,13 +678,20 @@ export default function App() {
             onResolveComment={resolveComment}
             onDeleteComment={deleteComment}
             onEditComment={editComment}
-            targetType={viewMode === 'weekly' ? 'weekly' : 'core'}
-            targetId={viewMode === 'weekly' ? activeWeekId : activeCoreCategory}
+            onNavigateToComment={handleNavigateToComment}
+            targetType={activeCommentTargetType || (viewMode === 'weekly' ? 'weekly' : 'core')}
+            targetId={activeCommentTargetId || (viewMode === 'weekly' ? activeWeekId : activeCoreCategory)}
+            activeItemId={activeCommentItemId}
             targetTitle={viewMode === 'weekly' ? currentWeekTitle : currentCategoryTitle}
             currentUser={currentUser}
             activeSectionTag={activeCommentSectionTag}
             onSelectActiveSectionTag={(tag) => setActiveCommentSectionTag(tag)}
-            onClearActiveSectionTag={() => setActiveCommentSectionTag(undefined)}
+            onClearActiveSectionTag={() => {
+              setActiveCommentSectionTag(undefined);
+              setActiveCommentItemId(undefined);
+              setActiveCommentTargetType(undefined);
+              setActiveCommentTargetId(undefined);
+            }}
             accentTheme={accentTheme}
           />
         </Suspense>

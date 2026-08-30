@@ -170,7 +170,7 @@ interface CoreTopicsViewProps {
   pinnedCategoryIds?: string[];
   onTogglePinCategory?: (categoryId: string) => void;
   comments?: CommentItem[];
-  onOpenCommentSection?: (sectionTag: string) => void;
+  onOpenCommentSection?: (sectionTag?: string, itemId?: string, targetType?: 'weekly' | 'core', targetId?: string) => void;
   activeCommentSectionTag?: string;
   onNavigateToWeek?: (weekId: string) => void;
 }
@@ -455,7 +455,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
 
             {onOpenCommentSection && (
               <button
-                onClick={() => onOpenCommentSection(`Folder: ${activeCategoryConfig?.title}`)}
+                onClick={() => onOpenCommentSection(`Folder: ${activeCategoryConfig?.title}`, undefined, 'core', activeCategoryConfig?.id)}
                 title="Comments"
                 className="p-1.5 rounded-lg text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
