@@ -34,6 +34,10 @@ import {
   WeeklyBlock,
   CommentItem,
 } from '../types';
+import {
+  getHasReceivedFirstFirestoreSnapshot,
+  setHasReceivedFirstFirestoreSnapshot,
+} from '../utils/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // 1. Initialize Firebase App, Auth, Firestore and Storage with exact database ID
@@ -365,6 +369,10 @@ export function sanitizeStateForLocalStorage(state: any): any {
  */
 export async function saveFolderDoc(folder: CoreCategoryConfig): Promise<void> {
   if (!folder || !folder.id) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write folder doc before first Firestore snapshot.');
+    return;
+  }
   const path = `folders/${folder.id}`;
   try {
     const folderDocRef = doc(db, 'folders', folder.id);
@@ -387,6 +395,10 @@ export async function saveFolderDoc(folder: CoreCategoryConfig): Promise<void> {
  */
 export async function deleteFolderDoc(folderId: string): Promise<void> {
   if (!folderId) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Delete Blocked] Snapshot gate active: cannot delete folder doc before first Firestore snapshot.');
+    return;
+  }
   const path = `folders/${folderId}`;
   try {
     const folderDocRef = doc(db, 'folders', folderId);
@@ -404,6 +416,10 @@ export async function deleteFolderDoc(folderId: string): Promise<void> {
  */
 export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
   if (!item || !item.id) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write core topic doc before first Firestore snapshot.');
+    return;
+  }
   const path = `core_topics/${item.id}`;
 
   try {
@@ -441,6 +457,10 @@ export async function saveCoreTopicDoc(item: CoreTopicItem): Promise<void> {
  */
 export async function deleteCoreTopicDoc(itemId: string, categoryId?: string): Promise<void> {
   if (!itemId) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Delete Blocked] Snapshot gate active: cannot delete core topic doc before first Firestore snapshot.');
+    return;
+  }
   const path = `core_topics/${itemId}`;
   try {
     const docRef = doc(db, 'core_topics', itemId);
@@ -467,6 +487,10 @@ export async function deleteCoreTopicDoc(itemId: string, categoryId?: string): P
  */
 export async function saveWeekDoc(week: WeeklyBlock): Promise<void> {
   if (!week || !week.id) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write week doc before first Firestore snapshot.');
+    return;
+  }
   const path = `weeks/${week.id}`;
 
   try {
@@ -498,6 +522,10 @@ export const saveWeekMetaDoc = saveWeekDoc;
  */
 export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<void> {
   if (!weekId || !entry || !entry.id) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write entry doc before first Firestore snapshot.');
+    return;
+  }
   try {
     const weekDocRef = doc(db, 'weeks', weekId);
     const weekSnap = await getDoc(weekDocRef);
@@ -522,6 +550,10 @@ export async function saveEntryDoc(weekId: string, entry: BulletPoint): Promise<
  */
 export async function deleteEntryDoc(weekId: string, entryId: string): Promise<void> {
   if (!weekId || !entryId) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Delete Blocked] Snapshot gate active: cannot delete entry doc before first Firestore snapshot.');
+    return;
+  }
   try {
     const weekDocRef = doc(db, 'weeks', weekId);
     const weekSnap = await getDoc(weekDocRef);
@@ -540,6 +572,10 @@ export async function deleteEntryDoc(weekId: string, entryId: string): Promise<v
  */
 export async function deleteWeekDoc(weekId: string): Promise<void> {
   if (!weekId) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Delete Blocked] Snapshot gate active: cannot delete week doc before first Firestore snapshot.');
+    return;
+  }
   const path = `weeks/${weekId}`;
   try {
     const weekDocRef = doc(db, 'weeks', weekId);
@@ -557,6 +593,10 @@ export async function deleteWeekDoc(weekId: string): Promise<void> {
  */
 export async function saveCommentDoc(comment: CommentItem): Promise<void> {
   if (!comment || !comment.id) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write comment doc before first Firestore snapshot.');
+    return;
+  }
   const path = `comments/${comment.id}`;
   try {
     const commentDocRef = doc(db, 'comments', comment.id);
@@ -579,6 +619,10 @@ export async function saveCommentDoc(comment: CommentItem): Promise<void> {
  */
 export async function deleteCommentDoc(commentId: string): Promise<void> {
   if (!commentId) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Delete Blocked] Snapshot gate active: cannot delete comment doc before first Firestore snapshot.');
+    return;
+  }
   const path = `comments/${commentId}`;
   try {
     const commentDocRef = doc(db, 'comments', commentId);
@@ -595,6 +639,10 @@ export async function deleteCommentDoc(commentId: string): Promise<void> {
  * 12. Save Core Categories collection fallback
  */
 export async function saveCoreCategoriesDoc(categories: CoreCategoryConfig[]): Promise<void> {
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write core categories doc before first Firestore snapshot.');
+    return;
+  }
   const path = 'core_categories/settings';
   try {
     const docRef = doc(db, 'core_categories', 'settings');
@@ -630,6 +678,7 @@ export function subscribeJournalData(
   const activeUnsubscribes: (() => void)[] = [];
 
   const markHydrated = () => {
+    setHasReceivedFirstFirestoreSnapshot(true);
     if (!isInitialHydratedFired) {
       isInitialHydratedFired = true;
       if (onHydrated) {
@@ -1059,6 +1108,11 @@ export async function saveJournalDataToCloud(
   targetEntryId?: string,
   targetWeekId?: string
 ): Promise<void> {
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Sync Blocked] Snapshot gate active: cannot sync app state to Firestore before first Firestore snapshot.');
+    return;
+  }
+
   // 1. Immediate Local Backup Guarantee (with large Base64 media stripped to prevent quota exhaustion)
   try {
     const localSafeState = sanitizeStateForLocalStorage(state);

@@ -14,7 +14,15 @@ import {
   WeeklyBlock,
 } from '../types';
 import { CORE_CATEGORIES_CONFIG, INITIAL_COMMENTS, INITIAL_CORE_ITEMS, INITIAL_WEEKS } from '../data/initialData';
-import { formatTimestamp, loadAppState, saveAppState, parseDateFromTimestamp, getWeekTitleAndRangeForDate } from '../utils/storage';
+import {
+  formatTimestamp,
+  loadAppState,
+  saveAppState,
+  parseDateFromTimestamp,
+  getWeekTitleAndRangeForDate,
+  getHasReceivedFirstFirestoreSnapshot,
+  setHasReceivedFirstFirestoreSnapshot as setGlobalFirestoreSnapshotReceived,
+} from '../utils/storage';
 import { relocateBulletToMatchingWeek, sortBulletsByDate, sortWeeksChronologically, isDateWithinWeek, getEntryDate, findMatchingWeekForDate } from '../utils/dateUtils';
 import {
   CurrentUserProfile,
@@ -54,6 +62,8 @@ export interface JournalStoreState {
   // Hydration state (prevents unhydrated state from overwriting Firestore)
   isHydrated: boolean;
   setIsHydrated: (isHydrated: boolean) => void;
+  hasReceivedFirstFirestoreSnapshot: boolean;
+  setHasReceivedFirstFirestoreSnapshot: (hasReceived: boolean) => void;
 
   // Data state (clean empty defaults)
   weeks: WeeklyBlock[];
@@ -187,9 +197,9 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
 
   const s = get();
 
-  // HYDRATION GUARD: Prevent saving empty/default state over Firestore before cloud hydration completes
-  if (!s.isHydrated) {
-    console.warn('[Auto-Save Guard] Save skipped: App state is still hydrating from Cloud Firestore.');
+  // HYDRATION & SNAPSHOT GUARD: Block writing local fallback state to Firestore until first snapshot is received
+  if (!s.isHydrated || !s.hasReceivedFirstFirestoreSnapshot || !getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Auto-Save Guard] Save blocked: waiting for first Firestore snapshot before writing to Cloud.');
     return;
   }
 
@@ -312,6 +322,11 @@ if (typeof document !== 'undefined') {
 export const useJournalStore = create<JournalStoreState>((set, get) => ({
   isHydrated: false,
   setIsHydrated: (isHydrated) => set({ isHydrated }),
+  hasReceivedFirstFirestoreSnapshot: false,
+  setHasReceivedFirstFirestoreSnapshot: (hasReceivedFirstFirestoreSnapshot) => {
+    setGlobalFirestoreSnapshotReceived(hasReceivedFirstFirestoreSnapshot);
+    set({ hasReceivedFirstFirestoreSnapshot });
+  },
 
   weeks: Array.isArray(initialLoaded.weeks) ? initialLoaded.weeks : INITIAL_WEEKS,
   activeWeekId: initialLoaded.activeWeekId || initialLoaded.weeks?.[0]?.id || '',
@@ -1445,5 +1460,6 @@ export const useIsCommentsSidebarOpen = () => useJournalStore((s) => s.isComment
 export const useActiveCommentSectionTag = () => useJournalStore((s) => s.activeCommentSectionTag);
 export const useUpdateWeeklyEntryTimestamp = () => useJournalStore((s) => s.updateWeeklyEntryTimestamp);
 export const useIsHydrated = () => useJournalStore((s) => s.isHydrated);
+export const useHasReceivedFirstFirestoreSnapshot = () => useJournalStore((s) => s.hasReceivedFirstFirestoreSnapshot);
 export const useCreateFolder = () => useJournalStore((s) => s.createFolder);
 export const useSaveEntry = () => useJournalStore((s) => s.saveEntry);

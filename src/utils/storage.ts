@@ -196,6 +196,16 @@ export function getWeekTitleAndRangeForDate(d: Date): { weekTitle: string; start
   return { weekTitle, startDate, endDate };
 }
 
+let hasReceivedFirstFirestoreSnapshot = false;
+
+export function setHasReceivedFirstFirestoreSnapshot(val: boolean): void {
+  hasReceivedFirstFirestoreSnapshot = val;
+}
+
+export function getHasReceivedFirstFirestoreSnapshot(): boolean {
+  return hasReceivedFirstFirestoreSnapshot;
+}
+
 export function loadAppState(): AppState {
   let explicitTheme: 'dark' | 'light' | null = null;
   try {
