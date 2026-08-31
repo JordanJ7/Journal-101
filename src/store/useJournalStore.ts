@@ -1312,10 +1312,6 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     }
 
     const state = get();
-    const isUserActivelyTyping =
-      state.saveStatus === 'unsaved' ||
-      Date.now() - lastUserKeystrokeTime < 2500 ||
-      Date.now() - lastLocalMutationTime < 2500;
 
     const incomingWeeks = cloudData.weeks && Array.isArray(cloudData.weeks) ? cloudData.weeks : state.weeks;
     const incomingCoreItems = cloudData.coreItems && Array.isArray(cloudData.coreItems) ? cloudData.coreItems : state.coreItems;
@@ -1334,44 +1330,9 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     }
 
     set((currentState) => {
-      let nextWeeks = incomingWeeks;
-      let nextCoreCategories = incomingCoreCategories;
-      let nextCoreItems = incomingCoreItems;
-
-      if (isUserActivelyTyping) {
-        nextWeeks = incomingWeeks.map((remoteWeek) => {
-          if (remoteWeek.id === currentState.activeWeekId) {
-            const currentActiveWeek = currentState.weeks.find((w) => w.id === currentState.activeWeekId);
-            return currentActiveWeek || remoteWeek;
-          }
-          return remoteWeek;
-        });
-
-        nextCoreCategories = incomingCoreCategories.map((remoteCat) => {
-          if (remoteCat.id === currentState.activeCoreCategory) {
-            const currentActiveCat = currentState.coreCategories.find((c) => c.id === currentState.activeCoreCategory);
-            return currentActiveCat || remoteCat;
-          }
-          return remoteCat;
-        });
-
-        nextCoreItems = incomingCoreItems.map((remoteItem) => {
-          const localItem = currentState.coreItems.find((ci) => ci.id === remoteItem.id);
-          if (
-            localItem &&
-            localItem.updatedAt &&
-            (!remoteItem.updatedAt || new Date(localItem.updatedAt) >= new Date(remoteItem.updatedAt))
-          ) {
-            return localItem;
-          }
-          return remoteItem;
-        });
-        currentState.coreItems.forEach((localItem) => {
-          if (!nextCoreItems.some((ni) => ni.id === localItem.id)) {
-            nextCoreItems.push(localItem);
-          }
-        });
-      }
+      const nextWeeks = incomingWeeks;
+      const nextCoreCategories = incomingCoreCategories;
+      const nextCoreItems = incomingCoreItems;
 
       const hasActiveWeek = nextWeeks.some((w) => w.id === currentState.activeWeekId);
       const activeWeekId = hasActiveWeek
