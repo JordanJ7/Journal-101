@@ -92,8 +92,10 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
       setInviteEmail('');
       setInviteNote('');
       setTimeout(() => setStatusMsg(null), 2500);
-    } catch {
+    } catch (err) {
+      console.error('Failed to invite user:', err);
       setErrorMsg('Failed to invite user');
+      setInviteEmail('');
     }
   };
 
