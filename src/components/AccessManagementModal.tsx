@@ -69,12 +69,13 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
 
     try {
       const emailKey = inviteEmail.trim().toLowerCase();
+      const trimmedNote = inviteNote.trim();
       const newUsers = {
         ...permissions.users,
         [emailKey]: {
           email: emailKey,
           role: inviteRole,
-          note: inviteNote.trim() || undefined,
+          ...(trimmedNote ? { note: trimmedNote } : {}),
           grantedAt: new Date().toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
