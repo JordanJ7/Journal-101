@@ -698,7 +698,7 @@ export function subscribeJournalData(
     if (e.key === CLOUD_SYNC_STORAGE_KEY && e.newValue) {
       try {
         const parsed = JSON.parse(e.newValue);
-        if (parsed && (parsed.weeks || parsed.coreItems || parsed.coreCategories)) {
+        if (parsed && (parsed.weeks || parsed.coreItems || parsed.coreCategories || parsed.pinnedCategoryIds)) {
           // If the storage event was written by ourselves, skip to avoid double execution
           if (parsed.clientSessionId === CLIENT_SESSION_ID) {
             return;
@@ -707,6 +707,7 @@ export function subscribeJournalData(
             weeks: parsed.weeks,
             coreItems: parsed.coreItems,
             coreCategories: parsed.coreCategories,
+            pinnedCategoryIds: parsed.pinnedCategoryIds,
             comments: parsed.comments,
             updatedAt: parsed.updatedAt,
             clientSessionId: parsed.clientSessionId,
@@ -729,6 +730,7 @@ export function subscribeJournalData(
   const foldersMap = new Map<string, CoreCategoryConfig>();
   let coreCategoriesFallback: CoreCategoryConfig[] | null = null;
   let commentsList: CommentItem[] = [];
+  let cachedPinnedCategoryIds: string[] = [];
 
   // Cached stable array references to prevent full-tree re-renders when only 1 item changes
   let cachedConsolidatedWeeks: WeeklyBlock[] = [];
@@ -748,6 +750,7 @@ export function subscribeJournalData(
         weeks: cachedConsolidatedWeeks,
         coreItems: cachedConsolidatedCoreItems,
         ...(cachedConsolidatedFolders.length > 0 ? { coreCategories: cachedConsolidatedFolders } : {}),
+        pinnedCategoryIds: cachedPinnedCategoryIds,
         comments: cachedComments,
         updatedAt: new Date().toISOString(),
         clientSessionId: CLIENT_SESSION_ID,
@@ -910,6 +913,10 @@ export function subscribeJournalData(
               for (const cat of legacyData.coreCategories) {
                 await saveFolderDoc(cat);
               }
+            }
+            if (legacyData.pinnedCategoryIds && Array.isArray(legacyData.pinnedCategoryIds)) {
+              cachedPinnedCategoryIds = legacyData.pinnedCategoryIds;
+              scheduleBroadcast();
             }
           }
         } catch (mErr) {
@@ -1095,6 +1102,31 @@ export function subscribeJournalData(
   );
   activeUnsubscribes.push(commentsUnsub);
 
+  // 8. Real-Time App State & Pinned Categories Listener (/app_state/journal)
+  const appStateUnsub = onSnapshot(
+    doc(db, 'app_state', 'journal'),
+    (snap) => {
+      markHydrated();
+      if (snap.metadata.hasPendingWrites) {
+        return;
+      }
+      if (snap.exists()) {
+        const data = snap.data() as Partial<AppState>;
+        if (data && Array.isArray(data.pinnedCategoryIds)) {
+          if (JSON.stringify(cachedPinnedCategoryIds) !== JSON.stringify(data.pinnedCategoryIds)) {
+            cachedPinnedCategoryIds = data.pinnedCategoryIds;
+            scheduleBroadcast();
+          }
+        }
+      }
+    },
+    (err) => {
+      console.warn('App state subscription note:', err.message);
+      markHydrated();
+    }
+  );
+  activeUnsubscribes.push(appStateUnsub);
+
   return () => {
     window.removeEventListener('storage', handleStorage);
     journalDataListeners.delete(onUpdate);
@@ -1116,6 +1148,16 @@ export async function saveJournalDataToCloud(
 ): Promise<void> {
   if (!getHasReceivedFirstFirestoreSnapshot()) {
     console.warn('[Firestore Sync Blocked] Snapshot gate active: cannot sync app state to Firestore before first Firestore snapshot.');
+    return;
+  }
+
+  // Permission gating: writes only proceed for owner or editor roles
+  const activeUser = currentActiveUser || getInitialStoredUser();
+  const activeEmail = auth.currentUser?.email || activeUser?.email;
+  const perms = loadStoredPermissions();
+  const currentRole = activeEmail ? resolveUserRole(activeEmail, perms) : activeUser?.role;
+  if (currentRole && currentRole !== 'owner' && currentRole !== 'editor') {
+    console.warn('[Firestore Write Blocked] Writes only proceed for owner or editor roles.');
     return;
   }
 
@@ -1171,7 +1213,7 @@ export async function saveJournalDataToCloud(
       await saveCommentDoc(comment);
     }
 
-    // Keep legacy fallback document updated for backward compatibility
+    // Persist shared app-level state (including pinnedCategoryIds) to app_state/journal
     try {
       const appStateDocRef = doc(db, 'app_state', 'journal');
       await setDoc(
@@ -1180,16 +1222,58 @@ export async function saveJournalDataToCloud(
           weeks: state.weeks,
           coreItems: state.coreItems,
           coreCategories: state.coreCategories,
+          pinnedCategoryIds: state.pinnedCategoryIds || [],
+          comments: state.comments || [],
           updatedAt: new Date().toISOString(),
           clientSessionId: CLIENT_SESSION_ID,
         }),
         { merge: true }
       );
-    } catch {}
+      console.log('[Firestore SUCCESS] App state document saved with pinnedCategoryIds to app_state/journal');
+    } catch (appErr) {
+      console.warn('[Firestore Note] Failed to update app_state/journal:', appErr);
+    }
 
     console.log('[Atomic Sync] Full atomic cloud synchronization completed.');
   } catch (err) {
     console.error('[Atomic Sync Error] Cloud write failure:', err);
+    throw err;
+  }
+}
+
+/**
+ * Save App State document (/app_state/journal)
+ * Strictly enforces owner/editor role and snapshot gate.
+ */
+export async function saveAppStateDoc(state: Partial<AppState>): Promise<void> {
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write app_state before first Firestore snapshot.');
+    return;
+  }
+
+  const activeUser = currentActiveUser || getInitialStoredUser();
+  const activeEmail = auth.currentUser?.email || activeUser?.email;
+  const perms = loadStoredPermissions();
+  const currentRole = activeEmail ? resolveUserRole(activeEmail, perms) : activeUser?.role;
+  if (currentRole && currentRole !== 'owner' && currentRole !== 'editor') {
+    console.warn('[Firestore Write Blocked] User does not have owner or editor permissions to write app_state.');
+    return;
+  }
+
+  const path = 'app_state/journal';
+  try {
+    const appStateDocRef = doc(db, 'app_state', 'journal');
+    const sanitized = sanitizeForFirestore({
+      ...state,
+      pinnedCategoryIds: state.pinnedCategoryIds || [],
+      updatedAt: new Date().toISOString(),
+      clientSessionId: CLIENT_SESSION_ID,
+    });
+    await setDoc(appStateDocRef, sanitized, { merge: true });
+    console.log('[Firestore SUCCESS] App state document saved:', path);
+  } catch (err) {
+    console.error('[Firestore CRITICAL ERROR] Failed to save app_state/journal:', err);
+    handleFirestoreError(err, OperationType.WRITE, path);
     throw err;
   }
 }
@@ -1206,6 +1290,15 @@ export async function refreshFirestoreSync(): Promise<void> {
         const permsData = permsSnap.data() as PermissionsDoc;
         localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(permsData));
         permissionsListeners.forEach((listener) => listener(permsData));
+      }
+    }
+    const appStateSnap = await getDoc(doc(db, 'app_state', 'journal'));
+    if (appStateSnap.exists()) {
+      const appStateData = appStateSnap.data() as Partial<AppState>;
+      if (appStateData.pinnedCategoryIds && Array.isArray(appStateData.pinnedCategoryIds)) {
+        journalDataListeners.forEach((listener) =>
+          listener({ pinnedCategoryIds: appStateData.pinnedCategoryIds })
+        );
       }
     }
   } catch (err) {
