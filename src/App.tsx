@@ -118,7 +118,6 @@ export default function App() {
     setIsEditorOpen,
     setCurrentUser,
     setPermissions,
-    switchSimulatedUser,
     logout,
     syncFromCloud,
     setIsHydrated,
@@ -163,7 +162,6 @@ export default function App() {
       setIsEditorOpen: s.setIsEditorOpen,
       setCurrentUser: s.setCurrentUser,
       setPermissions: s.setPermissions,
-      switchSimulatedUser: s.switchSimulatedUser,
       logout: s.logout,
       syncFromCloud: s.syncFromCloud,
       setIsHydrated: s.setIsHydrated,
@@ -237,13 +235,17 @@ export default function App() {
 
   // Real-time Firestore permissions subscription with clean unsubscribe
   useEffect(() => {
+    if (!currentUser?.isLoggedIn) {
+      return;
+    }
+
     const unsubscribe = subscribePermissions((updatedPerms) => {
       setPermissions(updatedPerms);
     });
     return () => {
       unsubscribe();
     };
-  }, [setPermissions]);
+  }, [currentUser?.isLoggedIn, setPermissions]);
 
   // Tab Focus / Visibility Listener for Desktop Safari & multi-device sync
   useEffect(() => {
@@ -280,17 +282,13 @@ export default function App() {
           isSimulated: false,
         });
       } else {
-        setCurrentUser((prev) => {
-          if (prev.isSimulated) return prev;
-          const ownerEmailClean = (permissions.ownerEmail || '').trim().toLowerCase();
-          return {
-            uid: 'owner-session',
-            email: ownerEmailClean,
-            displayName: 'Journal Owner',
-            isLoggedIn: false,
-            role: 'owner',
-            isSimulated: false,
-          };
+        setCurrentUser({
+          uid: '',
+          email: '',
+          displayName: '',
+          isLoggedIn: false,
+          role: 'unauthorized',
+          isSimulated: false,
         });
       }
     });
@@ -300,8 +298,12 @@ export default function App() {
     };
   }, [permissions, setCurrentUser]);
 
-  // Live Cloud data subscription with clean unsubscribe
+  // Live Cloud data subscription with clean unsubscribe (only when authenticated and authorized)
   useEffect(() => {
+    if (!currentUser?.isLoggedIn || currentUser?.role === 'unauthorized') {
+      return;
+    }
+
     const unsubscribe = subscribeJournalData(
       (cloudData) => {
         setHasReceivedFirstFirestoreSnapshot(true);
@@ -317,7 +319,7 @@ export default function App() {
     return () => {
       unsubscribe();
     };
-  }, [syncFromCloud, setIsHydrated, setHasReceivedFirstFirestoreSnapshot]);
+  }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud, setIsHydrated, setHasReceivedFirstFirestoreSnapshot]);
 
   // Global Keyboard Shortcuts (Ctrl+B/Cmd+B for Sidebar toggle, Escape for Fullscreen exit)
   useEffect(() => {
@@ -720,7 +722,6 @@ export default function App() {
               onClose={handleCloseAccessManagement}
               permissions={permissions}
               currentUser={currentUser}
-              onSwitchSimulatedUser={switchSimulatedUser}
             />
           </Suspense>
         )}

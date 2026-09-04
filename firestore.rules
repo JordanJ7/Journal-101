@@ -52,28 +52,31 @@ service cloud.firestore {
         getPermissions().users[getUserEmail()].role == 'viewer';
     }
 
+    function isGlobalViewer() {
+      return isSignedIn() && hasPermissions() &&
+        'globalShareEnabled' in getPermissions() &&
+        getPermissions().globalShareEnabled == true;
+    }
+
     function canRead() {
-      // Unauthenticated simulated dev sessions allowed, all authenticated roles allowed
-      return !isSignedIn() || isOwner() || isEditor() || isCommenter() || isViewer();
+      return isOwner() || isEditor() || isCommenter() || isViewer() || isGlobalViewer();
     }
 
     function canEditContent() {
-      // Unauthenticated simulated dev sessions allowed for local dev / preview
-      return !isSignedIn() || isOwner() || isEditor();
+      return isOwner() || isEditor();
     }
 
     function canCommentContent() {
-      // Unauthenticated simulated dev sessions allowed, authenticated commenters/editors/owners allowed
-      return !isSignedIn() || isOwner() || isEditor() || isCommenter();
+      return isOwner() || isEditor() || isCommenter();
     }
 
     function canManagePermissions() {
-      return !isSignedIn() || isOwner();
+      return isOwner();
     }
 
     // 1. Permissions Document
     match /permissions/{docId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if canManagePermissions();
     }
 

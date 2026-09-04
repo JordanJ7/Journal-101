@@ -1220,10 +1220,23 @@ export function onAuthStateChangedWrapper(callback: (user: CurrentUserProfile | 
   authStateListeners.add(callback);
   callback(currentActiveUser);
 
-  const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+  const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
     if (firebaseUser && firebaseUser.email) {
-      const perms = loadStoredPermissions();
       const emailClean = firebaseUser.email.toLowerCase();
+
+      // Refresh permissions from Firestore so invited members always get fresh roles
+      let perms = loadStoredPermissions();
+      try {
+        const permissionsSnap = await getDoc(doc(db, 'permissions', 'global'));
+        if (permissionsSnap.exists()) {
+          perms = permissionsSnap.data() as PermissionsDoc;
+          localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(perms));
+          permissionsListeners.forEach((listener) => listener(perms));
+        }
+      } catch (permErr) {
+        console.warn('Permissions fetch note in onAuthStateChanged:', permErr);
+      }
+
       const resolved = resolveUserRole(emailClean, perms);
       const role: UserRole = resolved || 'unauthorized';
 
@@ -1244,6 +1257,10 @@ export function onAuthStateChangedWrapper(callback: (user: CurrentUserProfile | 
       currentActiveUser = profile;
       localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(profile));
       authStateListeners.forEach((cb) => cb(profile));
+    } else {
+      currentActiveUser = null;
+      localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
+      authStateListeners.forEach((cb) => cb(null));
     }
   });
 
@@ -1254,32 +1271,46 @@ export function onAuthStateChangedWrapper(callback: (user: CurrentUserProfile | 
 }
 
 /**
- * Sign In with Email (Direct / Simulated / Verified)
+ * Google Sign-In wrapper using Firebase Auth signInWithPopup
+ * All sign-in must go through real Firebase Authentication
  */
-export async function loginWithEmail(
-  email: string,
-  displayName?: string,
-  rejectIfUnauthorized = false
-): Promise<CurrentUserProfile> {
-  const perms = loadStoredPermissions();
-  const emailClean = email.trim().toLowerCase();
+export async function signInWithGoogle(): Promise<CurrentUserProfile> {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const result = await signInWithPopup(auth, provider);
+  const fbUser = result.user;
+
+  if (!fbUser.email) {
+    throw new Error('Google sign-in failed: No email address returned.');
+  }
+
+  const emailClean = fbUser.email.toLowerCase();
+
+  // Load fresh permissions directly from Firestore
+  let perms = loadStoredPermissions();
+  try {
+    const permissionsSnap = await getDoc(doc(db, 'permissions', 'global'));
+    if (permissionsSnap.exists()) {
+      perms = permissionsSnap.data() as PermissionsDoc;
+      localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(perms));
+      permissionsListeners.forEach((listener) => listener(perms));
+    }
+  } catch (permErr) {
+    console.warn('Could not fetch permissions from Firestore during sign-in:', permErr);
+  }
+
   const resolved = resolveUserRole(emailClean, perms);
   const role: UserRole = resolved || 'unauthorized';
 
-  if (!resolved && rejectIfUnauthorized) {
-    throw new Error(
-      `Access Denied: The account "${email}" has not been authorized to view this private journal.`
-    );
-  }
-
   const profile: CurrentUserProfile = {
-    uid: 'user-' + Date.now(),
+    uid: fbUser.uid,
     email: emailClean,
     displayName:
-      displayName ||
+      fbUser.displayName ||
       (emailClean === perms.ownerEmail.toLowerCase()
         ? 'Journal Owner'
         : emailClean.split('@')[0]),
+    photoURL: fbUser.photoURL || undefined,
     isLoggedIn: true,
     role,
     isSimulated: false,
@@ -1289,51 +1320,6 @@ export async function loginWithEmail(
   localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(profile));
   authStateListeners.forEach((cb) => cb(profile));
   return profile;
-}
-
-/**
- * Google Sign-In wrapper using Firebase Auth signInWithPopup with graceful fallback
- */
-export async function signInWithGoogle(customEmail?: string): Promise<CurrentUserProfile> {
-  const perms = loadStoredPermissions();
-
-  try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    const result = await signInWithPopup(auth, provider);
-    const fbUser = result.user;
-
-    if (fbUser.email) {
-      const emailClean = fbUser.email.toLowerCase();
-      const resolved = resolveUserRole(emailClean, perms);
-      const role: UserRole = resolved || 'unauthorized';
-
-      const profile: CurrentUserProfile = {
-        uid: fbUser.uid,
-        email: emailClean,
-        displayName:
-          fbUser.displayName ||
-          (emailClean === perms.ownerEmail.toLowerCase()
-            ? 'Journal Owner'
-            : emailClean.split('@')[0]),
-        photoURL: fbUser.photoURL || undefined,
-        isLoggedIn: true,
-        role,
-        isSimulated: false,
-      };
-
-      currentActiveUser = profile;
-      localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(profile));
-      authStateListeners.forEach((cb) => cb(profile));
-      return profile;
-    }
-  } catch (err: any) {
-    console.warn('Firebase popup sign-in fallback (e.g. iframe restrictions):', err?.message);
-  }
-
-  // Fallback direct sign in
-  const email = customEmail || perms.ownerEmail;
-  return loginWithEmail(email, email === perms.ownerEmail ? 'Journal Owner' : undefined, false);
 }
 
 /**

@@ -25,7 +25,6 @@ interface AccessManagementModalProps {
   onClose: () => void;
   permissions: PermissionsDoc;
   currentUser: CurrentUserProfile;
-  onSwitchSimulatedUser: (email: string, role: UserRole) => void;
 }
 
 export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({

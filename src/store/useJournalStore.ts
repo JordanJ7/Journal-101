@@ -47,12 +47,12 @@ import {
   saveCoreCategoriesDoc,
 } from '../lib/firebase';
 
-const INITIAL_OWNER_PROFILE: CurrentUserProfile = {
-  uid: 'owner-session',
-  email: DEFAULT_PERMISSIONS.ownerEmail,
-  displayName: 'Journal Owner',
+const INITIAL_USER_PROFILE: CurrentUserProfile = {
+  uid: '',
+  email: '',
+  displayName: '',
   isLoggedIn: false,
-  role: 'owner',
+  role: 'unauthorized',
   isSimulated: false,
 };
 
@@ -173,7 +173,6 @@ export interface JournalStoreState {
 
   setCurrentUser: (userOrUpdater: CurrentUserProfile | ((prev: CurrentUserProfile) => CurrentUserProfile)) => void;
   setPermissions: (perms: PermissionsDoc) => void;
-  switchSimulatedUser: (email: string, role: UserRole) => void;
   logout: () => Promise<void>;
 
   syncFromCloud: (cloudData: Partial<AppState>) => void;
@@ -241,7 +240,7 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
     saveAppState(appState);
 
     // 2. Cloud Firestore Dispatch
-    if (s.currentUser?.role && s.currentUser.role !== 'viewer') {
+    if (s.currentUser?.isLoggedIn && (s.currentUser.role === 'owner' || s.currentUser.role === 'editor')) {
       await saveJournalDataToCloud(appState, entryId || pendingTargetEntryId);
     }
 
@@ -369,7 +368,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   isEditorOpen: true,
 
   permissions: DEFAULT_PERMISSIONS,
-  currentUser: INITIAL_OWNER_PROFILE,
+  currentUser: INITIAL_USER_PROFILE,
 
   // Direct Atomic Helper Handlers
   createFolder: async (folderData) => {
@@ -1278,21 +1277,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setPermissions: (permissions) => set({ permissions }),
-
-  switchSimulatedUser: (email, role) => {
-    const cleanEmail = email.trim().toLowerCase();
-    set({
-      currentUser: {
-        uid: `sim-${role}-${Date.now()}`,
-        email: cleanEmail,
-        displayName: cleanEmail.split('@')[0],
-        isLoggedIn: false,
-        role,
-        isSimulated: true,
-      },
-    });
-  },
-
+ 
   logout: async () => {
     await logoutUser();
     set({
@@ -1301,7 +1286,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         email: '',
         displayName: '',
         isLoggedIn: false,
-        role: 'viewer',
+        role: 'unauthorized',
       },
     });
   },
