@@ -35,7 +35,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
   onClose,
   canEdit: propCanEdit,
 }) => {
-  const { canEdit: hookCanEdit } = usePermissions();
+  const { canEdit: hookCanEdit, isCommenter } = usePermissions();
   const canEdit = propCanEdit !== undefined ? propCanEdit : hookCanEdit;
   const [selectedCategoryId, setSelectedCategoryId] = useState<CoreCategoryId>(
     item?.categoryId || activeCategory
@@ -323,13 +323,21 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
-              {item ? 'Edit Entry' : 'Add New Entry'}
+              {item ? (canEdit ? 'Edit Entry' : 'View Entry') : 'Add New Entry'}
             </h3>
-            <SaveStatusBadge
-              status={autoSaveStatus === 'unsaved' ? 'countdown' : autoSaveStatus}
-              secondsRemaining={2}
-              errorMessage={saveErrorMessage || undefined}
-            />
+            {!canEdit && (
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
+                <Eye className="w-3 h-3 text-stone-400" />
+                <span>{isCommenter ? 'Commenting only' : 'View only'}</span>
+              </span>
+            )}
+            {canEdit && (
+              <SaveStatusBadge
+                status={autoSaveStatus === 'unsaved' ? 'countdown' : autoSaveStatus}
+                secondsRemaining={2}
+                errorMessage={saveErrorMessage || undefined}
+              />
+            )}
           </div>
           <button
             onClick={onClose}
@@ -362,8 +370,9 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             </label>
             <select
               value={selectedCategoryId}
+              disabled={!canEdit}
               onChange={(e) => setSelectedCategoryId(e.target.value as CoreCategoryId)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold focus:outline-none"
+              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold focus:outline-none disabled:opacity-75"
             >
               {coreCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -381,10 +390,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             <input
               type="text"
               required
+              readOnly={!canEdit}
+              disabled={!canEdit}
               placeholder="e.g., Mom's Birthday Gift Idea, Book Recommendation..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold"
+              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold disabled:opacity-75"
             />
           </div>
 
@@ -396,9 +407,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             <BulletedNoteEditor
               entryId={item?.id || 'new-item-draft'}
               value={content}
-              onChange={(newVal) => setContent(newVal)}
+              onChange={(newVal) => {
+                if (canEdit) setContent(newVal);
+              }}
+              readOnly={!canEdit}
               minRows={4}
-              placeholder="Add thoughts, key details, or bullet points..."
+              placeholder={canEdit ? "Add thoughts, key details, or bullet points..." : "No notes or bullet entries recorded."}
             />
           </div>
 

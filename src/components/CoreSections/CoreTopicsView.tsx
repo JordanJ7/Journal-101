@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
+  Eye,
   FileDown,
   FileText,
   Folder,
@@ -79,12 +80,12 @@ const CATEGORY_ICON_MAP: Record<string, React.ElementType> = {
 interface CategoryNotesSectionProps {
   category: CoreCategoryConfig;
   onUpdateCategory?: (catId: string, updated: Partial<CoreCategoryConfig>) => void;
-  isViewer?: boolean;
+  canEdit?: boolean;
   searchQuery?: string;
 }
 
 const CategoryNotesSection: React.FC<CategoryNotesSectionProps> = React.memo(
-  ({ category, onUpdateCategory, isViewer, searchQuery }) => {
+  ({ category, onUpdateCategory, canEdit = false, searchQuery }) => {
     const [notesValue, setNotesValue] = useState(category?.notes || '');
     const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -96,6 +97,7 @@ const CategoryNotesSection: React.FC<CategoryNotesSectionProps> = React.memo(
 
     const handleNotesChange = useCallback(
       (newNotes: string) => {
+        if (!canEdit) return;
         setNotesValue(newNotes);
         setSaveStatus('unsaved');
 
@@ -112,10 +114,11 @@ const CategoryNotesSection: React.FC<CategoryNotesSectionProps> = React.memo(
           }, 300);
         }, 600);
       },
-      [category?.id, onUpdateCategory]
+      [canEdit, category?.id, onUpdateCategory]
     );
 
     const handleNotesSaveImmediate = useCallback(() => {
+      if (!canEdit) return;
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
@@ -127,7 +130,7 @@ const CategoryNotesSection: React.FC<CategoryNotesSectionProps> = React.memo(
           setTimeout(() => setSaveStatus('idle'), 2000);
         }, 300);
       }
-    }, [category?.id, category?.notes, notesValue, onUpdateCategory]);
+    }, [canEdit, category?.id, category?.notes, notesValue, onUpdateCategory]);
 
     useEffect(() => {
       return () => {
@@ -144,7 +147,7 @@ const CategoryNotesSection: React.FC<CategoryNotesSectionProps> = React.memo(
         onChange={handleNotesChange}
         onSaveImmediate={handleNotesSaveImmediate}
         saveStatus={saveStatus}
-        readOnly={isViewer}
+        readOnly={!canEdit}
         minRows={5}
         placeholder={`Add bullet points, reflections, or notes for "${category?.title}" (type - or • + Space to start a bullet)...`}
         searchQuery={searchQuery}
@@ -198,7 +201,9 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   const permissions = usePermissions();
   const isOwner = permissions.isOwner || currentUser?.role === 'owner';
   const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const isCommenter = permissions.isCommenter || currentUser?.role === 'commenter';
   const isViewer = permissions.isViewer || currentUser?.role === 'viewer';
+  const readOnlyBadgeText = isCommenter ? 'Commenting only' : 'View only';
 
   const storeSetFilters = useJournalStore((s) => s.setFilters);
   const updateFilters = setFilters || storeSetFilters;
@@ -474,8 +479,8 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               </button>
             )}
 
-            {/* Pin / Unpin Folder from Home */}
-            {onTogglePinCategory && (
+            {/* Pin / Unpin Folder from Home (Owner & Editor only) */}
+            {canEdit && onTogglePinCategory && (
               <button
                 onClick={() => onTogglePinCategory(activeCategory)}
                 title={pinnedCategoryIds.includes(activeCategory) ? "Unpin folder from Home" : "Pin folder to Home"}
@@ -522,6 +527,17 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               >
                 <Trash2 className="w-4 h-4" />
               </button>
+            )}
+
+            {/* Read-Only Indicator for Commenters and Viewers */}
+            {!canEdit && (
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700/60 text-xs font-semibold text-stone-600 dark:text-stone-300 select-none shadow-2xs"
+                title={isCommenter ? 'You have commenting access only' : 'You have view-only access'}
+              >
+                <Eye className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 shrink-0" />
+                <span>{readOnlyBadgeText}</span>
+              </div>
             )}
           </div>
         </div>
@@ -607,12 +623,19 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               <FileText className="w-3.5 h-3.5" />
               <span>Bulleted Notes & Thoughts</span>
             </span>
+
+            {!canEdit && (
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
+                <Eye className="w-3 h-3 text-stone-400" />
+                <span>{readOnlyBadgeText}</span>
+              </span>
+            )}
           </div>
 
           <CategoryNotesSection
             category={activeCategoryConfig}
             onUpdateCategory={onUpdateCoreCategory}
-            isViewer={isViewer}
+            canEdit={canEdit}
             searchQuery={filters.searchQuery}
           />
         </div>
