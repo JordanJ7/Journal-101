@@ -45,6 +45,7 @@ import {
   saveCommentDoc,
   deleteCommentDoc,
   saveCoreCategoriesDoc,
+  saveAppStateDoc,
 } from '../lib/firebase';
 
 const INITIAL_USER_PROFILE: CurrentUserProfile = {
@@ -296,13 +297,10 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
   }, delayMs);
 };
 
-// Global window lifecycle listeners to flush pending debounced saves immediately
+// Global window lifecycle listener: flush pending debounced saves strictly on actual tab unload if unsaved
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => {
-    useJournalStore.getState().flushAutoSave();
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
+    if (useJournalStore.getState().saveStatus === 'unsaved' || syncTimeout) {
       useJournalStore.getState().flushAutoSave();
     }
   });
@@ -354,7 +352,14 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   lastSavedAt: null,
 
   flushAutoSave: async (entryId?: string) => {
-    if (syncTimeout) clearTimeout(syncTimeout);
+    // Only flush if there is an actual pending save scheduled or unsaved status
+    if (!syncTimeout && get().saveStatus !== 'unsaved' && !pendingSaveAfterSync) {
+      return;
+    }
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+      syncTimeout = null;
+    }
     await executeSave(get, entryId);
   },
 
@@ -935,23 +940,78 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   setPinnedCategoryIds: (ids) => {
     set({ pinnedCategoryIds: ids });
-    schedulePersistence(get);
+    try {
+      const s = get();
+      saveAppState({
+        weeks: s.weeks,
+        activeWeekId: s.activeWeekId,
+        coreItems: s.coreItems,
+        activeCoreCategory: s.activeCoreCategory,
+        activeCoreSubCategory: s.activeCoreSubCategory,
+        theme: s.theme,
+        accentTheme: s.accentTheme,
+        coreCategories: s.coreCategories,
+        pinnedCategoryIds: ids,
+        filters: s.filters,
+        comments: s.comments,
+      });
+    } catch {}
+    saveAppStateDoc({ pinnedCategoryIds: ids }).catch((err) => {
+      console.warn('[Firestore] Failed to save pinnedCategoryIds:', err);
+    });
   },
 
   togglePinCategory: (categoryId) => {
+    let updated: string[] = [];
     set((state) => {
       const isPinned = state.pinnedCategoryIds.includes(categoryId);
-      const updated = isPinned
+      updated = isPinned
         ? state.pinnedCategoryIds.filter((id) => id !== categoryId)
         : [...state.pinnedCategoryIds, categoryId];
       return { pinnedCategoryIds: updated };
     });
-    schedulePersistence(get);
+    try {
+      const s = get();
+      saveAppState({
+        weeks: s.weeks,
+        activeWeekId: s.activeWeekId,
+        coreItems: s.coreItems,
+        activeCoreCategory: s.activeCoreCategory,
+        activeCoreSubCategory: s.activeCoreSubCategory,
+        theme: s.theme,
+        accentTheme: s.accentTheme,
+        coreCategories: s.coreCategories,
+        pinnedCategoryIds: updated,
+        filters: s.filters,
+        comments: s.comments,
+      });
+    } catch {}
+    saveAppStateDoc({ pinnedCategoryIds: updated }).catch((err) => {
+      console.warn('[Firestore] Failed to save pinnedCategoryIds:', err);
+    });
   },
 
   reorderPinnedCategories: (ids) => {
     set({ pinnedCategoryIds: ids });
-    schedulePersistence(get);
+    try {
+      const s = get();
+      saveAppState({
+        weeks: s.weeks,
+        activeWeekId: s.activeWeekId,
+        coreItems: s.coreItems,
+        activeCoreCategory: s.activeCoreCategory,
+        activeCoreSubCategory: s.activeCoreSubCategory,
+        theme: s.theme,
+        accentTheme: s.accentTheme,
+        coreCategories: s.coreCategories,
+        pinnedCategoryIds: ids,
+        filters: s.filters,
+        comments: s.comments,
+      });
+    } catch {}
+    saveAppStateDoc({ pinnedCategoryIds: ids }).catch((err) => {
+      console.warn('[Firestore] Failed to save pinnedCategoryIds:', err);
+    });
   },
 
   addSubCategory: (categoryId, subCategory) => {

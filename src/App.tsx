@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useTransition } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState, useTransition } from 'react';
 import { Calendar, Film, FolderOpen, Home, Menu, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { CoreTopicsView } from './components/CoreSections/CoreTopicsView';
@@ -59,6 +59,7 @@ const SharedView = lazy(() =>
 
 export default function App() {
   const [isPending, startTransition] = useTransition();
+  const [subscriptionVersion, setSubscriptionVersion] = useState(0);
 
   // Atomic selectors from Zustand store
   const weeks = useWeeks();
@@ -245,14 +246,15 @@ export default function App() {
     return () => {
       unsubscribe();
     };
-  }, [currentUser?.isLoggedIn, setPermissions]);
+  }, [currentUser?.isLoggedIn, setPermissions, subscriptionVersion]);
 
   // Tab Focus / Visibility Listener for Desktop Safari & multi-device sync
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Re-verify Firestore connection state or trigger a lightweight state re-sync
+        // Refresh / reattach active Firestore subscriptions without writing any state to the cloud
         console.log('[App] Tab regained focus - refreshing active subscriptions');
+        setSubscriptionVersion((v) => v + 1);
         refreshFirestoreSync();
       }
     };
@@ -319,7 +321,7 @@ export default function App() {
     return () => {
       unsubscribe();
     };
-  }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud, setIsHydrated, setHasReceivedFirstFirestoreSnapshot]);
+  }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud, setIsHydrated, setHasReceivedFirstFirestoreSnapshot, subscriptionVersion]);
 
   // Global Keyboard Shortcuts (Ctrl+B/Cmd+B for Sidebar toggle, Escape for Fullscreen exit)
   useEffect(() => {

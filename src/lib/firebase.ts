@@ -888,40 +888,6 @@ export function subscribeJournalData(
         if (hasStructuralChanges) {
           scheduleBroadcast();
         }
-      } else {
-        // Auto-migration check from legacy document
-        try {
-          const legacyDoc = await getDoc(doc(db, 'app_state', 'journal'));
-          if (legacyDoc.exists()) {
-            const legacyData = legacyDoc.data() as Partial<AppState>;
-            if (legacyData.weeks && legacyData.weeks.length > 0) {
-              for (const w of legacyData.weeks) {
-                await saveWeekMetaDoc(w);
-                if (w.bullets && w.bullets.length > 0) {
-                  for (const b of w.bullets) {
-                    await saveEntryDoc(w.id, b);
-                  }
-                }
-              }
-            }
-            if (legacyData.coreItems && legacyData.coreItems.length > 0) {
-              for (const ci of legacyData.coreItems) {
-                await saveCoreTopicDoc(ci);
-              }
-            }
-            if (legacyData.coreCategories && legacyData.coreCategories.length > 0) {
-              for (const cat of legacyData.coreCategories) {
-                await saveFolderDoc(cat);
-              }
-            }
-            if (legacyData.pinnedCategoryIds && Array.isArray(legacyData.pinnedCategoryIds)) {
-              cachedPinnedCategoryIds = legacyData.pinnedCategoryIds;
-              scheduleBroadcast();
-            }
-          }
-        } catch (mErr) {
-          console.warn('[Migration Note]:', mErr);
-        }
       }
     },
     (err) => {
