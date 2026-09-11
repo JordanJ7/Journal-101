@@ -779,6 +779,7 @@ export function subscribeJournalData(
   let coreCategoriesFallback: CoreCategoryConfig[] | null = null;
   let commentsList: CommentItem[] = [];
   let cachedPinnedCategoryIds: string[] = [];
+  let cachedIntroQuotes: string[] = [];
 
   // Cached stable array references to prevent full-tree re-renders when only 1 item changes
   let cachedConsolidatedWeeks: WeeklyBlock[] = [];
@@ -799,6 +800,7 @@ export function subscribeJournalData(
         coreItems: cachedConsolidatedCoreItems,
         ...(cachedConsolidatedFolders.length > 0 ? { coreCategories: cachedConsolidatedFolders } : {}),
         pinnedCategoryIds: cachedPinnedCategoryIds,
+        introQuotes: cachedIntroQuotes,
         comments: cachedComments,
         updatedAt: new Date().toISOString(),
         clientSessionId: CLIENT_SESSION_ID,
@@ -1126,11 +1128,24 @@ export function subscribeJournalData(
       }
       if (snap.exists()) {
         const data = snap.data() as Partial<AppState>;
+        let hasChanges = false;
         if (data && Array.isArray(data.pinnedCategoryIds)) {
           if (JSON.stringify(cachedPinnedCategoryIds) !== JSON.stringify(data.pinnedCategoryIds)) {
             cachedPinnedCategoryIds = data.pinnedCategoryIds;
-            scheduleBroadcast();
+            hasChanges = true;
           }
+        }
+        if (data && Array.isArray(data.introQuotes)) {
+          if (JSON.stringify(cachedIntroQuotes) !== JSON.stringify(data.introQuotes)) {
+            cachedIntroQuotes = data.introQuotes;
+            hasChanges = true;
+          }
+        } else if (data && data.introQuotes === undefined && cachedIntroQuotes.length > 0) {
+          cachedIntroQuotes = [];
+          hasChanges = true;
+        }
+        if (hasChanges) {
+          scheduleBroadcast();
         }
       }
     },
@@ -1237,6 +1252,7 @@ export async function saveJournalDataToCloud(
           coreItems: state.coreItems,
           coreCategories: state.coreCategories,
           pinnedCategoryIds: state.pinnedCategoryIds || [],
+          ...(state.introQuotes !== undefined ? { introQuotes: state.introQuotes } : {}),
           comments: state.comments || [],
           updatedAt: new Date().toISOString(),
           clientSessionId: CLIENT_SESSION_ID,
@@ -1280,6 +1296,7 @@ export async function saveAppStateDoc(state: Partial<AppState>): Promise<void> {
     const sanitized = sanitizeForFirestore({
       ...state,
       pinnedCategoryIds: state.pinnedCategoryIds || [],
+      ...(state.introQuotes !== undefined ? { introQuotes: state.introQuotes } : {}),
       updatedAt: new Date().toISOString(),
       clientSessionId: CLIENT_SESSION_ID,
     });
@@ -1309,10 +1326,15 @@ export async function refreshFirestoreSync(): Promise<void> {
     const appStateSnap = await getDoc(doc(db, 'app_state', 'journal'));
     if (appStateSnap.exists()) {
       const appStateData = appStateSnap.data() as Partial<AppState>;
+      const syncUpdate: Partial<AppState> = {};
       if (appStateData.pinnedCategoryIds && Array.isArray(appStateData.pinnedCategoryIds)) {
-        journalDataListeners.forEach((listener) =>
-          listener({ pinnedCategoryIds: appStateData.pinnedCategoryIds })
-        );
+        syncUpdate.pinnedCategoryIds = appStateData.pinnedCategoryIds;
+      }
+      if (appStateData.introQuotes && Array.isArray(appStateData.introQuotes)) {
+        syncUpdate.introQuotes = appStateData.introQuotes;
+      }
+      if (Object.keys(syncUpdate).length > 0) {
+        journalDataListeners.forEach((listener) => listener(syncUpdate));
       }
     }
   } catch (err) {

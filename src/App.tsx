@@ -51,6 +51,9 @@ const ExportShareModal = lazy(() =>
 const AccessManagementModal = lazy(() =>
   import('./components/AccessManagementModal').then((m) => ({ default: m.AccessManagementModal }))
 );
+const IntroQuotesModal = lazy(() =>
+  import('./components/IntroQuotesModal').then((m) => ({ default: m.IntroQuotesModal }))
+);
 const CommentsSidebar = lazy(() =>
   import('./components/CommentsSidebar').then((m) => ({ default: m.CommentsSidebar }))
 );
@@ -99,6 +102,7 @@ export default function App() {
   const {
     isExportModalOpen,
     isAccessManagementOpen,
+    isQuotesModalOpen,
     isCommentsSidebarOpen,
     activeCommentSectionTag,
     setWeeks,
@@ -124,6 +128,7 @@ export default function App() {
     togglePinCategory,
     setIsExportModalOpen,
     setIsAccessManagementOpen,
+    setIsQuotesModalOpen,
     setIsCommentsSidebarOpen,
     setActiveCommentSectionTag,
     setIsOpenMobile,
@@ -143,6 +148,7 @@ export default function App() {
     useShallow((s) => ({
       isExportModalOpen: s.isExportModalOpen,
       isAccessManagementOpen: s.isAccessManagementOpen,
+      isQuotesModalOpen: s.isQuotesModalOpen,
       isCommentsSidebarOpen: s.isCommentsSidebarOpen,
       activeCommentSectionTag: s.activeCommentSectionTag,
       setWeeks: s.setWeeks,
@@ -168,6 +174,7 @@ export default function App() {
       togglePinCategory: s.togglePinCategory,
       setIsExportModalOpen: s.setIsExportModalOpen,
       setIsAccessManagementOpen: s.setIsAccessManagementOpen,
+      setIsQuotesModalOpen: s.setIsQuotesModalOpen,
       setIsCommentsSidebarOpen: s.setIsCommentsSidebarOpen,
       setActiveCommentSectionTag: s.setActiveCommentSectionTag,
       setIsOpenMobile: s.setIsOpenMobile,
@@ -375,6 +382,8 @@ export default function App() {
   const handleCloseExportModal = useCallback(() => setIsExportModalOpen(false), [setIsExportModalOpen]);
   const handleOpenAccessManagement = useCallback(() => setIsAccessManagementOpen(true), [setIsAccessManagementOpen]);
   const handleCloseAccessManagement = useCallback(() => setIsAccessManagementOpen(false), [setIsAccessManagementOpen]);
+  const handleOpenQuotesModal = useCallback(() => setIsQuotesModalOpen(true), [setIsQuotesModalOpen]);
+  const handleCloseQuotesModal = useCallback(() => setIsQuotesModalOpen(false), [setIsQuotesModalOpen]);
 
   const [activeCommentItemId, setActiveCommentItemId] = React.useState<string | undefined>();
   const [activeCommentTargetType, setActiveCommentTargetType] = React.useState<'weekly' | 'core' | undefined>();
@@ -485,6 +494,7 @@ export default function App() {
           setFilters={handleSetFilters}
           onOpenExportModal={handleOpenExportModal}
           onOpenAccessManagement={handleOpenAccessManagement}
+          onOpenQuotesModal={handleOpenQuotesModal}
           onLogout={logout}
           currentUser={currentUser}
           totalCoreCount={visibleCoreCategories.length}
@@ -750,6 +760,16 @@ export default function App() {
               onClose={handleCloseAccessManagement}
               permissions={permissions}
               currentUser={currentUser}
+            />
+          </Suspense>
+        )}
+
+        {/* Intro Screen Quotes Management Modal (Suspense Loaded) */}
+        {isQuotesModalOpen && (
+          <Suspense fallback={null}>
+            <IntroQuotesModal
+              isOpen={isQuotesModalOpen}
+              onClose={handleCloseQuotesModal}
             />
           </Suspense>
         )}

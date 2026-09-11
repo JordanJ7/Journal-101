@@ -74,6 +74,7 @@ export interface JournalStoreState {
   activeCoreSubCategory?: string;
   coreCategories: CoreCategoryConfig[];
   pinnedCategoryIds: string[];
+  introQuotes: string[];
   theme: 'light' | 'dark';
   accentTheme: AccentTheme;
   filters: FilterOptions;
@@ -87,6 +88,7 @@ export interface JournalStoreState {
   // Modals & UI navigation state
   isExportModalOpen: boolean;
   isAccessManagementOpen: boolean;
+  isQuotesModalOpen: boolean;
   isCommentsSidebarOpen: boolean;
   activeCommentSectionTag?: string;
   isOpenMobile: boolean;
@@ -144,6 +146,10 @@ export interface JournalStoreState {
   togglePinCategory: (categoryId: string) => void;
   reorderPinnedCategories: (ids: string[]) => void;
 
+  setIntroQuotes: (quotes: string[]) => Promise<void>;
+  addIntroQuote: (quote: string) => Promise<void>;
+  removeIntroQuote: (index: number) => Promise<void>;
+
   setTheme: (theme: 'light' | 'dark') => void;
   setAccentTheme: (accent: AccentTheme) => void;
   setFilters: (filtersOrUpdater: FilterOptions | ((prev: FilterOptions) => FilterOptions)) => void;
@@ -162,6 +168,7 @@ export interface JournalStoreState {
 
   setIsExportModalOpen: (isOpen: boolean) => void;
   setIsAccessManagementOpen: (isOpen: boolean) => void;
+  setIsQuotesModalOpen: (isOpen: boolean) => void;
   setIsCommentsSidebarOpen: (isOpen: boolean) => void;
   setActiveCommentSectionTag: (tag?: string) => void;
   setIsOpenMobile: (isOpen: boolean) => void;
@@ -233,6 +240,7 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
       accentTheme: s.accentTheme,
       coreCategories: s.coreCategories,
       pinnedCategoryIds: s.pinnedCategoryIds,
+      introQuotes: s.introQuotes,
       filters: s.filters,
       comments: s.comments,
     };
@@ -282,6 +290,7 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
       accentTheme: s.accentTheme,
       coreCategories: s.coreCategories,
       pinnedCategoryIds: s.pinnedCategoryIds,
+      introQuotes: s.introQuotes,
       filters: s.filters,
       comments: s.comments,
     });
@@ -336,6 +345,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   pinnedCategoryIds: Array.isArray(initialLoaded.pinnedCategoryIds) && initialLoaded.pinnedCategoryIds.length > 0
     ? initialLoaded.pinnedCategoryIds
     : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
+  introQuotes: Array.isArray(initialLoaded.introQuotes) ? initialLoaded.introQuotes : [],
   theme: initialLoaded.theme || 'dark',
   accentTheme: initialLoaded.accentTheme || 'amber',
   filters: initialLoaded.filters || {
@@ -365,6 +375,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   isExportModalOpen: false,
   isAccessManagementOpen: false,
+  isQuotesModalOpen: false,
   isCommentsSidebarOpen: false,
   activeCommentSectionTag: undefined,
   isOpenMobile: false,
@@ -1014,6 +1025,78 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     });
   },
 
+  setIntroQuotes: async (quotes) => {
+    set({ introQuotes: quotes });
+    try {
+      const s = get();
+      saveAppState({
+        weeks: s.weeks,
+        activeWeekId: s.activeWeekId,
+        coreItems: s.coreItems,
+        activeCoreCategory: s.activeCoreCategory,
+        activeCoreSubCategory: s.activeCoreSubCategory,
+        theme: s.theme,
+        accentTheme: s.accentTheme,
+        coreCategories: s.coreCategories,
+        pinnedCategoryIds: s.pinnedCategoryIds,
+        introQuotes: quotes,
+        filters: s.filters,
+        comments: s.comments,
+      });
+    } catch {}
+    await saveAppStateDoc({ introQuotes: quotes });
+  },
+
+  addIntroQuote: async (quote) => {
+    const trimmed = quote.trim();
+    if (!trimmed) return;
+    const current = get().introQuotes || [];
+    const updated = [...current, trimmed];
+    set({ introQuotes: updated });
+    try {
+      const s = get();
+      saveAppState({
+        weeks: s.weeks,
+        activeWeekId: s.activeWeekId,
+        coreItems: s.coreItems,
+        activeCoreCategory: s.activeCoreCategory,
+        activeCoreSubCategory: s.activeCoreSubCategory,
+        theme: s.theme,
+        accentTheme: s.accentTheme,
+        coreCategories: s.coreCategories,
+        pinnedCategoryIds: s.pinnedCategoryIds,
+        introQuotes: updated,
+        filters: s.filters,
+        comments: s.comments,
+      });
+    } catch {}
+    await saveAppStateDoc({ introQuotes: updated });
+  },
+
+  removeIntroQuote: async (index) => {
+    const current = get().introQuotes || [];
+    const updated = current.filter((_, i) => i !== index);
+    set({ introQuotes: updated });
+    try {
+      const s = get();
+      saveAppState({
+        weeks: s.weeks,
+        activeWeekId: s.activeWeekId,
+        coreItems: s.coreItems,
+        activeCoreCategory: s.activeCoreCategory,
+        activeCoreSubCategory: s.activeCoreSubCategory,
+        theme: s.theme,
+        accentTheme: s.accentTheme,
+        coreCategories: s.coreCategories,
+        pinnedCategoryIds: s.pinnedCategoryIds,
+        introQuotes: updated,
+        filters: s.filters,
+        comments: s.comments,
+      });
+    } catch {}
+    await saveAppStateDoc({ introQuotes: updated });
+  },
+
   addSubCategory: (categoryId, subCategory) => {
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
@@ -1319,6 +1402,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   // Modal actions
   setIsExportModalOpen: (isExportModalOpen) => set({ isExportModalOpen }),
   setIsAccessManagementOpen: (isAccessManagementOpen) => set({ isAccessManagementOpen }),
+  setIsQuotesModalOpen: (isQuotesModalOpen) => set({ isQuotesModalOpen }),
   setIsCommentsSidebarOpen: (isCommentsSidebarOpen) => set({ isCommentsSidebarOpen }),
   setActiveCommentSectionTag: (activeCommentSectionTag) => set({ activeCommentSectionTag }),
   setIsOpenMobile: (isOpenMobile) => set({ isOpenMobile }),
@@ -1362,15 +1446,17 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     const incomingCoreItems = cloudData.coreItems && Array.isArray(cloudData.coreItems) ? cloudData.coreItems : state.coreItems;
     const incomingCoreCategories = cloudData.coreCategories && Array.isArray(cloudData.coreCategories) ? cloudData.coreCategories : state.coreCategories;
     const incomingPinnedCategoryIds = cloudData.pinnedCategoryIds && Array.isArray(cloudData.pinnedCategoryIds) ? cloudData.pinnedCategoryIds : state.pinnedCategoryIds;
+    const incomingIntroQuotes = cloudData.introQuotes !== undefined && Array.isArray(cloudData.introQuotes) ? cloudData.introQuotes : state.introQuotes;
     const incomingComments = cloudData.comments && Array.isArray(cloudData.comments) ? cloudData.comments : state.comments;
 
     const isWeeksEqual = incomingWeeks.length === state.weeks.length && JSON.stringify(incomingWeeks) === JSON.stringify(state.weeks);
     const isCoreItemsEqual = incomingCoreItems.length === state.coreItems.length && JSON.stringify(incomingCoreItems) === JSON.stringify(state.coreItems);
     const isCategoriesEqual = incomingCoreCategories.length === state.coreCategories.length && JSON.stringify(incomingCoreCategories) === JSON.stringify(state.coreCategories);
     const isPinnedEqual = incomingPinnedCategoryIds.length === state.pinnedCategoryIds.length && JSON.stringify(incomingPinnedCategoryIds) === JSON.stringify(state.pinnedCategoryIds);
+    const isQuotesEqual = (incomingIntroQuotes?.length || 0) === (state.introQuotes?.length || 0) && JSON.stringify(incomingIntroQuotes) === JSON.stringify(state.introQuotes);
     const isCommentsEqual = (incomingComments?.length || 0) === (state.comments?.length || 0) && JSON.stringify(incomingComments) === JSON.stringify(state.comments);
 
-    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isCommentsEqual) {
+    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isQuotesEqual && isCommentsEqual) {
       return;
     }
 
@@ -1395,6 +1481,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         coreItems: nextCoreItems,
         coreCategories: nextCoreCategories,
         pinnedCategoryIds: incomingPinnedCategoryIds,
+        introQuotes: incomingIntroQuotes,
         comments: incomingComments,
         activeWeekId,
         activeCoreCategory,
@@ -1413,6 +1500,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         accentTheme: s.accentTheme,
         coreCategories: s.coreCategories,
         pinnedCategoryIds: s.pinnedCategoryIds,
+        introQuotes: s.introQuotes,
         filters: s.filters,
         comments: s.comments,
       });
@@ -1462,6 +1550,8 @@ export const useIsFullScreen = () => useJournalStore((s) => s.isFullScreen);
 export const useIsEditorOpen = () => useJournalStore((s) => s.isEditorOpen);
 export const useIsExportModalOpen = () => useJournalStore((s) => s.isExportModalOpen);
 export const useIsAccessManagementOpen = () => useJournalStore((s) => s.isAccessManagementOpen);
+export const useIsQuotesModalOpen = () => useJournalStore((s) => s.isQuotesModalOpen);
+export const useIntroQuotes = () => useJournalStore((s) => s.introQuotes);
 export const useIsCommentsSidebarOpen = () => useJournalStore((s) => s.isCommentsSidebarOpen);
 export const useActiveCommentSectionTag = () => useJournalStore((s) => s.activeCommentSectionTag);
 export const useUpdateWeeklyEntryTimestamp = () => useJournalStore((s) => s.updateWeeklyEntryTimestamp);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
-import { useTheme, useAccentTheme } from '../store/useJournalStore';
+import { useTheme, useAccentTheme, useIntroQuotes } from '../store/useJournalStore';
 import { AccentTheme } from '../types';
 
 interface EntranceOverlayProps {
@@ -17,10 +17,30 @@ const getRandomFont = (exclude?: FontPersonality): FontPersonality => {
   return available[Math.floor(Math.random() * available.length)] || 'serif';
 };
 
-const FULL_QUOTE = 'Love Is A Catalyst for Change';
+export const DEFAULT_INTRO_QUOTE = 'Love Is A Catalyst for Change';
 const ATTRIBUTION = '— Me';
 const TYPING_INTERVAL_MS = 30; // Fast 30ms typing cadence
 const READING_PAUSE_MS = 2100; // 2100ms post-typing reading pause
+
+/**
+ * Select a random quote from the provided quotes array,
+ * falling back to DEFAULT_INTRO_QUOTE if empty or invalid.
+ */
+export const pickRandomQuote = (quotes?: string[], exclude?: string): string => {
+  const valid = (quotes || [])
+    .map((q) => (typeof q === 'string' ? q.trim() : ''))
+    .filter((q) => q.length > 0);
+
+  if (valid.length === 0) {
+    return DEFAULT_INTRO_QUOTE;
+  }
+  if (valid.length === 1) {
+    return valid[0];
+  }
+  const filtered = exclude ? valid.filter((q) => q !== exclude) : valid;
+  const pool = filtered.length > 0 ? filtered : valid;
+  return pool[Math.floor(Math.random() * pool.length)] || DEFAULT_INTRO_QUOTE;
+};
 
 interface ThemeColorTokens {
   glowDark: string;
@@ -104,9 +124,11 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
 }) => {
   const theme = useTheme(); // 'dark' | 'light' (defaults to 'dark')
   const accentTheme = useAccentTheme(); // 'amber' | 'blue' | 'emerald' | 'violet' | 'rose' (defaults to 'amber')
+  const introQuotes = useIntroQuotes();
 
   const [isVisible, setIsVisible] = useState(true);
   const [isDismissing, setIsDismissing] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState<string>(() => pickRandomQuote(introQuotes));
   const [displayedQuote, setDisplayedQuote] = useState('');
   const [showAttribution, setShowAttribution] = useState(false);
   const [selectedFont, setSelectedFont] = useState<FontPersonality>(() => getRandomFont());
@@ -124,18 +146,20 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
     setIsVisible(true);
     setIsDismissing(false);
     setSelectedFont(getRandomFont());
+    setCurrentQuote((prev) => pickRandomQuote(introQuotes, prev));
 
     const handleReplayEvent = () => {
       setIsDismissing(false);
       setIsVisible(true);
       setSelectedFont((prev) => getRandomFont(prev));
+      setCurrentQuote((prev) => pickRandomQuote(introQuotes, prev));
     };
 
     window.addEventListener('replay-intro', handleReplayEvent);
     return () => {
       window.removeEventListener('replay-intro', handleReplayEvent);
     };
-  }, [forcePlay]);
+  }, [forcePlay, introQuotes]);
 
   const handleDismiss = useCallback(() => {
     if (isDismissing) return;
@@ -151,7 +175,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
     }, 600);
   }, [isDismissing, onDismiss]);
 
-  // Start typing sequence when visible
+  // Start typing sequence when visible or when currentQuote changes
   useEffect(() => {
     if (!isVisible || isDismissing) return;
 
@@ -160,10 +184,12 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
     setShowAttribution(false);
     setIsTypingComplete(false);
 
+    const targetQuote = currentQuote || DEFAULT_INTRO_QUOTE;
+
     const typeNextChar = () => {
-      if (charIndexRef.current < FULL_QUOTE.length) {
+      if (charIndexRef.current < targetQuote.length) {
         charIndexRef.current += 1;
-        setDisplayedQuote(FULL_QUOTE.slice(0, charIndexRef.current));
+        setDisplayedQuote(targetQuote.slice(0, charIndexRef.current));
         timerRef.current = setTimeout(typeNextChar, TYPING_INTERVAL_MS);
       } else {
         // Quote finished typing
@@ -186,7 +212,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
       if (timerRef.current) clearTimeout(timerRef.current);
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     };
-  }, [isVisible, isDismissing, handleDismiss]);
+  }, [isVisible, isDismissing, currentQuote, handleDismiss]);
 
   if (!isVisible) return null;
 

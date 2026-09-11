@@ -197,6 +197,7 @@ export interface AppState {
   pinnedCategoryIds?: string[];
   filters: FilterOptions;
   comments?: CommentItem[];
+  introQuotes?: string[];
 }
 
 export interface SharedSnapshotData {

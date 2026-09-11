@@ -14,6 +14,7 @@ import {
   Palette,
   PanelLeftClose,
   PanelLeftOpen,
+  Quote,
   Search,
   Share2,
   Shield,
@@ -46,6 +47,7 @@ interface NavbarProps {
   setFilters: React.Dispatch<React.SetStateAction<FilterOptions>>;
   onOpenExportModal: () => void;
   onOpenAccessManagement: () => void;
+  onOpenQuotesModal?: () => void;
   onLogout?: () => void;
   currentUser: CurrentUserProfile;
   totalCoreCount?: number;
@@ -183,6 +185,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   setFilters,
   onOpenExportModal,
   onOpenAccessManagement,
+  onOpenQuotesModal,
   onLogout,
   currentUser,
   weeks = [],
@@ -506,10 +509,23 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
           <button
             onClick={onOpenAccessManagement}
             title="Access & Sharing"
+            aria-label="Access & Sharing"
             className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
           >
             <Shield className="w-4 h-4" />
           </button>
+
+          {/* Intro Screen Quotes Management Button */}
+          {onOpenQuotesModal && (
+            <button
+              onClick={onOpenQuotesModal}
+              title="Customize Intro Quotes"
+              aria-label="Customize Intro Quotes"
+              className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
+            >
+              <Quote className="w-4 h-4 text-amber-500" />
+            </button>
+          )}
 
           {/* Theme & Palette Button */}
           <div className="relative" ref={themeMenuRef}>
@@ -581,7 +597,20 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-black/5 dark:border-white/5">
+                  <div className="pt-2 border-t border-black/5 dark:border-white/5 space-y-1">
+                    {onOpenQuotesModal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsThemeMenuOpen(false);
+                          onOpenQuotesModal();
+                        }}
+                        className="w-full py-1.5 px-2.5 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <Quote className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Customize Intro Quotes</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => {
@@ -751,6 +780,22 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
 
                 {/* Navigation & Action Links */}
                 <div className="space-y-1.5 pt-2 border-t border-black/5 dark:border-white/10">
+                  {onOpenQuotesModal && (
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenQuotesModal();
+                      }}
+                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-[#2C2C2E] flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Quote className="w-4 h-4 text-amber-500" />
+                        <span>Intro Screen Quotes</span>
+                      </div>
+                      <span className="text-stone-400 text-xs">›</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
