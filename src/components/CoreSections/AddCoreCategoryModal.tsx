@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { CoreCategoryConfig } from '../../types';
+import { VisibilityRestrictionPicker } from '../VisibilityRestrictionPicker';
 
 interface AddCoreCategoryModalProps {
   onSave: (newCat: CoreCategoryConfig) => void;
@@ -46,6 +47,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('Folder');
+  const [visibleToEmails, setVisibleToEmails] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +60,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
       iconName: selectedIcon,
       notes: '',
       isCustom: true,
+      visibleToEmails: visibleToEmails.length > 0 ? visibleToEmails : undefined,
     };
 
     onSave(newCat);
@@ -154,6 +157,14 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
               })}
             </div>
           </div>
+
+          {/* Visibility Restriction */}
+          <VisibilityRestrictionPicker
+            visibleToEmails={visibleToEmails}
+            onChange={setVisibleToEmails}
+            label="Folder Visibility"
+            helperText="Default: Visible to all invited people. Restricting locks this folder so only the owner and selected emails can view it."
+          />
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-black/5 dark:border-white/10">
             <button

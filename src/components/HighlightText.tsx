@@ -30,14 +30,18 @@ export const HighlightText: React.FC<HighlightTextProps> = React.memo(({
   }, [text, query]);
 
   return (
-    <span className={className}>
+    <span
+      className={`min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word] ${className}`}
+      style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+    >
       {parts.map((part, i) => {
         const isMatch = part.toLowerCase() === query.toLowerCase();
         return isMatch ? (
           <mark
             key={i}
             data-search-match="true"
-            className="search-highlight-mark bg-amber-200 dark:bg-amber-500/35 text-stone-950 dark:text-amber-100 font-bold px-0.5 py-0.2 rounded-xs shadow-2xs inline-block"
+            className="search-highlight-mark bg-amber-200 dark:bg-amber-500/35 text-stone-950 dark:text-amber-100 font-bold px-0.5 py-0.2 rounded-xs shadow-2xs inline-block min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]"
+            style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
           >
             {part}
           </mark>

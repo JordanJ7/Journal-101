@@ -397,7 +397,10 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
       }
 
       return (
-        <div className="space-y-1.5 py-1 text-stone-800 dark:text-stone-200 text-sm leading-relaxed select-text font-normal">
+        <div
+          className="space-y-1.5 py-1 text-stone-800 dark:text-stone-200 text-sm leading-relaxed select-text font-normal min-w-0 max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word]"
+          style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+        >
           {localValue.split('\n').map((line, idx) => {
             const indentSpaces = line.match(/^(\s*)/)?.[1].length || 0;
             const indentLevel = Math.min(Math.floor(indentSpaces / 2), 3);
@@ -430,7 +433,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             return (
               <div
                 key={idx}
-                className={`flex items-start gap-2.5 min-h-[24px] ${paddingClass}`}
+                className={`flex items-start gap-2.5 min-h-[24px] min-w-0 max-w-full ${paddingClass}`}
               >
                 {isTodo ? (
                   <span
@@ -457,9 +460,10 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
                 ) : null}
 
                 <div
-                  className={`flex-1 break-words ${
+                  className={`flex-1 min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word] ${
                     isChecked ? 'line-through text-stone-400 dark:text-stone-500' : ''
                   }`}
+                  style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
                 >
                   <FormattedLineText text={contentText} searchQuery={searchQuery} />
                 </div>
@@ -550,7 +554,8 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             placeholder={placeholder}
             rows={minRows}
             autoFocus={autoFocus}
-            className="w-full h-auto min-h-[350px] resize-none overflow-hidden bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-stone-900 dark:text-neutral-100 placeholder:text-neutral-500 font-normal selection:bg-blue-500/20 py-2 px-1"
+            className="w-full h-auto min-h-[350px] resize-none overflow-hidden bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-stone-900 dark:text-neutral-100 placeholder:text-neutral-500 font-normal selection:bg-blue-500/20 py-2 px-1 break-words [overflow-wrap:anywhere] [word-break:break-word]"
+            style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
           />
         </div>
 
@@ -573,12 +578,19 @@ const FormattedLineText: React.FC<{ text: string; searchQuery?: string }> = Reac
     const parts = text.split(/(\*\*[^*]+\*\*)/g);
 
     return (
-      <span>
+      <span
+        className="min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]"
+        style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+      >
         {parts.map((part, i) => {
           if (part.startsWith('**') && part.endsWith('**')) {
             const boldContent = part.slice(2, -2);
             return (
-              <strong key={i} className="font-bold text-stone-900 dark:text-stone-100">
+              <strong
+                key={i}
+                className="font-bold text-stone-900 dark:text-stone-100 min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]"
+                style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+              >
                 <HighlightText text={boldContent} highlight={searchQuery} />
               </strong>
             );

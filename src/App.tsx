@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState, useTransition } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { Calendar, Film, FolderOpen, Home, Menu, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { CoreTopicsView } from './components/CoreSections/CoreTopicsView';
@@ -42,6 +42,7 @@ import {
   refreshFirestoreSync,
   UserRole,
 } from './lib/firebase';
+import { canUserViewItem } from './hooks/usePermissions';
 
 // Lazy-loaded heavy modals and slide-overs for minimal initial bundle & fast TTI
 const ExportShareModal = lazy(() =>
@@ -79,6 +80,21 @@ export default function App() {
   const isOpenMobile = useIsOpenMobile();
   const isFullScreen = useIsFullScreen();
   const isEditorOpen = useIsEditorOpen();
+
+  // Client-side visibility filtering enforced against user's email:
+  // - Owner sees everything, always.
+  // - Other users see an item IF visibleToEmails is empty/absent OR user's email is included.
+  const visibleCoreCategories = useMemo(() => {
+    return coreCategories.filter((cat) => canUserViewItem(cat.visibleToEmails, currentUser));
+  }, [coreCategories, currentUser]);
+
+  const visibleCoreItems = useMemo(() => {
+    const visibleCategoryIds = new Set(visibleCoreCategories.map((c) => c.id));
+    return coreItems.filter((item) => {
+      if (!visibleCategoryIds.has(item.categoryId)) return false;
+      return canUserViewItem(item.visibleToEmails, currentUser);
+    });
+  }, [coreItems, visibleCoreCategories, currentUser]);
 
   const {
     isExportModalOpen,
@@ -397,6 +413,16 @@ export default function App() {
     }
   }, [theme]);
 
+  // Ensure active category is valid and permitted for current user
+  useEffect(() => {
+    if (
+      visibleCoreCategories.length > 0 &&
+      !visibleCoreCategories.some((c) => c.id === activeCoreCategory)
+    ) {
+      handleSetActiveCoreCategory(visibleCoreCategories[0].id);
+    }
+  }, [visibleCoreCategories, activeCoreCategory, handleSetActiveCoreCategory]);
+
   // Check URL params for shareId
   const urlParams = new URLSearchParams(window.location.search);
   const shareId = urlParams.get('shareId');
@@ -440,7 +466,7 @@ export default function App() {
   }
 
   const currentWeekTitle = weeks.find((w) => w.id === activeWeekId)?.weekTitle || 'Weekly Journal';
-  const currentCategoryTitle = coreCategories.find((c) => c.id === activeCoreCategory)?.title || 'Core Topic';
+  const currentCategoryTitle = visibleCoreCategories.find((c) => c.id === activeCoreCategory)?.title || 'Core Topic';
 
   return (
     <ConfirmDeleteProvider>
@@ -461,10 +487,10 @@ export default function App() {
           onOpenAccessManagement={handleOpenAccessManagement}
           onLogout={logout}
           currentUser={currentUser}
-          totalCoreCount={coreCategories.length}
+          totalCoreCount={visibleCoreCategories.length}
           weeks={weeks}
-          coreItems={coreItems}
-          coreCategories={coreCategories}
+          coreItems={visibleCoreItems}
+          coreCategories={visibleCoreCategories}
           onNavigateToWeek={(wId) => {
             handleSetActiveWeekId(wId);
             handleSetViewMode('weekly');
@@ -493,7 +519,7 @@ export default function App() {
             weeks={weeks}
             activeWeekId={activeWeekId}
             setActiveWeekId={handleSetActiveWeekId}
-            coreCategories={coreCategories}
+            coreCategories={visibleCoreCategories}
             activeCoreCategory={activeCoreCategory}
             setActiveCoreCategory={handleSetActiveCoreCategory}
             onAddWeek={addWeek}
@@ -507,7 +533,7 @@ export default function App() {
             setIsOpenMobile={setIsOpenMobile}
             currentUser={currentUser}
             filters={filters}
-            coreItems={coreItems}
+            coreItems={visibleCoreItems}
             pinnedCategoryIds={pinnedCategoryIds}
             onTogglePinCategory={togglePinCategory}
             isSidebarOpen={isSidebarOpen}
@@ -537,8 +563,8 @@ export default function App() {
             {viewMode === 'home' ? (
               <HomeDashboard
                 weeks={weeks}
-                coreItems={coreItems}
-                coreCategories={coreCategories}
+                coreItems={visibleCoreItems}
+                coreCategories={visibleCoreCategories}
                 pinnedCategoryIds={pinnedCategoryIds}
                 accentTheme={accentTheme}
                 onNavigateToWeek={(wId) => {
@@ -575,9 +601,9 @@ export default function App() {
               />
             ) : viewMode === 'core' ? (
               <CoreTopicsView
-                items={coreItems}
+                items={visibleCoreItems}
                 setItems={setCoreItems}
-                coreCategories={coreCategories}
+                coreCategories={visibleCoreCategories}
                 activeCategory={activeCoreCategory}
                 setActiveCategory={handleSetActiveCoreCategory}
                 onAddCoreCategory={addCoreCategory}
@@ -600,7 +626,7 @@ export default function App() {
             ) : (
               <SharedMediaHub
                 weeks={weeks}
-                coreItems={coreItems}
+                coreItems={visibleCoreItems}
                 currentUser={currentUser}
                 onUpdateWeeks={setWeeks}
                 onUpdateCoreItems={setCoreItems}
@@ -709,8 +735,8 @@ export default function App() {
           <Suspense fallback={null}>
             <ExportShareModal
               weeks={weeks}
-              coreItems={coreItems}
-              coreCategories={coreCategories}
+              coreItems={visibleCoreItems}
+              coreCategories={visibleCoreCategories}
               onClose={handleCloseExportModal}
             />
           </Suspense>

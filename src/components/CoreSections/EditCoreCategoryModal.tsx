@@ -20,6 +20,7 @@ import {
   Check,
 } from 'lucide-react';
 import { CoreCategoryConfig } from '../../types';
+import { VisibilityRestrictionPicker } from '../VisibilityRestrictionPicker';
 
 interface EditCoreCategoryModalProps {
   isOpen: boolean;
@@ -55,12 +56,14 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('Folder');
+  const [visibleToEmails, setVisibleToEmails] = useState<string[]>([]);
 
   useEffect(() => {
     if (category) {
       setTitle(category.title);
       setDescription(category.description || '');
       setSelectedIcon(category.iconName || 'Folder');
+      setVisibleToEmails(category.visibleToEmails || []);
     }
   }, [category, isOpen]);
 
@@ -85,6 +88,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
       title: title.trim(),
       description: description.trim(),
       iconName: selectedIcon,
+      visibleToEmails: visibleToEmails.length > 0 ? visibleToEmails : [],
     });
     onClose();
   };
@@ -188,6 +192,14 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
               })}
             </div>
           </div>
+
+          {/* Visibility Restriction: Who can see this folder */}
+          <VisibilityRestrictionPicker
+            visibleToEmails={visibleToEmails}
+            onChange={setVisibleToEmails}
+            label="Folder Visibility"
+            helperText="Default: Visible to all invited people. Restricting locks this folder so only the owner and selected emails can view it."
+          />
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-black/5 dark:border-white/10">
             <button

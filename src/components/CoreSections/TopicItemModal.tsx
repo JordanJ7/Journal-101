@@ -17,6 +17,7 @@ import {
   MAX_SAFE_ATTACHMENTS_SIZE_BYTES,
 } from '../../utils/mediaUtils';
 import { MediaInspectModal } from '../MediaInspectModal';
+import { VisibilityRestrictionPicker } from '../VisibilityRestrictionPicker';
 
 interface TopicItemModalProps {
   item?: CoreTopicItem | null;
@@ -59,6 +60,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
   const [notes, setNotes] = useState(item?.notes || '');
   const [answers, setAnswers] = useState(item?.answers || '');
   const [isHighlightedAnswer, setIsHighlightedAnswer] = useState(item?.isHighlightedAnswer || false);
+  const [visibleToEmails, setVisibleToEmails] = useState<string[]>(item?.visibleToEmails || []);
   const [autoSaveStatus, setAutoSaveStatus] = useState<SaveStatusState>('idle');
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
@@ -92,6 +94,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       setNotes(item.notes || '');
       setAnswers(item.answers || '');
       setIsHighlightedAnswer(item.isHighlightedAnswer || false);
+      setVisibleToEmails(item.visibleToEmails || []);
       setSaveErrorMessage(null);
       setAutoSaveStatus('idle');
     }
@@ -208,6 +211,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           notes: notes.trim() || undefined,
           answers: answers.trim() || undefined,
           isHighlightedAnswer,
+          visibleToEmails: visibleToEmails.length > 0 ? visibleToEmails : undefined,
           updatedAt: new Date().toISOString(),
         };
         try {
@@ -215,7 +219,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
         } catch {}
       }
     };
-  }, [answers, categoryConfig?.hasDraftTracking, content, dateTag, draftAttachments, isHighlightedAnswer, isOverSizeLimit, item, location, notes, onSave, priority, selectedCategoryId, status, title]);
+  }, [answers, categoryConfig?.hasDraftTracking, content, dateTag, draftAttachments, isHighlightedAnswer, isOverSizeLimit, item, location, notes, onSave, priority, selectedCategoryId, status, title, visibleToEmails]);
 
   const handleMultipleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -284,6 +288,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       notes: notes.trim() || undefined,
       answers: answers.trim() || undefined,
       isHighlightedAnswer,
+      visibleToEmails: visibleToEmails.length > 0 ? visibleToEmails : undefined,
       createdAt: item?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -681,6 +686,16 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               </div>
             )}
           </div>
+
+          {/* Visibility Restriction: Who can see this note */}
+          {canEdit && (
+            <VisibilityRestrictionPicker
+              visibleToEmails={visibleToEmails}
+              onChange={setVisibleToEmails}
+              label="Note Visibility"
+              helperText="Default: Inherits topic folder visibility. You can also restrict this note to specific emails."
+            />
+          )}
 
           {/* Form Actions */}
           <div className="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">

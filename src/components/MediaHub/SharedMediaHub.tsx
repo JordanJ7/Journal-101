@@ -25,7 +25,9 @@ import { formatTimestamp } from '../../utils/storage';
 import { getNormalizedAttachments } from '../../utils/mediaUtils';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
-import { usePermissions } from '../../hooks/usePermissions';
+import { usePermissions, canUserViewItem } from '../../hooks/usePermissions';
+import { VisibilityRestrictionPicker } from '../VisibilityRestrictionPicker';
+import { saveSharedMediaDoc, deleteSharedMediaDoc } from '../../lib/firebase';
 
 interface SharedMediaHubProps {
   weeks: WeeklyBlock[];
@@ -54,6 +56,7 @@ interface ExtractedMediaItem {
   notes?: string;
   caption?: string;
   status?: ItemActivityStatus;
+  visibleToEmails?: string[];
 }
 
 export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
@@ -80,6 +83,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
   const [newType, setNewType] = useState<'apple-photos' | 'tiktok' | 'photo' | 'article'>('apple-photos');
   const [newNotes, setNewNotes] = useState('');
   const [targetWeekId, setTargetWeekId] = useState(weeks[0]?.id || '');
+  const [newVisibleToEmails, setNewVisibleToEmails] = useState<string[]>([]);
 
   const permissions = usePermissions();
   const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
@@ -116,6 +120,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
           sourceTitle: week.weekTitle,
           timestamp: link.addedAt || week.startDate,
           notes: link.notes,
+          visibleToEmails: link.visibleToEmails,
         });
       });
 
@@ -135,6 +140,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
               sourceTitle: week.weekTitle,
               timestamp: bullet.timestamp || week.startDate,
               caption: att.caption || bullet.mediaCaption,
+              visibleToEmails: att.visibleToEmails || bullet.visibleToEmails,
             });
           });
         }
@@ -159,6 +165,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
             notes: item.content,
             status: item.status,
             caption: att.caption || item.mediaCaption,
+            visibleToEmails: att.visibleToEmails || item.visibleToEmails,
           });
         });
       }
@@ -175,6 +182,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
           timestamp: item.dateTag || '',
           notes: item.content,
           status: item.status,
+          visibleToEmails: item.visibleToEmails,
         });
       }
     });
@@ -182,19 +190,24 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
     return list;
   }, [weeks, coreItems]);
 
+  // Client-side filtering: filter against signed-in user's email
+  const userAccessibleMedia = useMemo(() => {
+    return allMediaItems.filter((item) => canUserViewItem(item.visibleToEmails, currentUser));
+  }, [allMediaItems, currentUser]);
+
   const counts = useMemo(() => {
     return {
-      all: allMediaItems.length,
-      applePhotos: allMediaItems.filter((m) => m.type === 'apple-photos').length,
-      tiktok: allMediaItems.filter((m) => m.type === 'tiktok').length,
-      photos: allMediaItems.filter((m) => m.type === 'photo').length,
-      articles: allMediaItems.filter((m) => m.type === 'article').length,
-      watchlist: allMediaItems.filter((m) => m.type === 'watchlist').length,
+      all: userAccessibleMedia.length,
+      applePhotos: userAccessibleMedia.filter((m) => m.type === 'apple-photos').length,
+      tiktok: userAccessibleMedia.filter((m) => m.type === 'tiktok').length,
+      photos: userAccessibleMedia.filter((m) => m.type === 'photo').length,
+      articles: userAccessibleMedia.filter((m) => m.type === 'article').length,
+      watchlist: userAccessibleMedia.filter((m) => m.type === 'watchlist').length,
     };
-  }, [allMediaItems]);
+  }, [userAccessibleMedia]);
 
   const filteredMedia = useMemo(() => {
-    return allMediaItems.filter((item) => {
+    return userAccessibleMedia.filter((item) => {
       if (selectedFilter !== 'all' && item.type !== selectedFilter) {
         return false;
       }
@@ -207,7 +220,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
       }
       return true;
     });
-  }, [allMediaItems, selectedFilter, searchQuery]);
+  }, [userAccessibleMedia, selectedFilter, searchQuery]);
 
   const handleFilterChange = (filter: MediaFilterType) => {
     setSelectedFilter(filter);
@@ -250,7 +263,27 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
       notes: newNotes.trim() || undefined,
       thumbnailUrl: newType === 'photo' ? newUrl.trim() : undefined,
       addedAt: formatTimestamp(),
+      visibleToEmails: newVisibleToEmails.length > 0 ? newVisibleToEmails : undefined,
     };
+
+    // Save to both parent week and /shared_media doc
+    saveSharedMediaDoc({
+      id: newLink.id,
+      title: newLink.title,
+      url: newLink.url,
+      type: newType,
+      categoryLabel: categoryLabel,
+      mediaUrl: newLink.thumbnailUrl,
+      thumbnailUrl: newLink.thumbnailUrl,
+      notes: newLink.notes,
+      sourceType: 'weekly',
+      sourceId: targetWeek.id,
+      sourceTitle: targetWeek.weekTitle,
+      timestamp: newLink.addedAt || formatTimestamp(),
+      visibleToEmails: newLink.visibleToEmails,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }).catch((err) => console.warn('[Firestore] Could not save to /shared_media:', err));
 
     const updatedWeeks = weeks.map((w) => {
       if (w.id === targetWeek.id) {
@@ -271,6 +304,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
     setNewTitle('');
     setNewUrl('');
     setNewNotes('');
+    setNewVisibleToEmails([]);
   };
 
   const { confirmDelete } = useConfirmDelete();
@@ -282,6 +316,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
         message: `Delete "${item.title}"?`,
         confirmText: 'Delete',
         onConfirm: () => {
+          deleteSharedMediaDoc(item.id).catch(() => {});
           const updatedWeeks = weeks.map((w) => {
             if (w.id === item.sourceId) {
               return {
@@ -563,6 +598,14 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                   </option>
                 ))}
               </select>
+
+              {/* Visibility Restriction: Who can see this media item */}
+              <VisibilityRestrictionPicker
+                visibleToEmails={newVisibleToEmails}
+                onChange={setNewVisibleToEmails}
+                label="Media Visibility"
+                helperText="Default: Visible to all invited people. Restrict so only the owner and selected emails can view this item."
+              />
 
               <div className="flex justify-end gap-2 pt-2">
                 <button

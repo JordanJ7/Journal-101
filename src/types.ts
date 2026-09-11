@@ -25,6 +25,7 @@ export interface Attachment {
   size?: number;
   caption?: string;
   thumbnailUrl?: string;
+  visibleToEmails?: string[];
 }
 
 export interface BulletPoint {
@@ -77,6 +78,7 @@ export interface ExternalLink {
   notes?: string;
   thumbnailUrl?: string;
   addedAt?: string;
+  visibleToEmails?: string[];
 }
 
 export interface TherapistShowItem {
@@ -148,6 +150,7 @@ export interface CoreTopicItem {
   pinnedFromWeekTitle?: string;
   pinnedFromBulletId?: string;
   pinnedBulletId?: string;
+  visibleToEmails?: string[];
 }
 
 export interface CoreSubCategoryConfig {
@@ -170,6 +173,7 @@ export interface CoreCategoryConfig {
   createdAt?: string;
   updatedAt?: string;
   order?: number;
+  visibleToEmails?: string[];
 }
 
 export interface FilterOptions {
@@ -201,4 +205,24 @@ export interface SharedSnapshotData {
   weeks: WeeklyBlock[];
   coreItems: CoreTopicItem[];
   comments?: CommentItem[];
+}
+
+export interface SharedMediaItem {
+  id: string;
+  title: string;
+  url?: string;
+  mediaUrl?: string;
+  thumbnailUrl?: string;
+  type: 'apple-photos' | 'tiktok' | 'photo' | 'video' | 'article' | 'watchlist';
+  categoryLabel: string;
+  sourceType: 'weekly' | 'core';
+  sourceId: string;
+  sourceTitle: string;
+  timestamp: string;
+  notes?: string;
+  caption?: string;
+  status?: ItemActivityStatus;
+  visibleToEmails?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }

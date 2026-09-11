@@ -677,7 +677,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
             onOpenCommentSection={onOpenCommentSection}
           />
         ) : activeFolderItems.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
             {activeFolderItems.map((item) => (
               <TopicCategoryCard
                 key={item.id}

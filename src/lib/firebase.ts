@@ -33,6 +33,7 @@ import {
   CoreTopicItem,
   WeeklyBlock,
   CommentItem,
+  SharedMediaItem,
 } from '../types';
 import {
   getHasReceivedFirstFirestoreSnapshot,
@@ -668,6 +669,53 @@ export async function saveCoreCategoriesDoc(categories: CoreCategoryConfig[]): P
   } catch (err) {
     console.error('[Firestore Error] Failed to save categories config:', err);
     handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
+  }
+}
+
+/**
+ * 13. Create or Update Shared Media Item (/shared_media/{mediaId})
+ */
+export async function saveSharedMediaDoc(item: SharedMediaItem): Promise<void> {
+  if (!item || !item.id) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Write Blocked] Snapshot gate active: cannot write shared media doc before first Firestore snapshot.');
+    return;
+  }
+  const path = `shared_media/${item.id}`;
+  try {
+    const docRef = doc(db, 'shared_media', item.id);
+    const sanitized = sanitizeForFirestore({
+      ...item,
+      clientSessionId: CLIENT_SESSION_ID,
+      updatedAt: new Date().toISOString(),
+    });
+    await setDoc(docRef, sanitized, { merge: true });
+    console.log(`[Firestore SUCCESS] Shared media item saved: ${item.id}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to save shared media ${item.id}:`, err);
+    handleFirestoreError(err, OperationType.WRITE, path);
+    throw err;
+  }
+}
+
+/**
+ * 14. Delete Shared Media Item (/shared_media/{mediaId})
+ */
+export async function deleteSharedMediaDoc(mediaId: string): Promise<void> {
+  if (!mediaId) return;
+  if (!getHasReceivedFirstFirestoreSnapshot()) {
+    console.warn('[Firestore Delete Blocked] Snapshot gate active: cannot delete shared media doc before first Firestore snapshot.');
+    return;
+  }
+  const path = `shared_media/${mediaId}`;
+  try {
+    const docRef = doc(db, 'shared_media', mediaId);
+    await deleteDoc(docRef);
+    console.log(`[Firestore SUCCESS] Shared media item deleted: ${mediaId}`);
+  } catch (err) {
+    console.error(`[Firestore CRITICAL ERROR] Failed to delete shared media ${mediaId}:`, err);
+    handleFirestoreError(err, OperationType.DELETE, path);
     throw err;
   }
 }

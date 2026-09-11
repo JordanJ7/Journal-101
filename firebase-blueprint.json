@@ -60,6 +60,11 @@
         "updatedAt": {
           "type": "string",
           "description": "ISO timestamp of last update."
+        },
+        "visibleToEmails": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional list of user emails explicitly permitted to view this folder."
         }
       },
       "required": ["id", "title"]
@@ -295,6 +300,71 @@
         }
       },
       "required": ["id", "authorName", "content", "timestamp"]
+    },
+    "SharedMediaDoc": {
+      "title": "SharedMediaDoc",
+      "description": "Individual shared media hub item document.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique media item identifier."
+        },
+        "title": {
+          "type": "string",
+          "description": "Media title or caption."
+        },
+        "url": {
+          "type": "string",
+          "description": "External target or content URL."
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "Direct image or media URL."
+        },
+        "type": {
+          "type": "string",
+          "description": "Media type category."
+        },
+        "categoryLabel": {
+          "type": "string",
+          "description": "Display label for media category."
+        },
+        "sourceType": {
+          "type": "string",
+          "description": "Source origin: weekly or core."
+        },
+        "sourceId": {
+          "type": "string",
+          "description": "Originating week or category ID."
+        },
+        "sourceTitle": {
+          "type": "string",
+          "description": "Human-readable source title."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Formatted timestamp string."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional reflection or notes."
+        },
+        "visibleToEmails": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional list of user emails explicitly permitted to view this media item."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp."
+        }
+      },
+      "required": ["id", "title"]
     }
   },
   "firestore": {
@@ -309,6 +379,10 @@
     "/folders/{folderId}/notes/{noteId}": {
       "schema": "CoreTopicDoc",
       "description": "Notes and entries inside a specific folder."
+    },
+    "/shared_media/{mediaId}": {
+      "schema": "SharedMediaDoc",
+      "description": "Shared media items with per-item visibility restriction."
     },
     "/weeks/{weekId}": {
       "schema": "WeeklyBlockMeta",

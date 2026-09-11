@@ -83,3 +83,25 @@ export function useCanComment(): boolean {
 export function useIsOwner(): boolean {
   return useJournalStore((state) => checkIsOwner(state.currentUser));
 }
+
+/**
+ * Checks if the given user can view a document or folder restricted by visibleToEmails.
+ * - When visibleToEmails is absent, null, or empty array: returns true (standard role checks apply).
+ * - When visibleToEmails contains emails:
+ *   - Owner ALWAYS has access.
+ *   - Other users must have their email explicitly listed in visibleToEmails.
+ */
+export function canUserViewItem(
+  visibleToEmails?: string[] | null,
+  user?: CurrentUserProfile | null
+): boolean {
+  if (!visibleToEmails || !Array.isArray(visibleToEmails) || visibleToEmails.length === 0) {
+    return true;
+  }
+  if (!user) return false;
+  if (user.role === 'owner') return true;
+  if (!user.email) return false;
+  const userEmail = user.email.trim().toLowerCase();
+  return visibleToEmails.some((email) => email.trim().toLowerCase() === userEmail);
+}
+

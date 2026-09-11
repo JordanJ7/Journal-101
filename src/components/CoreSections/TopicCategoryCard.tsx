@@ -109,7 +109,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
       id={`core-item-${item.id}`}
       data-item-id={item.id}
       data-entry-id={item.id}
-      className={`rounded-2xl p-4 sm:p-5 border transition-all duration-300 ${
+      className={`rounded-2xl p-4 sm:p-5 border min-w-0 max-w-full overflow-hidden transition-all duration-300 ${
         isHighlighted
           ? 'bg-sky-50/70 dark:bg-sky-950/60 border-sky-300 dark:border-sky-700 ring-2 ring-sky-400/50 shadow-md'
           : item.isHighlightedAnswer
@@ -137,9 +137,12 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
       )}
 
       {/* Header & Badges */}
-      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">
+      <div className="flex flex-wrap items-start justify-between gap-2 mb-2 min-w-0 max-w-full">
+        <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
+          <h3
+            className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]"
+            style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+          >
             <HighlightText text={item.title} highlight={searchQuery} />
           </h3>
 
@@ -284,7 +287,10 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
 
       {/* Main Content Body with Apple-style Bullet Rendering */}
       {item.content && (
-        <div className="mb-3">
+        <div
+          className="mb-3 min-w-0 max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word]"
+          style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+        >
           <BulletedNoteEditor
             value={item.content}
             onChange={() => {}}
@@ -297,17 +303,21 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
       {/* Therapist Answers Callout */}
       {item.answers && (
         <div
-          className={`p-3 rounded-xl mb-3 text-xs border ${
+          className={`p-3 rounded-xl mb-3 text-xs border min-w-0 max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word] ${
             item.isHighlightedAnswer
               ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} text-stone-900 dark:text-stone-100 font-medium`
               : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-200'
           }`}
+          style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
         >
           <div className={`flex items-center gap-1.5 font-bold mb-1 ${currentAccent.textPrimary}`}>
             <MessageSquare className="w-3.5 h-3.5" />
             <span>Therapist Des / Highlight Answer:</span>
           </div>
-          <p className="leading-relaxed">
+          <p
+            className="leading-relaxed min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]"
+            style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+          >
             <HighlightText text={item.answers} highlight={searchQuery} />
           </p>
         </div>

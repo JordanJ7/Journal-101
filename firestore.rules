@@ -62,6 +62,28 @@ service cloud.firestore {
       return isOwner() || isEditor() || isCommenter() || isViewer() || isGlobalViewer();
     }
 
+    function isDocRestricted(data) {
+      return data != null &&
+        ('visibleToEmails' in data) &&
+        data.visibleToEmails != null &&
+        data.visibleToEmails is list &&
+        data.visibleToEmails.size() > 0;
+    }
+
+    function canReadWithRestriction(data) {
+      return isOwner() ||
+        (isDocRestricted(data)
+          ? (isSignedIn() && getUserEmail() in data.visibleToEmails)
+          : canRead());
+    }
+
+    function canReadFolderNote(folderId) {
+      return isOwner() ||
+        (!exists(/databases/$(database)/documents/folders/$(folderId))
+          ? canRead()
+          : canReadWithRestriction(get(/databases/$(database)/documents/folders/$(folderId)).data));
+    }
+
     function canEditContent() {
       return isOwner() || isEditor();
     }
@@ -82,11 +104,11 @@ service cloud.firestore {
 
     // 2. Folders & Subcollection Notes (/folders/{folderId}/notes/{noteId})
     match /folders/{folderId} {
-      allow read: if canRead();
+      allow read: if canReadWithRestriction(resource.data);
       allow write: if canEditContent();
 
       match /notes/{noteId} {
-        allow read: if canRead();
+        allow read: if canReadFolderNote(folderId);
         allow write: if canEditContent();
       }
     }
@@ -115,13 +137,8 @@ service cloud.firestore {
       }
     }
 
-    // Collection Group Queries for entries and notes across all folders and weeks
+    // Collection Group Queries for entries across all weeks
     match /{path=**}/entries/{entryId} {
-      allow read: if canRead();
-      allow write: if canEditContent();
-    }
-
-    match /{path=**}/notes/{noteId} {
       allow read: if canRead();
       allow write: if canEditContent();
     }
@@ -157,7 +174,7 @@ service cloud.firestore {
 
     // 7. Shared Media Hub Items
     match /shared_media/{mediaId} {
-      allow read: if canRead();
+      allow read: if canReadWithRestriction(resource.data);
       allow write: if canEditContent();
     }
 
