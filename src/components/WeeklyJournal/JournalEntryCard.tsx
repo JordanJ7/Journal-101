@@ -134,7 +134,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
         mediaType: primaryMedia?.type || undefined,
         mediaCaption: primaryMedia?.caption || undefined,
       });
-      console.log('[Auto-Save] Entry saved to Firestore:', bulletRef.current.id);
+      console.log('[Auto-Save] Entry draft updated:', bulletRef.current.id);
       setAutoSaveState('saved');
       isTypingRef.current = false;
     }, 600);
@@ -155,7 +155,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
           mediaType: primaryMedia?.type || undefined,
           mediaCaption: primaryMedia?.caption || undefined,
         });
-        console.log('[Auto-Save] Entry saved to Firestore:', bulletRef.current.id);
+        console.log('[Auto-Save] Entry draft flushed:', bulletRef.current.id);
       }
     };
   }, [canEdit, draftAttachments, text]);

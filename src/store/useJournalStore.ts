@@ -34,7 +34,6 @@ import {
   onAuthStateChangedWrapper,
   logoutUser,
   UserRole,
-  CLIENT_SESSION_ID,
   saveFolderDoc,
   deleteFolderDoc,
   saveCoreTopicDoc,
@@ -249,16 +248,26 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
     saveAppState(appState);
 
     // 2. Cloud Firestore Dispatch
-    if (s.currentUser?.isLoggedIn && (s.currentUser.role === 'owner' || s.currentUser.role === 'editor')) {
-      await saveJournalDataToCloud(appState, entryId || pendingTargetEntryId);
-    }
+    const hasWritePermission =
+      s.currentUser?.isLoggedIn &&
+      (s.currentUser.role === 'owner' || s.currentUser.role === 'editor');
 
-    const formattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    useJournalStore.setState({
-      saveStatus: 'saved',
-      lastSavedAt: formattedTime,
-    });
-    console.log('[Auto-Save] Entry saved to Firestore:', entryId || pendingTargetEntryId || 'all');
+    if (hasWritePermission) {
+      await saveJournalDataToCloud(appState, entryId || pendingTargetEntryId);
+      const formattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      useJournalStore.setState({
+        saveStatus: 'saved',
+        lastSavedAt: formattedTime,
+      });
+      console.log('[Auto-Save] Entry saved to Firestore:', entryId || pendingTargetEntryId || 'all');
+    } else {
+      const roleStr = s.currentUser?.role || 'unauthorized';
+      console.log(`[Auto-Save] Firestore write skipped due to insufficient permissions (role: ${roleStr}). Saved to local storage only.`);
+      useJournalStore.setState({
+        saveStatus: 'saved',
+        lastSavedAt: 'Saved locally',
+      });
+    }
     pendingTargetEntryId = undefined;
   } catch (err) {
     console.warn('[Auto-Save] Cloud write error, fallback to local backup:', err);
@@ -1436,10 +1445,6 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   syncFromCloud: (cloudData: Partial<AppState> & { clientSessionId?: string; updatedAt?: string }) => {
-    if (cloudData.clientSessionId && cloudData.clientSessionId === CLIENT_SESSION_ID) {
-      return;
-    }
-
     const state = get();
 
     const incomingWeeks = cloudData.weeks && Array.isArray(cloudData.weeks) ? cloudData.weeks : state.weeks;
