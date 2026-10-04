@@ -142,8 +142,6 @@ export default function App() {
     setPermissions,
     logout,
     syncFromCloud,
-    setIsHydrated,
-    setHasReceivedFirstFirestoreSnapshot,
   } = useJournalStore(
     useShallow((s) => ({
       isExportModalOpen: s.isExportModalOpen,
@@ -188,8 +186,6 @@ export default function App() {
       setPermissions: s.setPermissions,
       logout: s.logout,
       syncFromCloud: s.syncFromCloud,
-      setIsHydrated: s.setIsHydrated,
-      setHasReceivedFirstFirestoreSnapshot: s.setHasReceivedFirstFirestoreSnapshot,
     }))
   );
 
@@ -331,20 +327,15 @@ export default function App() {
 
     const unsubscribe = subscribeJournalData(
       (cloudData) => {
-        setHasReceivedFirstFirestoreSnapshot(true);
         startTransition(() => {
           syncFromCloud(cloudData);
         });
-      },
-      () => {
-        setHasReceivedFirstFirestoreSnapshot(true);
-        setIsHydrated(true);
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud, setIsHydrated, setHasReceivedFirstFirestoreSnapshot, subscriptionVersion]);
+  }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud, subscriptionVersion]);
 
   // Global Keyboard Shortcuts (Ctrl+B/Cmd+B for Sidebar toggle, Escape for Fullscreen exit)
   useEffect(() => {

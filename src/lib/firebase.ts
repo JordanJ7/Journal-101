@@ -725,21 +725,14 @@ export async function deleteSharedMediaDoc(mediaId: string): Promise<void> {
 // -----------------------------------------------------------------------------------------
 
 export function subscribeJournalData(
-  onUpdate: (data: Partial<AppState> & { clientSessionId?: string; updatedAt?: string }) => void,
+  onUpdate: (data: Partial<AppState> & { clientSessionId?: string; updatedAt?: string; isInitialHydrationComplete?: boolean }) => void,
   onHydrated?: () => void
 ) {
   let isInitialHydratedFired = false;
+  let hasReceivedWeeksSnapshot = false;
+  let hasReceivedFoldersSnapshot = false;
+  let hasReceivedCoreTopicsSnapshot = false;
   const activeUnsubscribes: (() => void)[] = [];
-
-  const markHydrated = () => {
-    setHasReceivedFirstFirestoreSnapshot(true);
-    if (!isInitialHydratedFired) {
-      isInitialHydratedFired = true;
-      if (onHydrated) {
-        onHydrated();
-      }
-    }
-  };
 
   // 1. Cross-tab storage listener
   const handleStorage = (e: StorageEvent) => {
@@ -759,8 +752,8 @@ export function subscribeJournalData(
             comments: parsed.comments,
             updatedAt: parsed.updatedAt,
             clientSessionId: parsed.clientSessionId,
+            isInitialHydrationComplete: false,
           });
-          markHydrated();
         }
       } catch (err) {
         console.warn('Failed to parse cross-tab sync:', err);
@@ -795,7 +788,12 @@ export function subscribeJournalData(
     }
     broadcastDebounceTimer = setTimeout(() => {
       broadcastDebounceTimer = null;
-      const payload: Partial<AppState> & { clientSessionId?: string; updatedAt?: string } = {
+      const allCoreSnapshotsReceived =
+        hasReceivedWeeksSnapshot &&
+        hasReceivedFoldersSnapshot &&
+        hasReceivedCoreTopicsSnapshot;
+
+      const payload: Partial<AppState> & { clientSessionId?: string; updatedAt?: string; isInitialHydrationComplete?: boolean } = {
         weeks: cachedConsolidatedWeeks,
         coreItems: cachedConsolidatedCoreItems,
         ...(cachedConsolidatedFolders.length > 0 ? { coreCategories: cachedConsolidatedFolders } : {}),
@@ -804,6 +802,7 @@ export function subscribeJournalData(
         comments: cachedComments,
         updatedAt: new Date().toISOString(),
         clientSessionId: CLIENT_SESSION_ID,
+        isInitialHydrationComplete: allCoreSnapshotsReceived,
       };
 
       try {
@@ -816,6 +815,13 @@ export function subscribeJournalData(
       }
 
       onUpdate(payload);
+
+      if (allCoreSnapshotsReceived && !isInitialHydratedFired) {
+        isInitialHydratedFired = true;
+        if (onHydrated) {
+          onHydrated();
+        }
+      }
     }, 25);
   };
 
@@ -901,15 +907,15 @@ export function subscribeJournalData(
   const weeksUnsub = onSnapshot(
     collection(db, 'weeks'),
     async (weeksSnap) => {
-      markHydrated();
+      hasReceivedWeeksSnapshot = true;
 
       // Skip snapshot updates if this is solely a local uncommitted write
       if (weeksSnap.metadata.hasPendingWrites) {
         return;
       }
 
+      let hasStructuralChanges = false;
       if (!weeksSnap.empty) {
-        let hasStructuralChanges = false;
         weeksSnap.docChanges().forEach((change) => {
           if (change.doc.metadata.hasPendingWrites) return;
 
@@ -934,15 +940,14 @@ export function subscribeJournalData(
             hasStructuralChanges = true;
           }
         });
+      }
 
-        if (hasStructuralChanges) {
-          scheduleBroadcast();
-        }
+      if (hasStructuralChanges || !isInitialHydratedFired) {
+        scheduleBroadcast();
       }
     },
     (err) => {
       console.warn('Weeks subscription note:', err.message);
-      markHydrated();
     }
   );
   activeUnsubscribes.push(weeksUnsub);
@@ -952,8 +957,6 @@ export function subscribeJournalData(
     const entriesGroupUnsub = onSnapshot(
       collectionGroup(db, 'entries'),
       (entriesSnap) => {
-        markHydrated();
-
         // Skip snapshot processing if it is an uncommitted local write
         if (entriesSnap.metadata.hasPendingWrites) {
           return;
@@ -1002,14 +1005,14 @@ export function subscribeJournalData(
   const foldersUnsub = onSnapshot(
     collection(db, 'folders'),
     (snap) => {
-      markHydrated();
+      hasReceivedFoldersSnapshot = true;
 
       if (snap.metadata.hasPendingWrites) {
         return;
       }
 
+      let hasChanges = false;
       if (!snap.empty) {
-        let hasChanges = false;
         snap.docChanges().forEach((change) => {
           if (change.doc.metadata.hasPendingWrites) return;
 
@@ -1025,8 +1028,11 @@ export function subscribeJournalData(
 
         if (hasChanges) {
           cachedConsolidatedFolders = Array.from(foldersMap.values());
-          scheduleBroadcast();
         }
+      }
+
+      if (hasChanges || !isInitialHydratedFired) {
+        scheduleBroadcast();
       }
     },
     (err) => {
@@ -1039,7 +1045,7 @@ export function subscribeJournalData(
   const coreTopicsUnsub = onSnapshot(
     collection(db, 'core_topics'),
     (snap) => {
-      markHydrated();
+      hasReceivedCoreTopicsSnapshot = true;
 
       // (1) Skip processing snapshot changes where snapshot.metadata.hasPendingWrites is true for local writes
       if (snap.metadata.hasPendingWrites) {
@@ -1047,25 +1053,30 @@ export function subscribeJournalData(
       }
 
       let hasChanges = false;
-      snap.docChanges().forEach((change) => {
-        if (change.doc.metadata.hasPendingWrites) return;
+      if (!snap.empty) {
+        snap.docChanges().forEach((change) => {
+          if (change.doc.metadata.hasPendingWrites) return;
 
-        const item = { id: change.doc.id, ...change.doc.data() } as CoreTopicItem;
-        if (change.type === 'removed') {
-          coreItemsMap.delete(item.id);
-          hasChanges = true;
-        } else {
-          // (2) Granular check: Only update item if different
-          const existing = coreItemsMap.get(item.id);
-          if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
-            coreItemsMap.set(item.id, item);
+          const item = { id: change.doc.id, ...change.doc.data() } as CoreTopicItem;
+          if (change.type === 'removed') {
+            coreItemsMap.delete(item.id);
             hasChanges = true;
+          } else {
+            // (2) Granular check: Only update item if different
+            const existing = coreItemsMap.get(item.id);
+            if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
+              coreItemsMap.set(item.id, item);
+              hasChanges = true;
+            }
           }
-        }
-      });
+        });
 
-      if (hasChanges) {
-        cachedConsolidatedCoreItems = Array.from(coreItemsMap.values());
+        if (hasChanges) {
+          cachedConsolidatedCoreItems = Array.from(coreItemsMap.values());
+        }
+      }
+
+      if (hasChanges || !isInitialHydratedFired) {
         scheduleBroadcast();
       }
     },
@@ -1122,7 +1133,6 @@ export function subscribeJournalData(
   const appStateUnsub = onSnapshot(
     doc(db, 'app_state', 'journal'),
     (snap) => {
-      markHydrated();
       if (snap.metadata.hasPendingWrites) {
         return;
       }
@@ -1151,7 +1161,6 @@ export function subscribeJournalData(
     },
     (err) => {
       console.warn('App state subscription note:', err.message);
-      markHydrated();
     }
   );
   activeUnsubscribes.push(appStateUnsub);
@@ -1217,58 +1226,8 @@ export async function saveJournalDataToCloud(
     }
   }
 
-  // 3. Full Atomic Dispatch: Write week blocks, folders, and core topics independently
-  try {
-    // Save Weeks (each week document contains its complete bullets array)
-    for (const week of state.weeks || []) {
-      await saveWeekDoc(week);
-    }
-
-    // Save Folders / Categories
-    for (const cat of state.coreCategories || []) {
-      await saveFolderDoc(cat);
-    }
-    if (state.coreCategories && state.coreCategories.length > 0) {
-      await saveCoreCategoriesDoc(state.coreCategories);
-    }
-
-    // Save Core Topic Notes
-    for (const item of state.coreItems || []) {
-      await saveCoreTopicDoc(item);
-    }
-
-    // Save Comments
-    for (const comment of state.comments || []) {
-      await saveCommentDoc(comment);
-    }
-
-    // Persist shared app-level state (including pinnedCategoryIds) to app_state/journal
-    try {
-      const appStateDocRef = doc(db, 'app_state', 'journal');
-      await setDoc(
-        appStateDocRef,
-        sanitizeForFirestore({
-          weeks: state.weeks,
-          coreItems: state.coreItems,
-          coreCategories: state.coreCategories,
-          pinnedCategoryIds: state.pinnedCategoryIds || [],
-          ...(state.introQuotes !== undefined ? { introQuotes: state.introQuotes } : {}),
-          comments: state.comments || [],
-          updatedAt: new Date().toISOString(),
-          clientSessionId: CLIENT_SESSION_ID,
-        }),
-        { merge: true }
-      );
-      console.log('[Firestore SUCCESS] App state document saved with pinnedCategoryIds to app_state/journal');
-    } catch (appErr) {
-      console.warn('[Firestore Note] Failed to update app_state/journal:', appErr);
-    }
-
-    console.log('[Atomic Sync] Full atomic cloud synchronization completed.');
-  } catch (err) {
-    console.error('[Atomic Sync Error] Cloud write failure:', err);
-    throw err;
-  }
+  // BULK SAVE PATH REMOVED: Do not write all weeks, folders, or core topics from local memory.
+  console.warn('[Firestore Sync] Bulk save called without targeted dirty IDs; bulk write path is disabled.');
 }
 
 /**

@@ -182,8 +182,79 @@ export interface JournalStoreState {
   setPermissions: (perms: PermissionsDoc) => void;
   logout: () => Promise<void>;
 
-  syncFromCloud: (cloudData: Partial<AppState>) => void;
+  syncFromCloud: (cloudData: Partial<AppState> & { clientSessionId?: string; updatedAt?: string; isInitialHydrationComplete?: boolean }) => void;
   resetAllData: () => void;
+}
+
+// Dirty tracking sets to prevent bulk writes and ensure only user-modified documents are persisted
+const dirtyWeekIds = new Set<string>();
+const deletedWeekIds = new Set<string>();
+const dirtyFolderIds = new Set<string>();
+const deletedFolderIds = new Set<string>();
+const dirtyCoreItemIds = new Set<string>();
+const deletedCoreItemIds = new Set<string>();
+let isAppStateDirty = false;
+
+export function markWeekDirty(weekId: string) {
+  if (!weekId) return;
+  dirtyWeekIds.add(weekId);
+  deletedWeekIds.delete(weekId);
+}
+
+export function markWeekDeleted(weekId: string) {
+  if (!weekId) return;
+  deletedWeekIds.add(weekId);
+  dirtyWeekIds.delete(weekId);
+}
+
+export function markFolderDirty(folderId: string) {
+  if (!folderId) return;
+  dirtyFolderIds.add(folderId);
+  deletedFolderIds.delete(folderId);
+}
+
+export function markFolderDeleted(folderId: string) {
+  if (!folderId) return;
+  deletedFolderIds.add(folderId);
+  dirtyFolderIds.delete(folderId);
+}
+
+export function markCoreItemDirty(itemId: string) {
+  if (!itemId) return;
+  dirtyCoreItemIds.add(itemId);
+  deletedCoreItemIds.delete(itemId);
+}
+
+export function markCoreItemDeleted(itemId: string) {
+  if (!itemId) return;
+  deletedCoreItemIds.add(itemId);
+  dirtyCoreItemIds.delete(itemId);
+}
+
+export function markAppStateDirty() {
+  isAppStateDirty = true;
+}
+
+export function clearDirtyTracking() {
+  dirtyWeekIds.clear();
+  deletedWeekIds.clear();
+  dirtyFolderIds.clear();
+  deletedFolderIds.clear();
+  dirtyCoreItemIds.clear();
+  deletedCoreItemIds.clear();
+  isAppStateDirty = false;
+}
+
+export function hasDirtyItems(): boolean {
+  return (
+    dirtyWeekIds.size > 0 ||
+    deletedWeekIds.size > 0 ||
+    dirtyFolderIds.size > 0 ||
+    deletedFolderIds.size > 0 ||
+    dirtyCoreItemIds.size > 0 ||
+    deletedCoreItemIds.size > 0 ||
+    isAppStateDirty
+  );
 }
 
 // Debounced background persistence helper (600ms debounce)
@@ -195,7 +266,7 @@ let isSyncInProgress = false;
 let pendingSaveAfterSync = false;
 let pendingTargetEntryId: string | undefined = undefined;
 
-const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
+const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
   if (syncTimeout) {
     clearTimeout(syncTimeout);
     syncTimeout = null;
@@ -203,9 +274,9 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
 
   const s = get();
 
-  // HYDRATION & SNAPSHOT GUARD: Block writing local fallback state to Firestore until first snapshot is received
+  // HYDRATION & SNAPSHOT GUARD: Block writing local fallback state to Firestore until weeks, folders, and core_topics snapshots have all been received and applied
   if (!s.isHydrated || !s.hasReceivedFirstFirestoreSnapshot || !getHasReceivedFirstFirestoreSnapshot()) {
-    console.warn('[Auto-Save Guard] Save blocked: waiting for first Firestore snapshot before writing to Cloud.');
+    console.warn('[Auto-Save Guard] Save blocked: waiting for required Firestore snapshots (weeks, folders, core_topics) before writing to Cloud.');
     return;
   }
 
@@ -214,14 +285,61 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
   if (timeSinceLastKeystroke < AUTO_SAVE_DEBOUNCE_MS && lastUserKeystrokeTime > 0) {
     const remainingDelay = Math.max(250, AUTO_SAVE_DEBOUNCE_MS - timeSinceLastKeystroke);
     syncTimeout = setTimeout(() => {
-      executeSave(get, entryId || pendingTargetEntryId);
+      executeSave(get, targetId || pendingTargetEntryId);
     }, remainingDelay);
     return;
   }
 
   if (isSyncInProgress) {
     pendingSaveAfterSync = true;
-    if (entryId) pendingTargetEntryId = entryId;
+    if (targetId) pendingTargetEntryId = targetId;
+    return;
+  }
+
+  // 1. Immediate LocalStorage / IndexedDB Backup
+  const appState: AppState = {
+    weeks: s.weeks,
+    activeWeekId: s.activeWeekId,
+    coreItems: s.coreItems,
+    activeCoreCategory: s.activeCoreCategory,
+    activeCoreSubCategory: s.activeCoreSubCategory,
+    theme: s.theme,
+    accentTheme: s.accentTheme,
+    coreCategories: s.coreCategories,
+    pinnedCategoryIds: s.pinnedCategoryIds,
+    introQuotes: s.introQuotes,
+    filters: s.filters,
+    comments: s.comments,
+  };
+  saveAppState(appState);
+
+  // 2. Cloud Firestore Dispatch
+  const hasWritePermission =
+    s.currentUser?.isLoggedIn &&
+    (s.currentUser.role === 'owner' || s.currentUser.role === 'editor');
+
+  if (!hasWritePermission) {
+    const roleStr = s.currentUser?.role || 'unauthorized';
+    console.log(`[Auto-Save] Firestore write skipped due to insufficient permissions (role: ${roleStr}). Saved to local storage only.`);
+    useJournalStore.setState({
+      saveStatus: 'saved',
+      lastSavedAt: 'Saved locally',
+    });
+    pendingTargetEntryId = undefined;
+    return;
+  }
+
+  const effectiveTargetId = targetId || pendingTargetEntryId;
+  if (effectiveTargetId) {
+    const matchingWeek = s.weeks.find((w) => w.id === effectiveTargetId || w.bullets?.some((b) => b.id === effectiveTargetId));
+    if (matchingWeek) {
+      markWeekDirty(matchingWeek.id);
+    }
+  }
+
+  if (!hasDirtyItems()) {
+    useJournalStore.setState({ saveStatus: 'saved' });
+    pendingTargetEntryId = undefined;
     return;
   }
 
@@ -229,44 +347,84 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
   useJournalStore.setState({ saveStatus: 'saving' });
 
   try {
-    const appState: AppState = {
-      weeks: s.weeks,
-      activeWeekId: s.activeWeekId,
-      coreItems: s.coreItems,
-      activeCoreCategory: s.activeCoreCategory,
-      activeCoreSubCategory: s.activeCoreSubCategory,
-      theme: s.theme,
-      accentTheme: s.accentTheme,
-      coreCategories: s.coreCategories,
-      pinnedCategoryIds: s.pinnedCategoryIds,
-      introQuotes: s.introQuotes,
-      filters: s.filters,
-      comments: s.comments,
-    };
+    const weeksToSave = Array.from(dirtyWeekIds);
+    const weeksToDelete = Array.from(deletedWeekIds);
+    const foldersToSave = Array.from(dirtyFolderIds);
+    const foldersToDelete = Array.from(deletedFolderIds);
+    const coreItemsToSave = Array.from(dirtyCoreItemIds);
+    const coreItemsToDelete = Array.from(deletedCoreItemIds);
+    const shouldSaveAppState = isAppStateDirty;
 
-    // 1. Immediate LocalStorage / IndexedDB Backup
-    saveAppState(appState);
+    const savedSummaries: string[] = [];
 
-    // 2. Cloud Firestore Dispatch
-    const hasWritePermission =
-      s.currentUser?.isLoggedIn &&
-      (s.currentUser.role === 'owner' || s.currentUser.role === 'editor');
+    // Save only dirty weeks
+    for (const wId of weeksToSave) {
+      const week = s.weeks.find((w) => w.id === wId);
+      if (week) {
+        await saveWeekDoc(week);
+        dirtyWeekIds.delete(wId);
+        savedSummaries.push(`week:${wId}`);
+      }
+    }
 
-    if (hasWritePermission) {
-      await saveJournalDataToCloud(appState, entryId || pendingTargetEntryId);
-      const formattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      useJournalStore.setState({
-        saveStatus: 'saved',
-        lastSavedAt: formattedTime,
+    // Delete deleted weeks
+    for (const wId of weeksToDelete) {
+      await deleteWeekDoc(wId);
+      deletedWeekIds.delete(wId);
+      savedSummaries.push(`deleted-week:${wId}`);
+    }
+
+    // Save only dirty folders
+    for (const fId of foldersToSave) {
+      const folder = s.coreCategories.find((c) => c.id === fId);
+      if (folder) {
+        await saveFolderDoc(folder);
+        dirtyFolderIds.delete(fId);
+        savedSummaries.push(`folder:${fId}`);
+      }
+    }
+
+    // Delete deleted folders
+    for (const fId of foldersToDelete) {
+      await deleteFolderDoc(fId);
+      deletedFolderIds.delete(fId);
+      savedSummaries.push(`deleted-folder:${fId}`);
+    }
+
+    // Save only dirty core items
+    for (const itemId of coreItemsToSave) {
+      const item = s.coreItems.find((i) => i.id === itemId);
+      if (item) {
+        await saveCoreTopicDoc(item);
+        dirtyCoreItemIds.delete(itemId);
+        savedSummaries.push(`item:${itemId}`);
+      }
+    }
+
+    // Delete deleted core items
+    for (const itemId of coreItemsToDelete) {
+      await deleteCoreTopicDoc(itemId);
+      deletedCoreItemIds.delete(itemId);
+      savedSummaries.push(`deleted-item:${itemId}`);
+    }
+
+    // Save only dirty app_state
+    if (shouldSaveAppState) {
+      await saveAppStateDoc({
+        pinnedCategoryIds: s.pinnedCategoryIds,
+        introQuotes: s.introQuotes,
       });
-      console.log('[Auto-Save] Entry saved to Firestore:', entryId || pendingTargetEntryId || 'all');
-    } else {
-      const roleStr = s.currentUser?.role || 'unauthorized';
-      console.log(`[Auto-Save] Firestore write skipped due to insufficient permissions (role: ${roleStr}). Saved to local storage only.`);
-      useJournalStore.setState({
-        saveStatus: 'saved',
-        lastSavedAt: 'Saved locally',
-      });
+      isAppStateDirty = false;
+      savedSummaries.push('app_state:journal');
+    }
+
+    const formattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    useJournalStore.setState({
+      saveStatus: 'saved',
+      lastSavedAt: formattedTime,
+    });
+    if (savedSummaries.length > 0) {
+      console.log('[Auto-Save] Specific dirty documents saved to Firestore:', savedSummaries.join(', '));
     }
     pendingTargetEntryId = undefined;
   } catch (err) {
@@ -281,10 +439,17 @@ const executeSave = async (get: () => JournalStoreState, entryId?: string) => {
   }
 };
 
-const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_DEBOUNCE_MS, entryId?: string) => {
+const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_DEBOUNCE_MS, targetId?: string) => {
   lastLocalMutationTime = Date.now();
   lastUserKeystrokeTime = Date.now();
-  if (entryId) pendingTargetEntryId = entryId;
+  if (targetId) {
+    pendingTargetEntryId = targetId;
+    const s = get();
+    const matchingWeek = s.weeks.find((w) => w.id === targetId || w.bullets?.some((b) => b.id === targetId));
+    if (matchingWeek) {
+      markWeekDirty(matchingWeek.id);
+    }
+  }
 
   // Immediately mirror to LocalStorage failsafe backup upon every edit
   try {
@@ -311,7 +476,7 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
 
   if (syncTimeout) clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
-    executeSave(get, entryId);
+    executeSave(get, targetId);
   }, delayMs);
 };
 
@@ -397,6 +562,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   // Direct Atomic Helper Handlers
   createFolder: async (folderData) => {
+    markFolderDirty(folderData.id);
     set((state) => ({
       coreCategories: [...state.coreCategories.filter((c) => c.id !== folderData.id), folderData],
       activeCoreCategory: folderData.id,
@@ -411,6 +577,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteFolder: async (folderId) => {
+    markFolderDeleted(folderId);
     set((state) => {
       const updatedCats = state.coreCategories.filter((c) => c.id !== folderId);
       const updatedItems = state.coreItems.filter((i) => i.categoryId !== folderId);
@@ -491,6 +658,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     }
 
     if (updatedWeek) {
+      markWeekDirty(updatedWeek.id);
       try {
         await saveWeekDoc(updatedWeek);
         console.log('[Firestore SUCCESS] Week saved with entry into bullets array:', entryData.id);
@@ -502,6 +670,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteEntry: async (weekId, entryId) => {
+    markWeekDirty(weekId);
     let updatedWeek: WeeklyBlock | undefined;
     set((state) => ({
       weeks: state.weeks.map((w) => {
@@ -530,12 +699,19 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   setWeeks: (weeksOrUpdater) => {
     set((state) => {
       const nextWeeks = typeof weeksOrUpdater === 'function' ? weeksOrUpdater(state.weeks) : weeksOrUpdater;
+      for (const nw of nextWeeks) {
+        const prev = state.weeks.find((w) => w.id === nw.id);
+        if (!prev || JSON.stringify(prev) !== JSON.stringify(nw)) {
+          markWeekDirty(nw.id);
+        }
+      }
       return { weeks: nextWeeks };
     });
     schedulePersistence(get);
   },
 
   addWeek: (newWeek) => {
+    markWeekDirty(newWeek.id);
     const existingWeeks = get().weeks;
     const targetDate = parseDateFromTimestamp(newWeek.startDate || newWeek.createdAt || newWeek.weekTitle);
 
@@ -588,6 +764,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateWeek: (updatedWeek) => {
+    markWeekDirty(updatedWeek.id);
     set((state) => ({
       weeks: state.weeks.map((w) => (w.id === updatedWeek.id ? updatedWeek : w)),
     }));
@@ -600,6 +777,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteWeek: (weekId) => {
+    markWeekDeleted(weekId);
     set((state) => {
       const updated = state.weeks.filter((w) => w.id !== weekId);
       const nextActiveId = state.activeWeekId === weekId ? updated[0]?.id || '' : state.activeWeekId;
@@ -615,6 +793,9 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderWeeks: (weeks) => {
+    for (const w of weeks) {
+      markWeekDirty(w.id);
+    }
     set({ weeks });
     for (const w of weeks) {
       saveWeekDoc(w).catch(() => {});
@@ -623,6 +804,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateBulletTimestamp: (weekId, bulletId, newTimestamp, newIsoDate, isCustom = true) => {
+    markWeekDirty(weekId);
     set((state) => {
       const sourceWeek = state.weeks.find((w) => w.id === weekId);
       if (!sourceWeek) return {};
@@ -661,6 +843,10 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         state.weeks
       );
 
+      if (targetWeekId) {
+        markWeekDirty(targetWeekId);
+      }
+
       const newSourceWeek = updatedWeeks.find((w) => w.id === weekId);
       const newTargetWeek = updatedWeeks.find((w) => w.id === targetWeekId);
       if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(() => {});
@@ -696,6 +882,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       if (!targetBullet || !targetWeekId) {
         const coreMatch = state.coreItems.find((i) => i.id === entryId);
         if (coreMatch) {
+          markCoreItemDirty(entryId);
           const updatedCore = {
             ...coreMatch,
             createdAt: isoTimestamp,
@@ -710,6 +897,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         return {};
       }
 
+      markWeekDirty(targetWeekId);
       const updatedBullet: BulletPoint = {
         ...targetBullet,
         createdAt: isoTimestamp,
@@ -741,6 +929,10 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         state.weeks
       );
 
+      if (newWeekId) {
+        markWeekDirty(newWeekId);
+      }
+
       const newSourceWeek = updatedWeeks.find((w) => w.id === targetWeekId);
       const newTargetWeek = updatedWeeks.find((w) => w.id === newWeekId);
       if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(() => {});
@@ -756,6 +948,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateWeeklyEntryTimestamp: async (weekId: string, newTimestamp: string, newIsoDate?: string) => {
+    markWeekDirty(weekId);
     const dateObj = parseDateFromTimestamp(newIsoDate || newTimestamp);
     if (isNaN(dateObj.getTime())) return;
     const isoString = dateObj.toISOString();
@@ -803,12 +996,19 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   setCoreItems: (itemsOrUpdater) => {
     set((state) => {
       const nextItems = typeof itemsOrUpdater === 'function' ? itemsOrUpdater(state.coreItems) : itemsOrUpdater;
+      for (const ni of nextItems) {
+        const prev = state.coreItems.find((i) => i.id === ni.id);
+        if (!prev || JSON.stringify(prev) !== JSON.stringify(ni)) {
+          markCoreItemDirty(ni.id);
+        }
+      }
       return { coreItems: nextItems };
     });
     schedulePersistence(get);
   },
 
   addCoreItem: (item) => {
+    markCoreItemDirty(item.id);
     set((state) => ({
       coreItems: [item, ...state.coreItems],
     }));
@@ -819,6 +1019,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateCoreItem: (item) => {
+    markCoreItemDirty(item.id);
     set((state) => {
       const exists = state.coreItems.some((i) => i.id === item.id);
       return {
@@ -834,6 +1035,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteCoreItem: (id) => {
+    markCoreItemDeleted(id);
     const item = get().coreItems.find((i) => i.id === id);
     set((state) => ({
       coreItems: state.coreItems.filter((i) => i.id !== id),
@@ -845,6 +1047,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   toggleCompleteCoreItem: (item) => {
+    markCoreItemDirty(item.id);
     const nextStatus: ItemActivityStatus = item.status === 'Completed' ? 'Pending' : 'Completed';
     const updated = { ...item, status: nextStatus, updatedAt: new Date().toISOString() };
     set((state) => ({
@@ -859,6 +1062,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateCoreItemStatus: (item, status) => {
+    markCoreItemDirty(item.id);
     const updated = { ...item, status, updatedAt: new Date().toISOString() };
     set((state) => ({
       coreItems: state.coreItems.map((i) =>
@@ -889,12 +1093,19 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   setCoreCategories: (catsOrUpdater) => {
     set((state) => {
       const nextCats = typeof catsOrUpdater === 'function' ? catsOrUpdater(state.coreCategories) : catsOrUpdater;
+      for (const nc of nextCats) {
+        const prev = state.coreCategories.find((c) => c.id === nc.id);
+        if (!prev || JSON.stringify(prev) !== JSON.stringify(nc)) {
+          markFolderDirty(nc.id);
+        }
+      }
       return { coreCategories: nextCats };
     });
     schedulePersistence(get);
   },
 
   addCoreCategory: (newCat) => {
+    markFolderDirty(newCat.id);
     set((state) => ({
       coreCategories: [...state.coreCategories, newCat],
       activeCoreCategory: newCat.id,
@@ -908,6 +1119,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateCoreCategory: (catId, updated) => {
+    markFolderDirty(catId);
     let updatedCat: CoreCategoryConfig | null = null;
     set((state) => {
       const nextCategories = state.coreCategories.map((c) => {
@@ -929,6 +1141,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteCoreCategory: (catId) => {
+    markFolderDeleted(catId);
     set((state) => {
       const updatedCats = state.coreCategories.filter((c) => c.id !== catId);
       const updatedItems = state.coreItems.filter((i) => i.categoryId !== catId);
@@ -950,6 +1163,9 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderCoreCategories: (cats) => {
+    for (const c of cats) {
+      markFolderDirty(c.id);
+    }
     set({ coreCategories: cats });
     for (const c of cats) {
       saveFolderDoc(c).catch(() => {});
@@ -959,6 +1175,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setPinnedCategoryIds: (ids) => {
+    markAppStateDirty();
     set({ pinnedCategoryIds: ids });
     try {
       const s = get();
@@ -982,6 +1199,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   togglePinCategory: (categoryId) => {
+    markAppStateDirty();
     let updated: string[] = [];
     set((state) => {
       const isPinned = state.pinnedCategoryIds.includes(categoryId);
@@ -1012,6 +1230,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderPinnedCategories: (ids) => {
+    markAppStateDirty();
     set({ pinnedCategoryIds: ids });
     try {
       const s = get();
@@ -1035,6 +1254,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setIntroQuotes: async (quotes) => {
+    markAppStateDirty();
     set({ introQuotes: quotes });
     try {
       const s = get();
@@ -1059,6 +1279,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   addIntroQuote: async (quote) => {
     const trimmed = quote.trim();
     if (!trimmed) return;
+    markAppStateDirty();
     const current = get().introQuotes || [];
     const updated = [...current, trimmed];
     set({ introQuotes: updated });
@@ -1083,6 +1304,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   removeIntroQuote: async (index) => {
+    markAppStateDirty();
     const current = get().introQuotes || [];
     const updated = current.filter((_, i) => i !== index);
     set({ introQuotes: updated });
@@ -1107,6 +1329,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addSubCategory: (categoryId, subCategory) => {
+    markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
       const updatedCats = state.coreCategories.map((c) => {
@@ -1135,6 +1358,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateSubCategory: (categoryId, subCategoryId, updated) => {
+    markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
       const updatedCats = state.coreCategories.map((c) => {
@@ -1158,6 +1382,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteSubCategory: (categoryId, subCategoryId) => {
+    markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
       const updatedCats = state.coreCategories.map((c) => {
@@ -1190,6 +1415,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderSubCategories: (categoryId, subCategories) => {
+    markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
       const updatedCats = state.coreCategories.map((c) => {
@@ -1209,6 +1435,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   moveCoreItemToSubCategory: (itemId, targetCategoryId, targetSubCategoryId) => {
+    markCoreItemDirty(itemId);
     let movedItem: CoreTopicItem | null = null;
     set((state) => ({
       coreItems: state.coreItems.map((item) => {
@@ -1349,6 +1576,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       const newPinnedState = !isCurrentlyPinned;
 
       const updatedBullet = { ...bullet, pinnedToLearned: newPinnedState };
+      markWeekDirty(week.id);
       let targetWeek: WeeklyBlock | undefined;
       const updatedWeeks = state.weeks.map((w) => {
         if (w.id !== week.id) return w;
@@ -1384,6 +1612,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
           mediaUrl: bullet.mediaUrl,
           mediaCaption: bullet.mediaCaption,
         };
+        markCoreItemDirty(newItem.id);
         if (existingIndex >= 0) {
           updatedCoreItems[existingIndex] = newItem;
         } else {
@@ -1393,6 +1622,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       } else {
         const found = updatedCoreItems.find((item) => item.pinnedBulletId === bullet.id);
         if (found) {
+          markCoreItemDeleted(found.id);
           deleteCoreTopicDoc(found.id, found.categoryId).catch(() => {});
         }
         updatedCoreItems = updatedCoreItems.filter(
@@ -1433,7 +1663,11 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
  
   logout: async () => {
     await logoutUser();
+    setGlobalFirestoreSnapshotReceived(false);
+    clearDirtyTracking();
     set({
+      hasReceivedFirstFirestoreSnapshot: false,
+      isHydrated: false,
       currentUser: {
         uid: '',
         email: '',
@@ -1444,7 +1678,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     });
   },
 
-  syncFromCloud: (cloudData: Partial<AppState> & { clientSessionId?: string; updatedAt?: string }) => {
+  syncFromCloud: (cloudData: Partial<AppState> & { clientSessionId?: string; updatedAt?: string; isInitialHydrationComplete?: boolean }) => {
     const state = get();
 
     const incomingWeeks = cloudData.weeks && Array.isArray(cloudData.weeks) ? cloudData.weeks : state.weeks;
@@ -1461,7 +1695,10 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     const isQuotesEqual = (incomingIntroQuotes?.length || 0) === (state.introQuotes?.length || 0) && JSON.stringify(incomingIntroQuotes) === JSON.stringify(state.introQuotes);
     const isCommentsEqual = (incomingComments?.length || 0) === (state.comments?.length || 0) && JSON.stringify(incomingComments) === JSON.stringify(state.comments);
 
-    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isQuotesEqual && isCommentsEqual) {
+    // The write-gate opens only after the weeks, folders, and core_topics snapshots have each been received AND applied to the store.
+    const shouldOpenWriteGate = Boolean(cloudData.isInitialHydrationComplete) && !state.hasReceivedFirstFirestoreSnapshot;
+
+    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isQuotesEqual && isCommentsEqual && !shouldOpenWriteGate) {
       return;
     }
 
@@ -1481,7 +1718,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         : currentState.activeCoreCategory || nextCoreCategories[0]?.id || '';
 
       return {
-        isHydrated: true,
+        isHydrated: currentState.isHydrated || shouldOpenWriteGate,
+        hasReceivedFirstFirestoreSnapshot: currentState.hasReceivedFirstFirestoreSnapshot || shouldOpenWriteGate,
         weeks: nextWeeks,
         coreItems: nextCoreItems,
         coreCategories: nextCoreCategories,
@@ -1492,6 +1730,12 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         activeCoreCategory,
       };
     });
+
+    if (shouldOpenWriteGate) {
+      setGlobalFirestoreSnapshotReceived(true);
+      clearDirtyTracking();
+      console.log('[Write-Gate] All required snapshots (weeks, folders, core_topics) received and applied. Write-gate opened.');
+    }
 
     try {
       const s = get();
