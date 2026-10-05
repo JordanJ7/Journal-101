@@ -108,6 +108,7 @@ export interface JournalStoreState {
   setWeeks: (weeksOrUpdater: WeeklyBlock[] | ((prev: WeeklyBlock[]) => WeeklyBlock[])) => void;
   addWeek: (newWeek: WeeklyBlock) => void;
   updateWeek: (updatedWeek: WeeklyBlock) => void;
+  togglePinWeek: (weekId: string) => void;
   deleteWeek: (weekId: string) => void;
   reorderWeeks: (weeks: WeeklyBlock[]) => void;
   updateBulletTimestamp: (
@@ -773,6 +774,26 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       console.error('[Firestore CRITICAL ERROR] Failed to save updated week:', err)
     );
 
+    schedulePersistence(get);
+  },
+
+  togglePinWeek: (weekId) => {
+    const s = get();
+    const target = s.weeks.find((w) => w.id === weekId);
+    if (!target) return;
+    const isCurrentlyPinned = Boolean(target.isPinned);
+    const updatedWeek: WeeklyBlock = {
+      ...target,
+      isPinned: !isCurrentlyPinned,
+      updatedAt: new Date().toISOString(),
+    };
+    markWeekDirty(updatedWeek.id);
+    set((state) => ({
+      weeks: state.weeks.map((w) => (w.id === updatedWeek.id ? updatedWeek : w)),
+    }));
+    saveWeekDoc(updatedWeek).catch((err) =>
+      console.error('[Firestore CRITICAL ERROR] Failed to save pinned week state:', err)
+    );
     schedulePersistence(get);
   },
 
@@ -1808,3 +1829,5 @@ export const useIsHydrated = () => useJournalStore((s) => s.isHydrated);
 export const useHasReceivedFirstFirestoreSnapshot = () => useJournalStore((s) => s.hasReceivedFirstFirestoreSnapshot);
 export const useCreateFolder = () => useJournalStore((s) => s.createFolder);
 export const useSaveEntry = () => useJournalStore((s) => s.saveEntry);
+export const useTogglePinWeek = () => useJournalStore((s) => s.togglePinWeek);
+export const useUpdateWeek = () => useJournalStore((s) => s.updateWeek);

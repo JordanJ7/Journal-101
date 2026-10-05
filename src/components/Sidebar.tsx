@@ -38,7 +38,7 @@ import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
 import { usePermissions } from '../hooks/usePermissions';
-import { findMatchingWeekForDate, isDateWithinWeek } from '../utils/dateUtils';
+import { findMatchingWeekForDate, isDateWithinWeek, sortWeeksForSidebar } from '../utils/dateUtils';
 import { getWeekTitleAndRangeForDate, parseDateFromTimestamp } from '../utils/storage';
 
 interface SidebarProps {
@@ -129,9 +129,6 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   const [newCatIcon, setNewCatIcon] = useState('Folder');
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
 
-  const [draggedWeekIndex, setDraggedWeekIndex] = useState<number | null>(null);
-  const [dragOverWeekIndex, setDragOverWeekIndex] = useState<number | null>(null);
-
   const [draggedCatIndex, setDraggedCatIndex] = useState<number | null>(null);
   const [dragOverCatIndex, setDragOverCatIndex] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{
@@ -166,14 +163,17 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   );
 
   const filteredWeeks = useMemo(() => {
-    if (!weekSearchQuery.trim()) return weeks;
-    const q = weekSearchQuery.toLowerCase();
-    return weeks.filter(
-      (w) =>
-        w.weekTitle.toLowerCase().includes(q) ||
-        (w.startDate && w.startDate.toLowerCase().includes(q)) ||
-        (w.endDate && w.endDate.toLowerCase().includes(q))
-    );
+    let list = weeks;
+    if (weekSearchQuery.trim()) {
+      const q = weekSearchQuery.toLowerCase();
+      list = weeks.filter(
+        (w) =>
+          w.weekTitle.toLowerCase().includes(q) ||
+          (w.startDate && w.startDate.toLowerCase().includes(q)) ||
+          (w.endDate && w.endDate.toLowerCase().includes(q))
+      );
+    }
+    return sortWeeksForSidebar(list);
   }, [weeks, weekSearchQuery]);
 
   const filteredCategories = useMemo(() => {
@@ -181,17 +181,6 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     const q = categorySearchQuery.toLowerCase();
     return coreCategories.filter((c) => c.title.toLowerCase().includes(q));
   }, [coreCategories, categorySearchQuery]);
-
-  const moveWeek = useCallback(
-    (fromIdx: number, toIdx: number) => {
-      if (!onReorderWeeks || toIdx < 0 || toIdx >= weeks.length || fromIdx === toIdx) return;
-      const reordered = [...weeks];
-      const [moved] = reordered.splice(fromIdx, 1);
-      reordered.splice(toIdx, 0, moved);
-      onReorderWeeks(reordered);
-    },
-    [weeks, onReorderWeeks]
-  );
 
   const moveCategory = useCallback(
     (fromIdx: number, toIdx: number) => {
@@ -477,66 +466,32 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             {filteredWeeks.length === 0 ? (
               <p className="text-xs text-stone-400 p-4 text-center">No entries</p>
             ) : (
-              filteredWeeks.map((week, index) => {
+              filteredWeeks.map((week) => {
                 const isSelected = activeWeekId === week.id;
-                const isDragged = draggedWeekIndex === index;
 
                 return (
                   <div
                     key={week.id}
-                    draggable={canEdit}
-                    onDragStart={() => canEdit && setDraggedWeekIndex(index)}
-                    onDragOver={(e) => {
-                      if (!canEdit) return;
-                      e.preventDefault();
-                      setDragOverWeekIndex(index);
-                    }}
-                    onDrop={() => {
-                      if (!canEdit || draggedWeekIndex === null) return;
-                      moveWeek(draggedWeekIndex, index);
-                      setDraggedWeekIndex(null);
-                      setDragOverWeekIndex(null);
-                    }}
                     className={`group shrink-0 flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-xs transition-all cursor-pointer select-none active:scale-[0.99] ${
                       isSelected
                         ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
                         : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
-                    } ${isDragged ? 'opacity-30' : ''} ${dragOverWeekIndex === index ? `border-t-2 ${currentAccent.activeBorder}` : ''}`}
+                    }`}
                     onClick={() => handleSelectWeek(week.id)}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs sm:text-xs font-medium">{week.weekTitle}</p>
+                      <div className="flex items-center gap-1.5">
+                        {week.isPinned && (
+                          <Pin className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+                        )}
+                        <p className="truncate text-xs sm:text-xs font-medium">{week.weekTitle}</p>
+                      </div>
                       {(week.startDate || week.endDate) && (
                         <p className="text-[10px] text-stone-400 truncate mt-0.5">
                           {week.startDate} {week.endDate && week.endDate !== week.startDate ? `– ${week.endDate}` : ''}
                         </p>
                       )}
                     </div>
-
-                    {canEdit && (
-                      <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0 transition-opacity">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            moveWeek(index, index - 1);
-                          }}
-                          disabled={index === 0}
-                          className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            moveWeek(index, index + 1);
-                          }}
-                          disabled={index === weeks.length - 1}
-                          className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
                   </div>
                 );
               })

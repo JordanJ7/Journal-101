@@ -8,6 +8,7 @@ import {
   FileDown,
   Maximize2,
   MessageSquare,
+  Pin,
   Plus,
   Sparkles,
   Trash2,
@@ -257,14 +258,35 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
     });
   }, [confirmDelete, onUpdateWeek, week]);
 
+  const togglePinWeek = useJournalStore((s) => s.togglePinWeek);
+
+  const handleTogglePin = useCallback(() => {
+    if (!canEdit) return;
+    if (togglePinWeek) {
+      togglePinWeek(week.id);
+    } else {
+      onUpdateWeek({
+        ...week,
+        isPinned: !week.isPinned,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }, [canEdit, togglePinWeek, onUpdateWeek, week]);
+
   return (
     <div id={`week-card-${week.id}`} className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-xs overflow-visible mb-6">
       {/* Week Header */}
       <div className="p-4 sm:p-5 border-b border-black/5 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100">
+            <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <HighlightText text={week.weekTitle} highlight={searchQuery} />
+              {week.isPinned && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                  <Pin className="w-3 h-3 fill-current" />
+                  Pinned
+                </span>
+              )}
             </h2>
             <span className="text-[11px] font-mono text-stone-400">
               ({week.bullets.length} entries)
@@ -305,6 +327,25 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
         </div>
 
         <div className="flex items-center gap-1">
+          {canEdit && (
+            <button
+              type="button"
+              onClick={handleTogglePin}
+              title={week.isPinned ? 'Unpin week (currently pinned to top)' : 'Pin week to top'}
+              aria-label={week.isPinned ? 'Unpin week' : 'Pin week'}
+              className={`min-h-[44px] min-w-[44px] p-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 text-xs ${
+                week.isPinned
+                  ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                  : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
+              }`}
+            >
+              <Pin className={`w-4 h-4 ${week.isPinned ? 'fill-current' : ''}`} />
+              <span className="hidden sm:inline font-medium">
+                {week.isPinned ? 'Pinned' : 'Pin'}
+              </span>
+            </button>
+          )}
+
           {onOpenCommentSection && (
             <button
               onClick={() => onOpenCommentSection('General', undefined, 'weekly', week.id)}

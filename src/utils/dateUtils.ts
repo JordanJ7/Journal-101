@@ -25,6 +25,94 @@ export function sortBulletsByDate(
 }
 
 /**
+ * Parses a week's startDate into a real Date object.
+ * Start dates are stored in formats like:
+ * - '2026-08-24' (ISO YYYY-MM-DD)
+ * - 'Sep 7, 2026' (Month Day, Year)
+ * Never sorts raw strings. Returns null if the date cannot be parsed.
+ */
+export function parseWeekStartDate(dateStr?: string | null): Date | null {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const trimmed = dateStr.trim();
+  if (!trimmed) return null;
+
+  // 1. Format: YYYY-MM-DD (e.g. '2026-08-24' or '2026-8-24')
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1], 10);
+    const month = parseInt(isoMatch[2], 10) - 1;
+    const day = parseInt(isoMatch[3], 10);
+    const d = new Date(year, month, day, 12, 0, 0);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // 2. Format: 'Sep 7, 2026', 'September 7, 2026', 'Sep 7th, 2026'
+  const monthNames = [
+    'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'
+  ];
+  const textMatch = trimmed.match(/^([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i);
+  if (textMatch) {
+    const mStr = textMatch[1].toLowerCase().slice(0, 3);
+    const mIdx = monthNames.indexOf(mStr);
+    if (mIdx !== -1) {
+      const day = parseInt(textMatch[2], 10);
+      const year = parseInt(textMatch[3], 10);
+      const d = new Date(year, mIdx, day, 12, 0, 0);
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+
+  // 3. Fallback: standard Date.parse
+  const parsedTime = Date.parse(trimmed);
+  if (!isNaN(parsedTime)) {
+    return new Date(parsedTime);
+  }
+
+  return null;
+}
+
+/**
+ * Comparator for Weekly entries sidebar list:
+ * - Pinned weeks always appear at the top of the list above all other weeks, sorted newest-first among themselves.
+ * - Sort order: newest first (top) to oldest (bottom), by each week's startDate.
+ * - Parses both formats ('2026-08-24' and 'Sep 7, 2026') into real dates before comparing. Never sorts raw strings.
+ * - If a date cannot be parsed, puts that week at the bottom.
+ */
+export function compareWeeksForSidebar(a: WeeklyBlock, b: WeeklyBlock): number {
+  const aPinned = Boolean(a.isPinned);
+  const bPinned = Boolean(b.isPinned);
+
+  // 1. Pinned weeks always appear at the top above all other weeks
+  if (aPinned && !bPinned) return -1;
+  if (!aPinned && bPinned) return 1;
+
+  // 2. Both pinned or both unpinned: compare real parsed start dates
+  const dateA = parseWeekStartDate(a.startDate);
+  const dateB = parseWeekStartDate(b.startDate);
+
+  // If a date can't be parsed, put that week at the bottom
+  if (!dateA && !dateB) {
+    return a.id.localeCompare(b.id);
+  }
+  if (!dateA) return 1; // a cannot be parsed -> bottom (after b)
+  if (!dateB) return -1; // b cannot be parsed -> bottom (after a)
+
+  // Newest first (top) to oldest (bottom)
+  const diff = dateB.getTime() - dateA.getTime();
+  if (diff !== 0) return diff;
+
+  return a.id.localeCompare(b.id);
+}
+
+/**
+ * Automatically sorts an array of weekly blocks for the sidebar list.
+ */
+export function sortWeeksForSidebar(weeks: WeeklyBlock[]): WeeklyBlock[] {
+  return [...weeks].sort(compareWeeksForSidebar);
+}
+
+/**
  * Sorts an array of weekly blocks chronologically (newest first by default).
  */
 export function sortWeeksChronologically(

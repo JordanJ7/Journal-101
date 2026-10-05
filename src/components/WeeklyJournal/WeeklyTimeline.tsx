@@ -2,6 +2,7 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { CurrentUserProfile } from '../../lib/firebase';
 import { AccentTheme, BulletPoint, CommentItem, FilterOptions, WeeklyBlock } from '../../types';
+import { sortWeeksForSidebar } from '../../utils/dateUtils';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { WeekCard } from './WeekCard';
 
@@ -38,7 +39,7 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
 
   // Filter weeks
   const filteredWeeks = useMemo(() => {
-    return weeks.filter((week) => {
+    const list = weeks.filter((week) => {
       if (filters.hasMediaOnly) {
         const hasMedia = week.bullets.some((b) => b.mediaUrl);
         if (!hasMedia) return false;
@@ -66,6 +67,7 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
 
       return true;
     });
+    return sortWeeksForSidebar(list);
   }, [weeks, filters.hasMediaOnly, filters.hasTherapistAnswersOnly, filters.searchQuery]);
 
   const activeIndex = useMemo(() => {

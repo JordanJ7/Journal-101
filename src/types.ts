@@ -105,6 +105,7 @@ export interface WeeklyBlock {
   updatedAt: string;
   timestamp?: string; // Formatted human-readable timestamp e.g. "August 19th, 2026 @ 8:15pm"
   isCustomDate?: boolean; // True if manually customized/backdated
+  isPinned?: boolean; // True if pinned to top of weekly entries list
   bullets: BulletPoint[];
   assignments: AssignmentSwitches;
   therapistSection: TherapistSection;
