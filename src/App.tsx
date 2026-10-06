@@ -11,6 +11,8 @@ import { SharedMediaHub } from './components/MediaHub/SharedMediaHub';
 import { LoginScreen } from './components/Auth/LoginScreen';
 import { AccessRestrictedScreen } from './components/AccessRestrictedScreen';
 import { ConfirmDeleteProvider } from './components/ConfirmDeleteModal';
+import { RecentlyDeletedModal } from './components/RecentlyDeletedModal';
+import { Toast } from './components/Toast';
 import { AccentTheme, CoreCategoryId, FilterOptions, ViewMode, WeeklyBlock, CoreTopicItem, BulletPoint, CoreCategoryConfig, CommentItem } from './types';
 import { ACCENT_THEMES } from './utils/theme';
 import { navigateToComment } from './utils/commentNavigation';
@@ -88,21 +90,33 @@ export default function App() {
   // - Owner sees everything, always.
   // - Other users see an item IF visibleToEmails is empty/absent OR user's email is included.
   const visibleCoreCategories = useMemo(() => {
-    return coreCategories.filter((cat) => canUserViewItem(cat.visibleToEmails, currentUser));
+    return coreCategories.filter((cat) => !cat.deletedAt && canUserViewItem(cat.visibleToEmails, currentUser));
   }, [coreCategories, currentUser]);
 
   const visibleCoreItems = useMemo(() => {
     const visibleCategoryIds = new Set(visibleCoreCategories.map((c) => c.id));
     return coreItems.filter((item) => {
+      if (item.deletedAt) return false;
       if (!visibleCategoryIds.has(item.categoryId)) return false;
       return canUserViewItem(item.visibleToEmails, currentUser);
     });
   }, [coreItems, visibleCoreCategories, currentUser]);
 
+  // Non-deleted weeks with non-deleted journal entries for active views
+  const activeWeeks = useMemo(() => {
+    return weeks
+      .filter((w) => !w.deletedAt)
+      .map((w) => ({
+        ...w,
+        bullets: (w.bullets || []).filter((b) => !b.deletedAt),
+      }));
+  }, [weeks]);
+
   const {
     isExportModalOpen,
     isAccessManagementOpen,
     isQuotesModalOpen,
+    isRecentlyDeletedOpen,
     isCommentsSidebarOpen,
     activeCommentSectionTag,
     setWeeks,
@@ -129,6 +143,8 @@ export default function App() {
     setIsExportModalOpen,
     setIsAccessManagementOpen,
     setIsQuotesModalOpen,
+    setIsRecentlyDeletedOpen,
+    purgeOldDeletedItems,
     setIsCommentsSidebarOpen,
     setActiveCommentSectionTag,
     setIsOpenMobile,
@@ -147,6 +163,7 @@ export default function App() {
       isExportModalOpen: s.isExportModalOpen,
       isAccessManagementOpen: s.isAccessManagementOpen,
       isQuotesModalOpen: s.isQuotesModalOpen,
+      isRecentlyDeletedOpen: s.isRecentlyDeletedOpen,
       isCommentsSidebarOpen: s.isCommentsSidebarOpen,
       activeCommentSectionTag: s.activeCommentSectionTag,
       setWeeks: s.setWeeks,
@@ -173,6 +190,8 @@ export default function App() {
       setIsExportModalOpen: s.setIsExportModalOpen,
       setIsAccessManagementOpen: s.setIsAccessManagementOpen,
       setIsQuotesModalOpen: s.setIsQuotesModalOpen,
+      setIsRecentlyDeletedOpen: s.setIsRecentlyDeletedOpen,
+      purgeOldDeletedItems: s.purgeOldDeletedItems,
       setIsCommentsSidebarOpen: s.setIsCommentsSidebarOpen,
       setActiveCommentSectionTag: s.setActiveCommentSectionTag,
       setIsOpenMobile: s.setIsOpenMobile,
@@ -252,6 +271,13 @@ export default function App() {
     },
     [setAccentTheme, accentTheme]
   );
+
+  // Automatically purge soft-deleted items older than 30 days when owner opens the app
+  useEffect(() => {
+    if (currentUser?.isLoggedIn && currentUser?.role === 'owner') {
+      purgeOldDeletedItems();
+    }
+  }, [currentUser?.isLoggedIn, currentUser?.role, purgeOldDeletedItems]);
 
   // Real-time Firestore permissions subscription with clean unsubscribe
   useEffect(() => {
@@ -465,7 +491,7 @@ export default function App() {
     );
   }
 
-  const currentWeekTitle = weeks.find((w) => w.id === activeWeekId)?.weekTitle || 'Weekly Journal';
+  const currentWeekTitle = (activeWeeks.find((w) => w.id === activeWeekId) || weeks.find((w) => w.id === activeWeekId))?.weekTitle || 'Weekly Journal';
   const currentCategoryTitle = visibleCoreCategories.find((c) => c.id === activeCoreCategory)?.title || 'Core Topic';
 
   return (
@@ -489,7 +515,7 @@ export default function App() {
           onLogout={logout}
           currentUser={currentUser}
           totalCoreCount={visibleCoreCategories.length}
-          weeks={weeks}
+          weeks={activeWeeks}
           coreItems={visibleCoreItems}
           coreCategories={visibleCoreCategories}
           onNavigateToWeek={(wId) => {
@@ -563,7 +589,7 @@ export default function App() {
           >
             {viewMode === 'home' ? (
               <HomeDashboard
-                weeks={weeks}
+                weeks={activeWeeks}
                 coreItems={visibleCoreItems}
                 coreCategories={visibleCoreCategories}
                 pinnedCategoryIds={pinnedCategoryIds}
@@ -587,7 +613,7 @@ export default function App() {
               />
             ) : viewMode === 'weekly' ? (
               <WeeklyTimeline
-                weeks={weeks}
+                weeks={activeWeeks}
                 setWeeks={setWeeks}
                 activeWeekId={activeWeekId}
                 setActiveWeekId={handleSetActiveWeekId}
@@ -626,7 +652,7 @@ export default function App() {
               />
             ) : (
               <SharedMediaHub
-                weeks={weeks}
+                weeks={activeWeeks}
                 coreItems={visibleCoreItems}
                 currentUser={currentUser}
                 onUpdateWeeks={setWeeks}
@@ -764,6 +790,15 @@ export default function App() {
             />
           </Suspense>
         )}
+
+        {/* Recently Deleted Modal */}
+        <RecentlyDeletedModal
+          isOpen={isRecentlyDeletedOpen}
+          onClose={() => setIsRecentlyDeletedOpen(false)}
+        />
+
+        {/* Global Toast Notification */}
+        <Toast />
 
         {/* Minimalist Cinematic Entrance & Typewriter Intro Screen */}
         <EntranceOverlay />

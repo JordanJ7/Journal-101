@@ -10,6 +10,7 @@ import {
   Film,
   Folder,
   FolderOpen,
+  GitMerge,
   Heart,
   HeartHandshake,
   HelpCircle,
@@ -38,8 +39,10 @@ import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
 import { usePermissions } from '../hooks/usePermissions';
-import { findMatchingWeekForDate, isDateWithinWeek, sortWeeksForSidebar } from '../utils/dateUtils';
+import { findMatchingWeekForDate, findOverlappingWeek, isDateWithinWeek, sortWeeksForSidebar } from '../utils/dateUtils';
 import { getWeekTitleAndRangeForDate, parseDateFromTimestamp } from '../utils/storage';
+import { useJournalStore } from '../store/useJournalStore';
+import { MergeWeekModal } from './WeeklyJournal/MergeWeekModal';
 
 interface SidebarProps {
   weeks: WeeklyBlock[];
@@ -131,12 +134,22 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
   const [draggedCatIndex, setDraggedCatIndex] = useState<number | null>(null);
   const [dragOverCatIndex, setDragOverCatIndex] = useState<number | null>(null);
+  const [openWeekMenuId, setOpenWeekMenuId] = useState<string | null>(null);
+  const [mergingWeek, setMergingWeek] = useState<WeeklyBlock | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     catId: CoreCategoryId;
     title: string;
     x: number;
     y: number;
   } | null>(null);
+
+  const startThisWeek = useJournalStore((s) => s.startThisWeek);
+  const deleteWeek = useJournalStore((s) => s.deleteWeek);
+  const mergeWeekInto = useJournalStore((s) => s.mergeWeekInto);
+  const setIsRecentlyDeletedOpen = useJournalStore((s) => s.setIsRecentlyDeletedOpen);
+  const allStoreWeeks = useJournalStore((s) => s.weeks);
+  const allStoreCategories = useJournalStore((s) => s.coreCategories);
+  const allStoreCoreItems = useJournalStore((s) => s.coreItems);
 
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const permissions = usePermissions();
@@ -162,11 +175,19 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     [onSelectCoreCategory, setActiveCoreCategory, setIsOpenMobile]
   );
 
+  const activeWeeks = useMemo(() => {
+    return weeks.filter((w) => !w.deletedAt);
+  }, [weeks]);
+
+  const activeCategories = useMemo(() => {
+    return coreCategories.filter((c) => !c.deletedAt);
+  }, [coreCategories]);
+
   const filteredWeeks = useMemo(() => {
-    let list = weeks;
+    let list = activeWeeks;
     if (weekSearchQuery.trim()) {
       const q = weekSearchQuery.toLowerCase();
-      list = weeks.filter(
+      list = activeWeeks.filter(
         (w) =>
           w.weekTitle.toLowerCase().includes(q) ||
           (w.startDate && w.startDate.toLowerCase().includes(q)) ||
@@ -174,13 +195,26 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       );
     }
     return sortWeeksForSidebar(list);
-  }, [weeks, weekSearchQuery]);
+  }, [activeWeeks, weekSearchQuery]);
 
   const filteredCategories = useMemo(() => {
-    if (!categorySearchQuery.trim()) return coreCategories;
+    if (!categorySearchQuery.trim()) return activeCategories;
     const q = categorySearchQuery.toLowerCase();
-    return coreCategories.filter((c) => c.title.toLowerCase().includes(q));
-  }, [coreCategories, categorySearchQuery]);
+    return activeCategories.filter((c) => c.title.toLowerCase().includes(q));
+  }, [activeCategories, categorySearchQuery]);
+
+  const recentlyDeletedCount = useMemo(() => {
+    const deletedWeeksCount = allStoreWeeks.filter((w) => !!w.deletedAt).length;
+    let deletedEntriesCount = 0;
+    allStoreWeeks.forEach((w) => {
+      (w.bullets || []).forEach((b) => {
+        if (b.deletedAt) deletedEntriesCount++;
+      });
+    });
+    const deletedFoldersCount = allStoreCategories.filter((c) => !!c.deletedAt).length;
+    const deletedNotesCount = (allStoreCoreItems || []).filter((i) => !!i.deletedAt).length;
+    return deletedWeeksCount + deletedEntriesCount + deletedFoldersCount + deletedNotesCount;
+  }, [allStoreWeeks, allStoreCategories, allStoreCoreItems]);
 
   const moveCategory = useCallback(
     (fromIdx: number, toIdx: number) => {
@@ -207,19 +241,13 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     const finalEndDate = newWeekEndDate || calcEnd;
 
     // Check if an existing week matches the exact dates, week title, or covers the target date range
-    let existingWeek = weeks.find((w) => {
-      if (finalStartDate && finalEndDate && w.startDate === finalStartDate && w.endDate === finalEndDate) {
-        return true;
-      }
-      if (w.weekTitle && w.weekTitle.trim().toLowerCase() === finalTitle.trim().toLowerCase()) {
-        return true;
-      }
-      return false;
-    });
-
-    if (!existingWeek && !isNaN(targetDate.getTime())) {
-      existingWeek = findMatchingWeekForDate(targetDate, weeks);
-    }
+    const existingWeek = findOverlappingWeek(
+      finalStartDate,
+      finalEndDate,
+      finalTitle,
+      undefined,
+      activeWeeks
+    );
 
     if (existingWeek) {
       handleSelectWeek(existingWeek.id);
@@ -227,6 +255,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       setNewWeekTitle('');
       setNewWeekStartDate('');
       setNewWeekEndDate('');
+      useJournalStore.getState().showToast(`Week already exists: opened "${existingWeek.weekTitle}"`);
       return;
     }
 
@@ -437,13 +466,27 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           <div className="flex items-center justify-between px-1 mb-2 shrink-0">
             <span className="text-xs font-semibold text-stone-400">Entries</span>
             {canEdit && (
-              <button
-                onClick={() => setShowAddWeekModal(true)}
-                className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-lg text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                title="New Week"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    startThisWeek();
+                    if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
+                  }}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Start or open the current Monday–Sunday week"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Start this week</span>
+                </button>
+                <button
+                  onClick={() => setShowAddWeekModal(true)}
+                  className="min-h-[32px] min-w-[32px] p-1.5 flex items-center justify-center rounded-lg text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  title="New Week"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             )}
           </div>
 
@@ -492,6 +535,55 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                         </p>
                       )}
                     </div>
+
+                    {canEdit && (
+                      <div className="relative shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => setOpenWeekMenuId(openWeekMenuId === week.id ? null : week.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
+                          title="Week options"
+                        >
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </button>
+                        {openWeekMenuId === week.id && (
+                          <>
+                            <div className="fixed inset-0 z-30" onClick={() => setOpenWeekMenuId(null)} />
+                            <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[150px] text-xs font-normal">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenWeekMenuId(null);
+                                  setMergingWeek(week);
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
+                              >
+                                <GitMerge className="w-3.5 h-3.5 text-amber-500" />
+                                <span>Merge into…</span>
+                              </button>
+                              {isOwner && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenWeekMenuId(null);
+                                    confirmDelete({
+                                      title: `Delete "${week.weekTitle}"?`,
+                                      message: `Delete this week and all entries inside it?`,
+                                      confirmText: 'Delete',
+                                      onConfirm: () => deleteWeek(week.id),
+                                    });
+                                  }}
+                                  className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 text-rose-600 dark:text-rose-400 cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Delete Week</span>
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -667,6 +759,33 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           </div>
         </div>
       )}
+
+      {/* Bottom Footer: Recently Deleted & Backup status */}
+      <div className="mt-auto pt-3 border-t border-black/5 dark:border-white/10 shrink-0 space-y-1">
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => {
+              setIsRecentlyDeletedOpen(true);
+              if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-2">
+              <Trash2 className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-200 transition-colors" />
+              <span>Recently deleted</span>
+            </div>
+            {recentlyDeletedCount > 0 && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+                {recentlyDeletedCount}
+              </span>
+            )}
+          </button>
+        )}
+        <div className="px-3 pb-1 text-[10px] text-stone-400 dark:text-stone-500 font-medium select-none">
+          Daily backup
+        </div>
+      </div>
     </>
   );
 
@@ -939,6 +1058,19 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           onClose={() => setEditingCategory(null)}
           onSave={(catId, updated) => {
             onUpdateCoreCategory?.(catId as CoreCategoryId, updated);
+          }}
+        />
+      )}
+
+      {/* Merge Week Modal */}
+      {mergingWeek && (
+        <MergeWeekModal
+          isOpen={!!mergingWeek}
+          sourceWeek={mergingWeek}
+          onClose={() => setMergingWeek(null)}
+          onConfirmMerge={(targetWeekId) => {
+            mergeWeekInto(mergingWeek.id, targetWeekId);
+            setMergingWeek(null);
           }}
         />
       )}

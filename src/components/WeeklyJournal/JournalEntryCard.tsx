@@ -1,4 +1,5 @@
 import {
+  ArrowRightLeft,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -32,6 +33,7 @@ import { HighlightText } from '../HighlightText';
 import { TimestampPickerPopover } from './TimestampPickerPopover';
 import { MediaInspectModal } from '../MediaInspectModal';
 import { SaveStatusBadge } from '../SaveStatusBadge';
+import { MoveEntryModal } from './MoveEntryModal';
 import {
   createAttachmentFromUrl,
   filesToPersistentAttachments,
@@ -71,6 +73,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
   accentTheme = 'amber',
 }) => {
   const { updateEntryTimestamp } = useJournalStore();
+  const moveEntryToWeek = useJournalStore((s) => s.moveEntryToWeek);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   const [isEditing, setIsEditing] = useState(false);
@@ -83,6 +86,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
   const [autoSaveState, setAutoSaveState] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle');
   const [showTimestampPicker, setShowTimestampPicker] = useState(false);
   const [isInspectOpen, setIsInspectOpen] = useState(false);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'converting' | 'uploading'>('idle');
   const isProcessingUpload = uploadStatus !== 'idle';
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -791,6 +795,19 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   </button>
                 )}
 
+                {/* Move to another week */}
+                {canEdit && weekId && (
+                  <button
+                    type="button"
+                    onClick={() => setIsMoveModalOpen(true)}
+                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/60 dark:hover:bg-stone-700/60 text-xs font-medium transition-colors cursor-pointer flex items-center gap-1"
+                    title="Move to another week…"
+                  >
+                    <ArrowRightLeft className="w-3 h-3" />
+                    <span>Move to another week…</span>
+                  </button>
+                )}
+
                 {/* Delete Button */}
                 {canDelete && (
                   <button
@@ -847,6 +864,20 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
           });
         }}
       />
+
+      {/* Move Entry Modal */}
+      {isMoveModalOpen && weekId && (
+        <MoveEntryModal
+          isOpen={isMoveModalOpen}
+          onClose={() => setIsMoveModalOpen(false)}
+          bullet={bullet}
+          sourceWeekId={weekId}
+          onSelectTargetWeek={(targetWeekId) => {
+            moveEntryToWeek(weekId, targetWeekId, bullet.id);
+            setIsMoveModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 });

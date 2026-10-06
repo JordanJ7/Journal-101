@@ -186,10 +186,11 @@ export function findMatchingWeekForDate(
   preferredWeekId?: string
 ): WeeklyBlock | undefined {
   if (!date || isNaN(date.getTime()) || !weeks || weeks.length === 0) return undefined;
+  const activeWeeks = weeks.filter((w) => !w.deletedAt);
 
   // 1. Check preferredWeekId first if provided
   if (preferredWeekId) {
-    const prefWeek = weeks.find((w) => w.id === preferredWeekId);
+    const prefWeek = activeWeeks.find((w) => w.id === preferredWeekId);
     if (prefWeek && isDateWithinWeek(date, prefWeek)) {
       return prefWeek;
     }
@@ -199,7 +200,7 @@ export function findMatchingWeekForDate(
   const targetTime = date.getTime();
 
   // 2. Check each week's [startDate, endDate] boundary
-  for (const week of weeks) {
+  for (const week of activeWeeks) {
     if (week.startDate && week.endDate) {
       const start = parseDateFromTimestamp(week.startDate);
       const end = parseDateFromTimestamp(week.endDate);
@@ -214,7 +215,7 @@ export function findMatchingWeekForDate(
   }
 
   // 3. Exact match by weekTitle or startDate/endDate strings
-  for (const week of weeks) {
+  for (const week of activeWeeks) {
     if (
       (week.weekTitle && week.weekTitle.trim().toLowerCase() === weekTitle.trim().toLowerCase()) ||
       (week.startDate &&
@@ -227,7 +228,7 @@ export function findMatchingWeekForDate(
   }
 
   // 4. Any other matching week using isDateWithinWeek
-  for (const week of weeks) {
+  for (const week of activeWeeks) {
     if (isDateWithinWeek(date, week)) {
       return week;
     }
@@ -319,4 +320,78 @@ export function relocateBulletToMatchingWeek(
     targetWeekId: targetWeek.id,
   };
 }
+
+/**
+ * Checks whether two week periods overlap in dates or have identical titles.
+ * Start dates are stored in formats like '2026-08-24' and 'Sep 7, 2026'.
+ */
+export function weeksOverlap(
+  weekA: { startDate?: string; endDate?: string; weekTitle?: string },
+  weekB: { startDate?: string; endDate?: string; weekTitle?: string }
+): boolean {
+  if (!weekA || !weekB) return false;
+
+  // 1. Direct title comparison (case-insensitive)
+  if (
+    weekA.weekTitle &&
+    weekB.weekTitle &&
+    weekA.weekTitle.trim().toLowerCase() === weekB.weekTitle.trim().toLowerCase()
+  ) {
+    return true;
+  }
+
+  // 2. Direct string date match
+  if (
+    weekA.startDate &&
+    weekB.startDate &&
+    weekA.startDate.trim().toLowerCase() === weekB.startDate.trim().toLowerCase()
+  ) {
+    return true;
+  }
+
+  // 3. Real parsed Date interval overlap
+  const startA = parseWeekStartDate(weekA.startDate) || (weekA.startDate ? parseDateFromTimestamp(weekA.startDate) : null);
+  const startB = parseWeekStartDate(weekB.startDate) || (weekB.startDate ? parseDateFromTimestamp(weekB.startDate) : null);
+
+  if (startA && !isNaN(startA.getTime()) && startB && !isNaN(startB.getTime())) {
+    const endA =
+      parseWeekStartDate(weekA.endDate) ||
+      (weekA.endDate ? parseDateFromTimestamp(weekA.endDate) : null) ||
+      new Date(startA.getTime() + 6 * 86400000);
+    const endB =
+      parseWeekStartDate(weekB.endDate) ||
+      (weekB.endDate ? parseDateFromTimestamp(weekB.endDate) : null) ||
+      new Date(startB.getTime() + 6 * 86400000);
+
+    const sA = new Date(startA.getFullYear(), startA.getMonth(), startA.getDate(), 0, 0, 0, 0).getTime();
+    const eA = new Date(endA.getFullYear(), endA.getMonth(), endA.getDate(), 23, 59, 59, 999).getTime();
+    const sB = new Date(startB.getFullYear(), startB.getMonth(), startB.getDate(), 0, 0, 0, 0).getTime();
+    const eB = new Date(endB.getFullYear(), endB.getMonth(), endB.getDate(), 23, 59, 59, 999).getTime();
+
+    if (sA <= eB && sB <= eA) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Searches the non-deleted weeks list for any week overlapping the given date range or title.
+ */
+export function findOverlappingWeek(
+  startDate?: string,
+  endDate?: string,
+  weekTitle?: string,
+  excludeWeekId?: string,
+  weeks: WeeklyBlock[] = []
+): WeeklyBlock | undefined {
+  const target = { startDate, endDate, weekTitle };
+  return weeks.find((w) => {
+    if (w.deletedAt) return false;
+    if (excludeWeekId && w.id === excludeWeekId) return false;
+    return weeksOverlap(target, w);
+  });
+}
+
 

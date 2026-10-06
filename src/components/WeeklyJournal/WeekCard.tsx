@@ -6,8 +6,10 @@ import {
   Edit2,
   ExternalLink as LinkIcon,
   FileDown,
+  GitMerge,
   Maximize2,
   MessageSquare,
+  MoreVertical,
   Pin,
   Plus,
   Sparkles,
@@ -27,6 +29,7 @@ import { HighlightText } from '../HighlightText';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 import { AssignmentBox } from './AssignmentBox';
 import { BulletItem } from './BulletItem';
+import { MergeWeekModal } from './MergeWeekModal';
 import { TimestampPickerPopover } from './TimestampPickerPopover';
 import { WeeklyTimestampModal } from './WeeklyTimestampModal';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -70,6 +73,12 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 
   const [showWeeklyTimestampModal, setShowWeeklyTimestampModal] = useState(false);
   const updateWeeklyEntryTimestamp = useJournalStore((s) => s.updateWeeklyEntryTimestamp);
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const mergeWeekInto = useJournalStore((s) => s.mergeWeekInto);
+  const deleteEntry = useJournalStore((s) => s.deleteEntry);
+
+  const activeBullets = (week.bullets || []).filter((b) => !b.deletedAt);
 
   const parentDate = parseDateFromTimestamp(week.createdAt || week.startDate || week.weekTitle);
   const parentFormattedTimestamp = week.timestamp || formatTimestamp(parentDate);
@@ -149,14 +158,13 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
   const handleDeleteBullet = useCallback((id: string) => {
     confirmDelete({
       title: 'Delete Entry',
-      message: 'Delete this entry?',
+      message: 'Delete this entry? It will be moved to Recently Deleted.',
       confirmText: 'Delete',
       onConfirm: () => {
-        const bullets = week.bullets.filter((b) => b.id !== id);
-        onUpdateWeek({ ...week, updatedAt: new Date().toISOString(), bullets });
+        deleteEntry(week.id, id);
       },
     });
-  }, [confirmDelete, onUpdateWeek, week]);
+  }, [confirmDelete, deleteEntry, week.id]);
 
   const handleIndentChange = useCallback((id: string, newIndent: number) => {
     const bullets = week.bullets.map((b) => (b.id === id ? { ...b, indent: newIndent } : b));
@@ -365,21 +373,53 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
             <FileDown className="w-4 h-4" />
           </button>
 
-          {isOwner && (
-            <button
-              onClick={() => {
-                confirmDelete({
-                  title: `Delete "${week.weekTitle}"?`,
-                  message: `Delete this week and all entries inside it?`,
-                  confirmText: 'Delete',
-                  onConfirm: () => onDeleteWeek(),
-                });
-              }}
-              className="min-h-[44px] min-w-[44px] p-2 text-stone-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl transition-colors flex items-center justify-center"
-              title="Delete Week"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+          {canEdit && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowMoreMenu((prev) => !prev)}
+                className="min-h-[44px] min-w-[44px] p-2 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                title="More week options"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+              {showMoreMenu && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowMoreMenu(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[160px] text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMoreMenu(false);
+                        setIsMergeModalOpen(true);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
+                    >
+                      <GitMerge className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Merge into…</span>
+                    </button>
+                    {isOwner && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMoreMenu(false);
+                          confirmDelete({
+                            title: `Delete "${week.weekTitle}"?`,
+                            message: `Delete this week and all entries inside it?`,
+                            confirmText: 'Delete',
+                            onConfirm: () => onDeleteWeek(),
+                          });
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 text-rose-600 dark:text-rose-400 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Week</span>
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -409,7 +449,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                 Journal Entries
               </h3>
               <span className="text-[10px] font-mono text-stone-400">
-                ({week.bullets.length})
+                ({activeBullets.length})
               </span>
             </button>
 
@@ -429,12 +469,12 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
             <div className="pt-1 space-y-2 animate-in fade-in duration-100">
               {/* Bullets */}
               <div className="space-y-1">
-                {week.bullets.length === 0 ? (
+                {activeBullets.length === 0 ? (
                   <p className="text-xs text-stone-400 py-2 text-center">
                     No entries yet
                   </p>
                 ) : (
-                  week.bullets.map((bullet) => (
+                  activeBullets.map((bullet) => (
                     <BulletItem
                       key={bullet.id}
                       bullet={bullet}
@@ -650,6 +690,19 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
           weekTitle={week.weekTitle}
           onSave={async (newIso, newFormatted) => {
             await updateWeeklyEntryTimestamp(week.id, newFormatted, newIso);
+          }}
+        />
+      )}
+
+      {/* Merge Week Modal */}
+      {isMergeModalOpen && (
+        <MergeWeekModal
+          isOpen={isMergeModalOpen}
+          sourceWeek={week}
+          onClose={() => setIsMergeModalOpen(false)}
+          onConfirmMerge={(targetWeekId) => {
+            mergeWeekInto(week.id, targetWeekId);
+            setIsMergeModalOpen(false);
           }}
         />
       )}

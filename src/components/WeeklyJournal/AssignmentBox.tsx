@@ -11,7 +11,15 @@ import { SaveStatusBadge } from '../SaveStatusBadge';
 
 const AssignmentSaveBadge = React.memo(() => {
   const saveStatus = useSaveStatus();
-  return <SaveStatusBadge status={saveStatus === 'unsaved' ? 'countdown' : saveStatus} secondsRemaining={2} />;
+  const badgeStatus =
+    saveStatus === 'saving'
+      ? 'saving'
+      : saveStatus === 'error'
+      ? 'error'
+      : saveStatus === 'saved_cloud'
+      ? 'saved'
+      : 'idle';
+  return <SaveStatusBadge status={badgeStatus} secondsRemaining={2} />;
 });
 AssignmentSaveBadge.displayName = 'AssignmentSaveBadge';
 

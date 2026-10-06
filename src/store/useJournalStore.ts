@@ -12,6 +12,7 @@ import {
   ItemActivityStatus,
   ViewMode,
   WeeklyBlock,
+  HonestSaveStatus,
 } from '../types';
 import { CORE_CATEGORIES_CONFIG, INITIAL_COMMENTS, INITIAL_CORE_ITEMS, INITIAL_WEEKS } from '../data/initialData';
 import {
@@ -23,7 +24,16 @@ import {
   getHasReceivedFirstFirestoreSnapshot,
   setHasReceivedFirstFirestoreSnapshot as setGlobalFirestoreSnapshotReceived,
 } from '../utils/storage';
-import { relocateBulletToMatchingWeek, sortBulletsByDate, sortWeeksChronologically, isDateWithinWeek, getEntryDate, findMatchingWeekForDate } from '../utils/dateUtils';
+import {
+  relocateBulletToMatchingWeek,
+  sortBulletsByDate,
+  sortWeeksChronologically,
+  isDateWithinWeek,
+  getEntryDate,
+  findMatchingWeekForDate,
+  findOverlappingWeek,
+  weeksOverlap,
+} from '../utils/dateUtils';
 import {
   CurrentUserProfile,
   DEFAULT_PERMISSIONS,
@@ -56,7 +66,7 @@ const INITIAL_USER_PROFILE: CurrentUserProfile = {
   isSimulated: false,
 };
 
-export type AutoSaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+export type AutoSaveStatus = HonestSaveStatus;
 
 export interface JournalStoreState {
   // Hydration state (prevents unhydrated state from overwriting Firestore)
@@ -82,13 +92,21 @@ export interface JournalStoreState {
 
   // Auto-Save status & telemetry
   saveStatus: AutoSaveStatus;
+  lastCloudSavedAt: number | null;
   lastSavedAt: string | null;
+
+  // Toast notifications
+  toastMessage: string | null;
+  showToast: (msg: string) => void;
+  hideToast: () => void;
 
   // Modals & UI navigation state
   isExportModalOpen: boolean;
   isAccessManagementOpen: boolean;
   isQuotesModalOpen: boolean;
   isCommentsSidebarOpen: boolean;
+  isRecentlyDeletedOpen: boolean;
+  setIsRecentlyDeletedOpen: (open: boolean) => void;
   activeCommentSectionTag?: string;
   isOpenMobile: boolean;
   isSidebarOpen: boolean;
@@ -107,9 +125,16 @@ export interface JournalStoreState {
 
   setWeeks: (weeksOrUpdater: WeeklyBlock[] | ((prev: WeeklyBlock[]) => WeeklyBlock[])) => void;
   addWeek: (newWeek: WeeklyBlock) => void;
+  startThisWeek: () => void;
   updateWeek: (updatedWeek: WeeklyBlock) => void;
   togglePinWeek: (weekId: string) => void;
   deleteWeek: (weekId: string) => void;
+  moveEntryToWeek: (sourceWeekId: string, targetWeekId: string, entryId: string) => void;
+  mergeWeekInto: (sourceWeekId: string, targetWeekId: string) => void;
+  restoreItem: (type: 'week' | 'entry' | 'folder' | 'note', id: string, parentId?: string) => void;
+  permanentlyDeleteItem: (type: 'week' | 'entry' | 'folder' | 'note', id: string, parentId?: string) => Promise<void>;
+  purgeOldDeletedItems: () => void;
+  retrySave: () => Promise<void>;
   reorderWeeks: (weeks: WeeklyBlock[]) => void;
   updateBulletTimestamp: (
     weekId: string,
@@ -275,9 +300,46 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
 
   const s = get();
 
+  // Guard: Offline check
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    const appState: AppState = {
+      weeks: s.weeks,
+      activeWeekId: s.activeWeekId,
+      coreItems: s.coreItems,
+      activeCoreCategory: s.activeCoreCategory,
+      activeCoreSubCategory: s.activeCoreSubCategory,
+      theme: s.theme,
+      accentTheme: s.accentTheme,
+      coreCategories: s.coreCategories,
+      pinnedCategoryIds: s.pinnedCategoryIds,
+      introQuotes: s.introQuotes,
+      filters: s.filters,
+      comments: s.comments,
+    };
+    saveAppState(appState);
+    useJournalStore.setState({ saveStatus: 'offline' });
+    return;
+  }
+
   // HYDRATION & SNAPSHOT GUARD: Block writing local fallback state to Firestore until weeks, folders, and core_topics snapshots have all been received and applied
   if (!s.isHydrated || !s.hasReceivedFirstFirestoreSnapshot || !getHasReceivedFirstFirestoreSnapshot()) {
     console.warn('[Auto-Save Guard] Save blocked: waiting for required Firestore snapshots (weeks, folders, core_topics) before writing to Cloud.');
+    const appState: AppState = {
+      weeks: s.weeks,
+      activeWeekId: s.activeWeekId,
+      coreItems: s.coreItems,
+      activeCoreCategory: s.activeCoreCategory,
+      activeCoreSubCategory: s.activeCoreSubCategory,
+      theme: s.theme,
+      accentTheme: s.accentTheme,
+      coreCategories: s.coreCategories,
+      pinnedCategoryIds: s.pinnedCategoryIds,
+      introQuotes: s.introQuotes,
+      filters: s.filters,
+      comments: s.comments,
+    };
+    saveAppState(appState);
+    useJournalStore.setState({ saveStatus: 'saved_local' });
     return;
   }
 
@@ -323,8 +385,8 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
     const roleStr = s.currentUser?.role || 'unauthorized';
     console.log(`[Auto-Save] Firestore write skipped due to insufficient permissions (role: ${roleStr}). Saved to local storage only.`);
     useJournalStore.setState({
-      saveStatus: 'saved',
-      lastSavedAt: 'Saved locally',
+      saveStatus: 'saved_local',
+      lastSavedAt: 'Saved on this device only',
     });
     pendingTargetEntryId = undefined;
     return;
@@ -339,7 +401,10 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
   }
 
   if (!hasDirtyItems()) {
-    useJournalStore.setState({ saveStatus: 'saved' });
+    const lastCloud = useJournalStore.getState().lastCloudSavedAt;
+    useJournalStore.setState({
+      saveStatus: lastCloud != null ? 'saved_cloud' : 'saved_local',
+    });
     pendingTargetEntryId = undefined;
     return;
   }
@@ -365,6 +430,8 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
         await saveWeekDoc(week);
         dirtyWeekIds.delete(wId);
         savedSummaries.push(`week:${wId}`);
+      } else {
+        dirtyWeekIds.delete(wId);
       }
     }
 
@@ -382,6 +449,8 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
         await saveFolderDoc(folder);
         dirtyFolderIds.delete(fId);
         savedSummaries.push(`folder:${fId}`);
+      } else {
+        dirtyFolderIds.delete(fId);
       }
     }
 
@@ -399,6 +468,8 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
         await saveCoreTopicDoc(item);
         dirtyCoreItemIds.delete(itemId);
         savedSummaries.push(`item:${itemId}`);
+      } else {
+        dirtyCoreItemIds.delete(itemId);
       }
     }
 
@@ -419,18 +490,18 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
       savedSummaries.push('app_state:journal');
     }
 
-    const formattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const now = Date.now();
     useJournalStore.setState({
-      saveStatus: 'saved',
-      lastSavedAt: formattedTime,
+      saveStatus: 'saved_cloud',
+      lastCloudSavedAt: now,
     });
     if (savedSummaries.length > 0) {
       console.log('[Auto-Save] Specific dirty documents saved to Firestore:', savedSummaries.join(', '));
     }
     pendingTargetEntryId = undefined;
   } catch (err) {
-    console.warn('[Auto-Save] Cloud write error, fallback to local backup:', err);
-    useJournalStore.setState({ saveStatus: 'saved', lastSavedAt: 'Saved locally' });
+    console.error('[Auto-Save] Cloud write error, items kept dirty for retry:', err);
+    useJournalStore.setState({ saveStatus: 'error' });
   } finally {
     isSyncInProgress = false;
     if (pendingSaveAfterSync) {
@@ -473,7 +544,11 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
     console.warn('Immediate local cache save note:', err);
   }
 
-  useJournalStore.setState({ saveStatus: 'unsaved' });
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    useJournalStore.setState({ saveStatus: 'offline' });
+  } else {
+    useJournalStore.setState({ saveStatus: 'saving' });
+  }
 
   if (syncTimeout) clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
@@ -484,9 +559,24 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
 // Global window lifecycle listener: flush pending debounced saves strictly on actual tab unload if unsaved
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => {
-    if (useJournalStore.getState().saveStatus === 'unsaved' || syncTimeout) {
+    if (useJournalStore.getState().saveStatus === 'saving' || syncTimeout || hasDirtyItems()) {
       useJournalStore.getState().flushAutoSave();
     }
+  });
+
+  window.addEventListener('online', () => {
+    const s = useJournalStore.getState();
+    if (hasDirtyItems()) {
+      executeSave(useJournalStore.getState);
+    } else if (s.lastCloudSavedAt != null) {
+      useJournalStore.setState({ saveStatus: 'saved_cloud' });
+    } else {
+      useJournalStore.setState({ saveStatus: 'saved_local' });
+    }
+  });
+
+  window.addEventListener('offline', () => {
+    useJournalStore.setState({ saveStatus: 'offline' });
   });
 }
 
@@ -533,14 +623,26 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   comments: Array.isArray(initialLoaded.comments) ? initialLoaded.comments : INITIAL_COMMENTS,
   viewMode: 'home',
 
-  saveStatus: 'saved',
+  saveStatus: (typeof navigator !== 'undefined' && !navigator.onLine) ? 'offline' : 'saved_local',
+  lastCloudSavedAt: null,
   lastSavedAt: null,
 
-  flushAutoSave: async (entryId?: string) => {
-    // Only flush if there is an actual pending save scheduled or unsaved status
-    if (!syncTimeout && get().saveStatus !== 'unsaved' && !pendingSaveAfterSync) {
-      return;
+  toastMessage: null,
+  showToast: (msg: string) => set({ toastMessage: msg }),
+  hideToast: () => set({ toastMessage: null }),
+
+  isRecentlyDeletedOpen: false,
+  setIsRecentlyDeletedOpen: (isRecentlyDeletedOpen: boolean) => set({ isRecentlyDeletedOpen }),
+
+  retrySave: async () => {
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+      syncTimeout = null;
     }
+    await executeSave(get);
+  },
+
+  flushAutoSave: async (entryId?: string) => {
     if (syncTimeout) {
       clearTimeout(syncTimeout);
       syncTimeout = null;
@@ -578,27 +680,24 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteFolder: async (folderId) => {
-    markFolderDeleted(folderId);
+    const cat = get().coreCategories.find((c) => c.id === folderId);
+    if (!cat) return;
+    const deletedAt = new Date().toISOString();
+    markFolderDirty(folderId);
     set((state) => {
-      const updatedCats = state.coreCategories.filter((c) => c.id !== folderId);
-      const updatedItems = state.coreItems.filter((i) => i.categoryId !== folderId);
+      const updatedCats = state.coreCategories.map((c) => (c.id === folderId ? { ...c, deletedAt } : c));
+      const remainingCats = updatedCats.filter((c) => !c.deletedAt);
       let nextActiveCat = state.activeCoreCategory;
       if (state.activeCoreCategory === folderId) {
-        nextActiveCat = updatedCats[0]?.id || 'what-to-text-her';
+        nextActiveCat = remainingCats[0]?.id || 'what-to-text-her';
       }
       return {
         coreCategories: updatedCats,
-        coreItems: updatedItems,
         activeCoreCategory: nextActiveCat,
       };
     });
-    try {
-      await deleteFolderDoc(folderId);
-      console.log('[Firestore SUCCESS] Folder deleted:', folderId);
-    } catch (err) {
-      console.error('[Firestore CRITICAL ERROR] Failed to delete folder:', err);
-    }
     schedulePersistence(get);
+    get().showToast(`Moved folder "${cat.title}" to Recently Deleted`);
   },
 
   saveEntry: async (weekId, entryData) => {
@@ -672,28 +771,19 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   deleteEntry: async (weekId, entryId) => {
     markWeekDirty(weekId);
-    let updatedWeek: WeeklyBlock | undefined;
+    const deletedAt = new Date().toISOString();
     set((state) => ({
       weeks: state.weeks.map((w) => {
         if (w.id !== weekId) return w;
-        const wUpdated = {
+        return {
           ...w,
           updatedAt: new Date().toISOString(),
-          bullets: w.bullets.filter((b) => b.id !== entryId),
+          bullets: w.bullets.map((b) => (b.id === entryId ? { ...b, deletedAt } : b)),
         };
-        updatedWeek = wUpdated;
-        return wUpdated;
       }),
     }));
-    if (updatedWeek) {
-      try {
-        await saveWeekDoc(updatedWeek);
-        console.log('[Firestore SUCCESS] Week saved after deleting entry:', entryId);
-      } catch (err) {
-        console.error('[Firestore CRITICAL ERROR] Failed to save week after deleting entry:', err);
-      }
-    }
     schedulePersistence(get);
+    get().showToast('Moved entry to Recently Deleted');
   },
 
   // Week Operations
@@ -711,56 +801,89 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     schedulePersistence(get);
   },
 
-  addWeek: (newWeek) => {
-    markWeekDirty(newWeek.id);
-    const existingWeeks = get().weeks;
-    const targetDate = parseDateFromTimestamp(newWeek.startDate || newWeek.createdAt || newWeek.weekTitle);
+  startThisWeek: () => {
+    const { weekTitle, startDate, endDate } = getWeekTitleAndRangeForDate(new Date());
+    const nonDeleted = get().weeks.filter((w) => !w.deletedAt);
+    const overlapping = findOverlappingWeek(startDate, endDate, weekTitle, undefined, nonDeleted);
 
-    // 1. Check matching start/end dates or title
-    let existingMatch = existingWeeks.find(
-      (w) =>
-        (newWeek.startDate &&
-          newWeek.endDate &&
-          w.startDate === newWeek.startDate &&
-          w.endDate === newWeek.endDate) ||
-        (newWeek.weekTitle &&
-          w.weekTitle &&
-          w.weekTitle.trim().toLowerCase() === newWeek.weekTitle.trim().toLowerCase())
-    );
-
-    // 2. Check if an existing week covers the target date range
-    if (!existingMatch && !isNaN(targetDate.getTime())) {
-      existingMatch = findMatchingWeekForDate(targetDate, existingWeeks);
+    if (overlapping) {
+      set({ activeWeekId: overlapping.id, viewMode: 'weekly' });
+      get().showToast(`Week already exists: opened "${overlapping.weekTitle}"`);
+      return;
     }
 
-    if (existingMatch) {
+    const newWeek: WeeklyBlock = {
+      id: 'week-' + Date.now(),
+      weekTitle,
+      startDate,
+      endDate,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      bullets: [],
+      assignments: {
+        readBookEnabled: false,
+        readBookTitle: '',
+        readBookProgress: '',
+        watchMovieEnabled: false,
+        watchMovieTitle: '',
+        watchMovieThoughts: '',
+        answerDesQuestionsEnabled: false,
+        desQuestions: [],
+      },
+      therapistSection: {
+        title: 'Session Notes',
+        notes: '',
+        externalLinks: [],
+        itemsToShow: [],
+      },
+    };
+
+    markWeekDirty(newWeek.id);
+    set((state) => ({
+      weeks: [newWeek, ...state.weeks],
+      activeWeekId: newWeek.id,
+      viewMode: 'weekly',
+    }));
+    schedulePersistence(get);
+    get().showToast(`Started "${weekTitle}"`);
+  },
+
+  addWeek: (newWeek) => {
+    const nonDeleted = get().weeks.filter((w) => !w.deletedAt);
+    const overlapping = findOverlappingWeek(
+      newWeek.startDate,
+      newWeek.endDate,
+      newWeek.weekTitle,
+      newWeek.id,
+      nonDeleted
+    );
+
+    if (overlapping) {
       if (newWeek.bullets && newWeek.bullets.length > 0) {
-        const existingBullets = [...(existingMatch.bullets || [])];
+        const existingBullets = [...(overlapping.bullets || [])];
         for (const b of newWeek.bullets) {
           if (!existingBullets.some((eb) => eb.id === b.id)) {
             existingBullets.push(b);
           }
         }
         const updatedWeek: WeeklyBlock = {
-          ...existingMatch,
+          ...overlapping,
           updatedAt: new Date().toISOString(),
           bullets: sortBulletsByDate(existingBullets, 'asc'),
         };
         get().updateWeek(updatedWeek);
       }
-      set({ activeWeekId: existingMatch.id, viewMode: 'weekly' });
+      set({ activeWeekId: overlapping.id, viewMode: 'weekly' });
+      get().showToast(`Week already exists: opened "${overlapping.weekTitle}"`);
       return;
     }
 
-    const sortedWeeks = sortWeeksChronologically([newWeek, ...existingWeeks], 'desc');
-    set({
-      weeks: sortedWeeks,
+    markWeekDirty(newWeek.id);
+    set((state) => ({
+      weeks: [newWeek, ...state.weeks],
       activeWeekId: newWeek.id,
       viewMode: 'weekly',
-    });
-    saveWeekDoc(newWeek).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save new week:', err)
-    );
+    }));
     schedulePersistence(get);
   },
 
@@ -769,11 +892,6 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     set((state) => ({
       weeks: state.weeks.map((w) => (w.id === updatedWeek.id ? updatedWeek : w)),
     }));
-
-    saveWeekDoc(updatedWeek).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save updated week:', err)
-    );
-
     schedulePersistence(get);
   },
 
@@ -791,26 +909,265 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     set((state) => ({
       weeks: state.weeks.map((w) => (w.id === updatedWeek.id ? updatedWeek : w)),
     }));
-    saveWeekDoc(updatedWeek).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save pinned week state:', err)
-    );
     schedulePersistence(get);
   },
 
   deleteWeek: (weekId) => {
-    markWeekDeleted(weekId);
+    const week = get().weeks.find((w) => w.id === weekId);
+    if (!week) return;
+    const deletedAt = new Date().toISOString();
+    markWeekDirty(weekId);
     set((state) => {
-      const updated = state.weeks.filter((w) => w.id !== weekId);
-      const nextActiveId = state.activeWeekId === weekId ? updated[0]?.id || '' : state.activeWeekId;
+      const updated = state.weeks.map((w) => (w.id === weekId ? { ...w, deletedAt } : w));
+      const remaining = updated.filter((w) => !w.deletedAt);
+      const nextActiveId = state.activeWeekId === weekId ? remaining[0]?.id || '' : state.activeWeekId;
       return {
         weeks: updated,
         activeWeekId: nextActiveId,
       };
     });
-    deleteWeekDoc(weekId).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to delete week doc:', err)
-    );
     schedulePersistence(get);
+    get().showToast(`Moved "${week.weekTitle}" to Recently Deleted`);
+  },
+
+  moveEntryToWeek: (sourceWeekId, targetWeekId, entryId) => {
+    const state = get();
+    const sourceWeek = state.weeks.find((w) => w.id === sourceWeekId);
+    const targetWeek = state.weeks.find((w) => w.id === targetWeekId);
+    if (!sourceWeek || !targetWeek) return;
+
+    const bullet = (sourceWeek.bullets || []).find((b) => b.id === entryId);
+    if (!bullet) return;
+
+    const updatedSourceBullets = (sourceWeek.bullets || []).filter((b) => b.id !== entryId);
+    const updatedTargetBullets = sortBulletsByDate([...(targetWeek.bullets || []), bullet], 'asc');
+
+    markWeekDirty(sourceWeekId);
+    markWeekDirty(targetWeekId);
+
+    set({
+      weeks: state.weeks.map((w) => {
+        if (w.id === sourceWeekId) {
+          return { ...w, updatedAt: new Date().toISOString(), bullets: updatedSourceBullets };
+        }
+        if (w.id === targetWeekId) {
+          return { ...w, updatedAt: new Date().toISOString(), bullets: updatedTargetBullets };
+        }
+        return w;
+      }),
+    });
+
+    schedulePersistence(get);
+    get().showToast(`Moved entry to "${targetWeek.weekTitle}"`);
+  },
+
+  mergeWeekInto: (sourceWeekId, targetWeekId) => {
+    const state = get();
+    const sourceWeek = state.weeks.find((w) => w.id === sourceWeekId);
+    const targetWeek = state.weeks.find((w) => w.id === targetWeekId);
+    if (!sourceWeek || !targetWeek) return;
+
+    const activeSourceBullets = (sourceWeek.bullets || []).filter((b) => !b.deletedAt);
+    const combinedBullets = sortBulletsByDate(
+      [...(targetWeek.bullets || []), ...activeSourceBullets],
+      'asc'
+    );
+
+    const deletedAt = new Date().toISOString();
+
+    markWeekDirty(sourceWeekId);
+    markWeekDirty(targetWeekId);
+
+    set({
+      weeks: state.weeks.map((w) => {
+        if (w.id === sourceWeekId) {
+          return {
+            ...w,
+            bullets: [],
+            deletedAt,
+            updatedAt: deletedAt,
+          };
+        }
+        if (w.id === targetWeekId) {
+          return {
+            ...w,
+            bullets: combinedBullets,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return w;
+      }),
+      activeWeekId: targetWeekId,
+      viewMode: 'weekly',
+    });
+
+    schedulePersistence(get);
+    get().showToast(`Merged "${sourceWeek.weekTitle}" into "${targetWeek.weekTitle}"`);
+  },
+
+  restoreItem: (type, id, parentId) => {
+    if (type === 'week') {
+      const week = get().weeks.find((w) => w.id === id);
+      if (!week) return;
+      markWeekDirty(id);
+      set((state) => ({
+        weeks: state.weeks.map((w) => (w.id === id ? { ...w, deletedAt: undefined } : w)),
+      }));
+      schedulePersistence(get);
+      get().showToast(`Restored "${week.weekTitle}"`);
+    } else if (type === 'entry') {
+      const weekId = parentId;
+      if (!weekId) return;
+      markWeekDirty(weekId);
+      set((state) => ({
+        weeks: state.weeks.map((w) => {
+          if (w.id !== weekId) return w;
+          return {
+            ...w,
+            updatedAt: new Date().toISOString(),
+            bullets: w.bullets.map((b) => (b.id === id ? { ...b, deletedAt: undefined } : b)),
+          };
+        }),
+      }));
+      schedulePersistence(get);
+      get().showToast('Restored journal entry');
+    } else if (type === 'folder') {
+      const folder = get().coreCategories.find((c) => c.id === id);
+      if (!folder) return;
+      markFolderDirty(id);
+      set((state) => ({
+        coreCategories: state.coreCategories.map((c) => (c.id === id ? { ...c, deletedAt: undefined } : c)),
+      }));
+      schedulePersistence(get);
+      get().showToast(`Restored folder "${folder.title}"`);
+    } else if (type === 'note') {
+      const note = get().coreItems.find((i) => i.id === id);
+      if (!note) return;
+      markCoreItemDirty(id);
+      set((state) => ({
+        coreItems: state.coreItems.map((i) => (i.id === id ? { ...i, deletedAt: undefined } : i)),
+      }));
+      schedulePersistence(get);
+      get().showToast(`Restored note "${note.title || 'Note'}"`);
+    }
+  },
+
+  permanentlyDeleteItem: async (type, id, parentId) => {
+    if (type === 'week') {
+      markWeekDeleted(id);
+      set((state) => ({
+        weeks: state.weeks.filter((w) => w.id !== id),
+      }));
+      schedulePersistence(get);
+      get().showToast('Permanently deleted week');
+    } else if (type === 'entry') {
+      const weekId = parentId;
+      if (!weekId) return;
+      markWeekDirty(weekId);
+      set((state) => ({
+        weeks: state.weeks.map((w) => {
+          if (w.id !== weekId) return w;
+          return {
+            ...w,
+            updatedAt: new Date().toISOString(),
+            bullets: w.bullets.filter((b) => b.id !== id),
+          };
+        }),
+      }));
+      schedulePersistence(get);
+      get().showToast('Permanently deleted journal entry');
+    } else if (type === 'folder') {
+      markFolderDeleted(id);
+      set((state) => ({
+        coreCategories: state.coreCategories.filter((c) => c.id !== id),
+        coreItems: state.coreItems.filter((i) => i.categoryId !== id),
+      }));
+      schedulePersistence(get);
+      get().showToast('Permanently deleted folder');
+    } else if (type === 'note') {
+      markCoreItemDeleted(id);
+      set((state) => ({
+        coreItems: state.coreItems.filter((i) => i.id !== id),
+      }));
+      schedulePersistence(get);
+      get().showToast('Permanently deleted note');
+    }
+  },
+
+  purgeOldDeletedItems: () => {
+    const s = get();
+    if (s.currentUser?.role !== 'owner') return;
+
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const isOlderThan30Days = (iso?: string) => {
+      if (!iso) return false;
+      const t = new Date(iso).getTime();
+      return !isNaN(t) && now - t > THIRTY_DAYS_MS;
+    };
+
+    let hasPurged = false;
+
+    // 1. Purge weeks
+    const survivingWeeks: WeeklyBlock[] = [];
+    for (const week of s.weeks) {
+      if (week.deletedAt && isOlderThan30Days(week.deletedAt)) {
+        markWeekDeleted(week.id);
+        hasPurged = true;
+      } else {
+        let weekBulletsChanged = false;
+        const survivingBullets = (week.bullets || []).filter((b) => {
+          if (b.deletedAt && isOlderThan30Days(b.deletedAt)) {
+            weekBulletsChanged = true;
+            hasPurged = true;
+            return false;
+          }
+          return true;
+        });
+
+        if (weekBulletsChanged) {
+          markWeekDirty(week.id);
+          survivingWeeks.push({
+            ...week,
+            bullets: survivingBullets,
+          });
+        } else {
+          survivingWeeks.push(week);
+        }
+      }
+    }
+
+    // 2. Purge folders
+    const survivingFolders: CoreCategoryConfig[] = [];
+    for (const folder of s.coreCategories) {
+      if (folder.deletedAt && isOlderThan30Days(folder.deletedAt)) {
+        markFolderDeleted(folder.id);
+        hasPurged = true;
+      } else {
+        survivingFolders.push(folder);
+      }
+    }
+
+    // 3. Purge notes
+    const survivingNotes: CoreTopicItem[] = [];
+    for (const note of s.coreItems) {
+      if (note.deletedAt && isOlderThan30Days(note.deletedAt)) {
+        markCoreItemDeleted(note.id);
+        hasPurged = true;
+      } else {
+        survivingNotes.push(note);
+      }
+    }
+
+    if (hasPurged) {
+      set({
+        weeks: survivingWeeks,
+        coreCategories: survivingFolders,
+        coreItems: survivingNotes,
+      });
+      schedulePersistence(get);
+      console.log('[Auto-Purge] Cleaned up soft-deleted items older than 30 days');
+    }
   },
 
   reorderWeeks: (weeks) => {
@@ -1007,7 +1364,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setActiveWeekId: (id) => {
-    if (get().saveStatus === 'unsaved') {
+    if (hasDirtyItems()) {
       get().flushAutoSave();
     }
     set({ activeWeekId: id });
@@ -1056,15 +1413,15 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteCoreItem: (id) => {
-    markCoreItemDeleted(id);
     const item = get().coreItems.find((i) => i.id === id);
+    if (!item) return;
+    const deletedAt = new Date().toISOString();
+    markCoreItemDirty(id);
     set((state) => ({
-      coreItems: state.coreItems.filter((i) => i.id !== id),
+      coreItems: state.coreItems.map((i) => (i.id === id ? { ...i, deletedAt } : i)),
     }));
-    deleteCoreTopicDoc(id, item?.categoryId).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to delete core item:', err)
-    );
     schedulePersistence(get);
+    get().showToast(`Moved note "${item.title || 'Note'}" to Recently Deleted`);
   },
 
   toggleCompleteCoreItem: (item) => {
@@ -1097,14 +1454,14 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setActiveCoreCategory: (catId) => {
-    if (get().saveStatus === 'unsaved') {
+    if (hasDirtyItems()) {
       get().flushAutoSave();
     }
     set({ activeCoreCategory: catId, activeCoreSubCategory: undefined });
   },
 
   setActiveCoreSubCategory: (subCatId) => {
-    if (get().saveStatus === 'unsaved') {
+    if (hasDirtyItems()) {
       get().flushAutoSave();
     }
     set({ activeCoreSubCategory: subCatId });
@@ -1162,25 +1519,24 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteCoreCategory: (catId) => {
-    markFolderDeleted(catId);
+    const cat = get().coreCategories.find((c) => c.id === catId);
+    if (!cat) return;
+    const deletedAt = new Date().toISOString();
+    markFolderDirty(catId);
     set((state) => {
-      const updatedCats = state.coreCategories.filter((c) => c.id !== catId);
-      const updatedItems = state.coreItems.filter((i) => i.categoryId !== catId);
+      const updatedCats = state.coreCategories.map((c) => (c.id === catId ? { ...c, deletedAt } : c));
+      const remaining = updatedCats.filter((c) => !c.deletedAt);
       let nextActiveCat = state.activeCoreCategory;
       if (state.activeCoreCategory === catId) {
-        nextActiveCat = updatedCats[0]?.id || 'what-to-text-her';
+        nextActiveCat = remaining[0]?.id || 'what-to-text-her';
       }
       return {
         coreCategories: updatedCats,
-        coreItems: updatedItems,
         activeCoreCategory: nextActiveCat,
       };
     });
-    deleteFolderDoc(catId).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to delete folder doc:', err)
-    );
-    saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
     schedulePersistence(get);
+    get().showToast(`Moved folder "${cat.title}" to Recently Deleted`);
   },
 
   reorderCoreCategories: (cats) => {
@@ -1516,7 +1872,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setViewMode: (viewMode) => {
-    if (get().saveStatus === 'unsaved') {
+    if (hasDirtyItems()) {
       get().flushAutoSave();
     }
     set({ viewMode });
@@ -1814,6 +2170,8 @@ export const useCurrentUser = () => useJournalStore((s) => s.currentUser);
 export const usePermissions = () => useJournalStore((s) => s.permissions);
 export const useSaveStatus = () => useJournalStore((s) => s.saveStatus);
 export const useLastSavedAt = () => useJournalStore((s) => s.lastSavedAt);
+export const useLastCloudSavedAt = () => useJournalStore((s) => s.lastCloudSavedAt);
+export const useIsRecentlyDeletedOpen = () => useJournalStore((s) => s.isRecentlyDeletedOpen);
 export const useIsSidebarOpen = () => useJournalStore((s) => s.isSidebarOpen);
 export const useIsOpenMobile = () => useJournalStore((s) => s.isOpenMobile);
 export const useIsFullScreen = () => useJournalStore((s) => s.isFullScreen);

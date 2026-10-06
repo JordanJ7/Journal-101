@@ -47,6 +47,7 @@ export interface BulletPoint {
   completed?: boolean;
   pinnedToLearned?: boolean;
   pinnedLearnedId?: string;
+  deletedAt?: string; // Soft delete timestamp (ISO 8601)
 }
 
 export interface DesQuestion {
@@ -106,6 +107,7 @@ export interface WeeklyBlock {
   timestamp?: string; // Formatted human-readable timestamp e.g. "August 19th, 2026 @ 8:15pm"
   isCustomDate?: boolean; // True if manually customized/backdated
   isPinned?: boolean; // True if pinned to top of weekly entries list
+  deletedAt?: string; // Soft delete timestamp (ISO 8601)
   bullets: BulletPoint[];
   assignments: AssignmentSwitches;
   therapistSection: TherapistSection;
@@ -152,6 +154,7 @@ export interface CoreTopicItem {
   pinnedFromBulletId?: string;
   pinnedBulletId?: string;
   visibleToEmails?: string[];
+  deletedAt?: string; // Soft delete timestamp (ISO 8601)
 }
 
 export interface CoreSubCategoryConfig {
@@ -175,7 +178,15 @@ export interface CoreCategoryConfig {
   updatedAt?: string;
   order?: number;
   visibleToEmails?: string[];
+  deletedAt?: string; // Soft delete timestamp (ISO 8601)
 }
+
+export type HonestSaveStatus =
+  | 'saving'
+  | 'saved_cloud'
+  | 'saved_local'
+  | 'offline'
+  | 'error';
 
 export interface FilterOptions {
   searchQuery: string;
