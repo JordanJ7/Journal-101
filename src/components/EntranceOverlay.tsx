@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
-import { useTheme, useAccentTheme, useIntroQuotes } from '../store/useJournalStore';
+import { useTheme, useAccentTheme, useIntroQuotes, useJournalStore } from '../store/useJournalStore';
 import { AccentTheme } from '../types';
+import { loadAppState } from '../utils/storage';
 
 interface EntranceOverlayProps {
   forcePlay?: boolean;
@@ -19,8 +20,11 @@ const getRandomFont = (exclude?: FontPersonality): FontPersonality => {
 
 export const DEFAULT_INTRO_QUOTE = 'Love Is A Catalyst for Change';
 const ATTRIBUTION = '— Me';
-const TYPING_INTERVAL_MS = 30; // Fast 30ms typing cadence
+const FIXED_TYPING_DURATION_MS = 1800; // Fixed ~1.8 seconds typing duration
+const INITIAL_DELAY_MS = 180; // Initial subtle delay before typing starts
+const ATTRIBUTION_PAUSE_MS = 200; // Brief pause before showing attribution
 const READING_PAUSE_MS = 2100; // 2100ms post-typing reading pause
+const FADE_OUT_DURATION_MS = 600; // 600ms fade transition
 
 /**
  * Select a random quote from the provided quotes array,
@@ -40,6 +44,27 @@ export const pickRandomQuote = (quotes?: string[], exclude?: string): string => 
   const filtered = exclude ? valid.filter((q) => q !== exclude) : valid;
   const pool = filtered.length > 0 ? filtered : valid;
   return pool[Math.floor(Math.random() * pool.length)] || DEFAULT_INTRO_QUOTE;
+};
+
+/**
+ * On initial page load, pick quote from stored or cached quotes if available, otherwise default.
+ */
+const getInitialQuote = (): string => {
+  try {
+    const storeQuotes = useJournalStore.getState().introQuotes;
+    if (Array.isArray(storeQuotes) && storeQuotes.length > 0) {
+      return pickRandomQuote(storeQuotes);
+    }
+  } catch {}
+
+  try {
+    const cached = loadAppState();
+    if (Array.isArray(cached?.introQuotes) && cached.introQuotes.length > 0) {
+      return pickRandomQuote(cached.introQuotes);
+    }
+  } catch {}
+
+  return DEFAULT_INTRO_QUOTE;
 };
 
 interface ThemeColorTokens {
@@ -126,93 +151,153 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
   const accentTheme = useAccentTheme(); // 'amber' | 'blue' | 'emerald' | 'violet' | 'rose' (defaults to 'amber')
   const introQuotes = useIntroQuotes();
 
+  // Ref storing the latest intro quotes so replay handlers read the newest quotes without re-registering
+  const introQuotesRef = useRef(introQuotes);
+  useEffect(() => {
+    introQuotesRef.current = introQuotes;
+  }, [introQuotes]);
+
   const [isVisible, setIsVisible] = useState(true);
   const [isDismissing, setIsDismissing] = useState(false);
-  const [currentQuote, setCurrentQuote] = useState<string>(() => pickRandomQuote(introQuotes));
+  const [currentQuote, setCurrentQuote] = useState<string>(getInitialQuote);
   const [displayedQuote, setDisplayedQuote] = useState('');
   const [showAttribution, setShowAttribution] = useState(false);
   const [selectedFont, setSelectedFont] = useState<FontPersonality>(() => getRandomFont());
   const [isTypingComplete, setIsTypingComplete] = useState(false);
+  const [replayTrigger, setReplayTrigger] = useState(0);
 
+  const rafIdRef = useRef<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const charIndexRef = useRef(0);
 
   const isDark = theme !== 'light';
   const tokens = THEME_COLOR_MAP[accentTheme] || THEME_COLOR_MAP.amber;
 
-  // Always show on mount / refresh & listen for manual replay events
+  // Show-on-mount logic: runs EXACTLY ONCE per page load / mount
   useEffect(() => {
     setIsVisible(true);
     setIsDismissing(false);
     setSelectedFont(getRandomFont());
-    setCurrentQuote((prev) => pickRandomQuote(introQuotes, prev));
 
     const handleReplayEvent = () => {
+      // Cancel any ongoing frame or timers
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+        dismissTimerRef.current = null;
+      }
+
       setIsDismissing(false);
       setIsVisible(true);
       setSelectedFont((prev) => getRandomFont(prev));
-      setCurrentQuote((prev) => pickRandomQuote(introQuotes, prev));
+      // Read latest quotes from ref without re-registering listener
+      setCurrentQuote((prev) => pickRandomQuote(introQuotesRef.current, prev));
+      setReplayTrigger((t) => t + 1);
     };
 
     window.addEventListener('replay-intro', handleReplayEvent);
     return () => {
       window.removeEventListener('replay-intro', handleReplayEvent);
     };
-  }, [forcePlay, introQuotes]);
+  }, []); // Run exactly once per page load; introQuotes updates never restart the animation
 
   const handleDismiss = useCallback(() => {
     if (isDismissing) return;
     setIsDismissing(true);
 
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (dismissTimerRef.current) {
+      clearTimeout(dismissTimerRef.current);
+      dismissTimerRef.current = null;
+    }
 
     // Wait for the 600ms fade transition before unmounting
     setTimeout(() => {
       setIsVisible(false);
       onDismiss?.();
-    }, 600);
+    }, FADE_OUT_DURATION_MS);
   }, [isDismissing, onDismiss]);
 
-  // Start typing sequence when visible or when currentQuote changes
+  // RequestAnimationFrame typing loop based on elapsed time (fixed ~1.8 seconds duration)
   useEffect(() => {
     if (!isVisible || isDismissing) return;
 
-    charIndexRef.current = 0;
     setDisplayedQuote('');
     setShowAttribution(false);
     setIsTypingComplete(false);
 
     const targetQuote = currentQuote || DEFAULT_INTRO_QUOTE;
-
-    const typeNextChar = () => {
-      if (charIndexRef.current < targetQuote.length) {
-        charIndexRef.current += 1;
-        setDisplayedQuote(targetQuote.slice(0, charIndexRef.current));
-        timerRef.current = setTimeout(typeNextChar, TYPING_INTERVAL_MS);
-      } else {
-        // Quote finished typing
-        setIsTypingComplete(true);
-        // Brief pause before showing attribution
-        timerRef.current = setTimeout(() => {
-          setShowAttribution(true);
-          // Post-typing reading pause before auto-dismissing
-          dismissTimerRef.current = setTimeout(() => {
-            handleDismiss();
-          }, READING_PAUSE_MS);
-        }, 200);
-      }
-    };
+    const totalChars = targetQuote.length;
 
     // Initial subtle delay before typing starts
-    timerRef.current = setTimeout(typeNextChar, 180);
+    timerRef.current = setTimeout(() => {
+      let startTime: number | null = null;
+
+      const step = (now: number) => {
+        if (startTime === null) {
+          startTime = now;
+        }
+
+        const elapsed = now - startTime;
+        // characters shown = quote length × elapsed / target duration
+        const charsToShow = Math.min(
+          totalChars,
+          Math.floor((totalChars * elapsed) / FIXED_TYPING_DURATION_MS)
+        );
+
+        setDisplayedQuote(targetQuote.slice(0, charsToShow));
+
+        if (elapsed < FIXED_TYPING_DURATION_MS) {
+          rafIdRef.current = requestAnimationFrame(step);
+        } else {
+          // Finished typing: guarantee full quote is rendered
+          setDisplayedQuote(targetQuote);
+          setIsTypingComplete(true);
+
+          // Brief pause before showing attribution
+          timerRef.current = setTimeout(() => {
+            setShowAttribution(true);
+
+            // Post-typing reading pause before auto-dismissing
+            dismissTimerRef.current = setTimeout(() => {
+              handleDismiss();
+            }, READING_PAUSE_MS);
+          }, ATTRIBUTION_PAUSE_MS);
+        }
+      };
+
+      rafIdRef.current = requestAnimationFrame(step);
+    }, INITIAL_DELAY_MS);
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+        dismissTimerRef.current = null;
+      }
     };
-  }, [isVisible, isDismissing, currentQuote, handleDismiss]);
+  }, [isVisible, isDismissing, currentQuote, replayTrigger, handleDismiss]);
 
   if (!isVisible) return null;
 
