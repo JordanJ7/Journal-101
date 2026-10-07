@@ -405,29 +405,29 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   const userInitial = (currentUser.displayName || currentUser.email || 'U')[0].toUpperCase();
 
   return (
-    <header className="shrink-0 w-full relative z-30 border-b border-stone-200/80 dark:border-white/10 bg-white/95 dark:bg-[#121214]/95 backdrop-blur-md transition-colors">
+    <header className="shrink-0 w-full relative z-30 border-b border-stone-200/80 dark:border-white/10 bg-white/95 dark:bg-[#121214]/95 backdrop-blur-md transition-colors pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
       <div className="w-full px-2.5 sm:px-6 h-14 flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left: Desktop Toggle / Mobile Menu Trigger & App Title */}
         <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
-          {/* Desktop Sidebar Toggle */}
+          {/* Desktop Sidebar Toggle (only on xl screens >= 1280px) */}
           {onToggleSidebar && (
             <button
               type="button"
               onClick={onToggleSidebar}
               title={isSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
-              className="hidden md:flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              className="hidden xl:flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
             </button>
           )}
 
-          {/* Mobile Drawer Trigger */}
+          {/* Slide-out Drawer Trigger (tablets and phones < 1280px) */}
           {onToggleMobileDrawer && (
             <button
               type="button"
               onClick={onToggleMobileDrawer}
               title="Open Navigation"
-              className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              className="xl:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <PanelLeftOpen className="w-5 h-5" />
             </button>

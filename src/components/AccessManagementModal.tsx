@@ -19,6 +19,7 @@ import {
   UserPermission,
   UserRole,
 } from '../lib/firebase';
+import { useJournalStore } from '../store/useJournalStore';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 
 interface AccessManagementModalProps {
@@ -245,14 +246,27 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
           {currentUser.isLoggedIn ? (
             <button
               onClick={() => logoutUser()}
-              className="min-h-[40px] px-3 py-1.5 text-stone-500 hover:text-rose-600 dark:text-stone-400 dark:hover:text-rose-400 font-semibold flex items-center gap-1 rounded-xl"
+              className="min-h-[40px] px-3 py-1.5 text-stone-500 hover:text-rose-600 dark:text-stone-400 dark:hover:text-rose-400 font-semibold flex items-center gap-1 rounded-xl cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" /> Sign Out
             </button>
           ) : (
             <button
-              onClick={() => signInWithGoogle()}
-              className="min-h-[40px] px-3.5 py-1.5 bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-semibold rounded-xl flex items-center gap-1"
+              onClick={async () => {
+                try {
+                  await signInWithGoogle();
+                } catch (err: any) {
+                  const code = err?.code || '';
+                  if (code === 'auth/popup-blocked' || err?.message?.includes('popup-blocked')) {
+                    useJournalStore.getState().showToast('Popup was blocked by your browser. Please allow popups and try again.');
+                  } else if (code === 'auth/cancelled-popup-request') {
+                    useJournalStore.getState().showToast('Sign-in popup was cancelled. Please try again.');
+                  } else {
+                    useJournalStore.getState().showToast('Failed to sign in. Please try again.');
+                  }
+                }
+              }}
+              className="min-h-[40px] px-3.5 py-1.5 bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-semibold rounded-xl flex items-center gap-1 cursor-pointer"
             >
               <LogIn className="w-3.5 h-3.5" /> Sign In
             </button>

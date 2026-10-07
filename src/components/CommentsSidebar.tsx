@@ -161,7 +161,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
         <button
           onClick={onToggleOpen}
           id="comments-toggle-ribbon"
-          className="fixed right-3 sm:right-6 bottom-20 z-40 bg-white text-slate-700 dark:bg-stone-900 dark:text-stone-200 px-3.5 py-2 rounded-full shadow-lg hover:shadow-xl flex items-center gap-2.5 text-xs font-semibold hover:scale-105 active:scale-95 transition-all border border-slate-200/90 dark:border-stone-700 cursor-pointer group"
+          className="fixed right-[calc(0.75rem+env(safe-area-inset-right,0px))] sm:right-6 bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-20 z-40 bg-white text-slate-700 dark:bg-stone-900 dark:text-stone-200 px-3.5 py-2 rounded-full shadow-lg hover:shadow-xl flex items-center gap-2.5 text-xs font-semibold hover:scale-105 active:scale-95 transition-all border border-slate-200/90 dark:border-stone-700 cursor-pointer group"
           title="Open Comments & Feedback Sidebar"
         >
           <div className="relative">

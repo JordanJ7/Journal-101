@@ -815,10 +815,10 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                         : 'bg-stone-100/80 hover:bg-stone-200/80 active:bg-stone-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:active:bg-white/[0.12] border-stone-200/80 dark:border-white/5 text-stone-700 dark:text-stone-300'
                     } ${isDragged ? 'opacity-30' : ''} ${dragOverCatIndex === index ? `ring-2 ${currentAccent.ring}` : ''}`}
                   >
-                    {/* Left Section: Icon + Title */}
-                    <div className="flex items-center gap-3 min-w-0 flex-1 py-0.5">
+                    {/* Left Section: Icon + Title & Note Count */}
+                    <div className="flex items-start gap-3 min-w-0 flex-1 py-0.5">
                       <span
-                        className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-colors ${
+                        className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center mt-0.5 transition-colors ${
                           isSelected
                             ? currentAccent.iconBoxSelected
                             : `${currentAccent.iconBox} ${currentAccent.iconBoxHover}`
@@ -827,25 +827,27 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                         <IconComp className="w-4 h-4 shrink-0" />
                       </span>
 
-                      <span
-                        className={`text-sm font-medium text-left leading-snug break-words whitespace-normal flex-1 ${
-                          isSelected
-                            ? 'text-stone-900 dark:text-stone-100 font-semibold'
-                            : 'text-stone-700 dark:text-neutral-200 group-hover:text-stone-900 dark:group-hover:text-stone-100'
-                        }`}
-                        title={config.title}
-                      >
-                        {config.title}
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span
+                          className={`text-sm font-medium text-left leading-snug break-words whitespace-normal block ${
+                            isSelected
+                              ? 'text-stone-900 dark:text-stone-100 font-semibold'
+                              : 'text-stone-700 dark:text-neutral-200 group-hover:text-stone-900 dark:group-hover:text-stone-100'
+                          }`}
+                          title={config.title}
+                        >
+                          {config.title}
+                        </span>
+                        {itemCount > 0 && (
+                          <span className="text-[11px] font-mono text-stone-500 dark:text-neutral-400 leading-none mt-1 block">
+                            {itemCount} {itemCount === 1 ? 'note' : 'notes'}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Right Section: Item Counter / Actions / Chevron */}
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      {itemCount > 0 && (
-                        <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full shrink-0">
-                          {itemCount} {itemCount === 1 ? 'note' : 'notes'}
-                        </span>
-                      )}
+                    {/* Right Section: Actions / Chevron */}
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2 mt-0.5">
 
                       {/* Discreet options button */}
                       {isOwner && (
@@ -930,10 +932,10 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
   return (
     <>
-      {/* Desktop Sidebar (hidden on screens < md) with spacious width for 2-column grid */}
+      {/* Desktop Sidebar (hidden on screens < 1280px / xl) with spacious width for 2-column grid */}
       <aside
         id="main-desktop-sidebar"
-        className={`hidden md:flex border-r border-black/5 dark:border-white/10 bg-[#F2F2F7]/50 dark:bg-black/50 h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`hidden xl:flex border-r border-black/5 dark:border-white/10 bg-[#F2F2F7]/50 dark:bg-black/50 h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
           isSidebarOpen
             ? 'w-80 lg:w-88 xl:w-96 p-3 opacity-100 translate-x-0'
             : 'w-0 p-0 opacity-0 -translate-x-full border-r-0 overflow-hidden pointer-events-none'
@@ -942,9 +944,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
         {renderSidebarContent(false)}
       </aside>
 
-      {/* Mobile Slide-Over Drawer (visible on screens < md when isOpenMobile is true) */}
+      {/* Slide-Over Drawer (visible on screens < 1280px when isOpenMobile is true) */}
       {isOpenMobile && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
+        <div className="fixed inset-0 z-50 xl:hidden flex">
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/75 transition-opacity duration-200"
@@ -956,9 +958,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             onClick={() => setIsOpenMobile?.(false)}
           />
 
-          {/* Drawer Content with clean mobile width and safe area insets */}
+          {/* Drawer Content with clean tablet & mobile width and safe area insets */}
           <div
-            className="relative w-full max-w-[340px] bg-[#F2F2F7] dark:bg-[#1C1C1E] h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] z-10"
+            className="relative w-full max-w-[340px] sm:max-w-[360px] bg-[#F2F2F7] dark:bg-[#1C1C1E] h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] z-10"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',

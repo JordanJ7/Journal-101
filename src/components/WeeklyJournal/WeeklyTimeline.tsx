@@ -145,12 +145,12 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Top Single-Week Navigation Bar */}
-      <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#18181b] px-3 sm:px-4 py-2 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs">
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#18181b] px-3 sm:px-4 py-2.5 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={handlePrevWeek}
             disabled={isFirst}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 transition-colors"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
             title="Previous Week"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -158,24 +158,27 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
           <button
             onClick={handleNextWeek}
             disabled={isLast}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 transition-colors"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
             title="Next Week"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="text-xs sm:text-sm font-semibold text-stone-800 dark:text-stone-200">
-            {currentWeek.weekTitle}
-          </span>
-          <span className="text-[10px] sm:text-[11px] text-stone-400 font-mono">
-            ({activeIndex + 1}/{filteredWeeks.length})
-          </span>
-        </div>
+        {/* Center / Right: Week title and date range wrapping onto two lines on mobile */}
+        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between px-1.5 gap-0.5 sm:gap-2 text-right sm:text-left">
+          <div className="flex items-center justify-end sm:justify-start gap-1.5 flex-wrap">
+            <span className="text-xs sm:text-sm font-semibold text-stone-800 dark:text-stone-200 break-words">
+              {currentWeek.weekTitle}
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-stone-400 font-mono shrink-0">
+              ({activeIndex + 1}/{filteredWeeks.length})
+            </span>
+          </div>
 
-        <div className="text-[10px] sm:text-[11px] text-stone-400 font-mono text-right truncate max-w-[120px] sm:max-w-none">
-          {formatWeekDateRange(currentWeek.startDate, currentWeek.endDate)}
+          <div className="text-[10px] sm:text-[11px] text-stone-500 dark:text-stone-400 font-mono text-right whitespace-normal leading-tight">
+            {formatWeekDateRange(currentWeek.startDate, currentWeek.endDate)}
+          </div>
         </div>
       </div>
 

@@ -635,12 +635,12 @@ export default function App() {
             onToggleSidebar={toggleSidebar}
           />
 
-          {/* Floating Expand Sidebar Pill button when sidebar is collapsed on desktop */}
+          {/* Floating Expand Sidebar Pill button when sidebar is collapsed on desktop (>= 1280px) */}
           {!isSidebarOpen && (
             <button
               onClick={toggleSidebar}
               title="Expand Sidebar (Ctrl+B / ⌘B)"
-              className={`hidden md:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold animate-in fade-in zoom-in-95 duration-150`}
+              className={`hidden xl:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold animate-in fade-in zoom-in-95 duration-150 cursor-pointer`}
             >
               <PanelLeftOpen className={`w-4 h-4 ${currentAccent.textPrimary}`} />
               <span>Sidebar</span>
@@ -649,7 +649,7 @@ export default function App() {
 
           {/* Primary View Canvas: Fluid, Responsive & Scrollable */}
           <main
-            className={`flex-1 h-full min-w-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-8 ${
+            className={`flex-1 h-full min-w-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 ${
               isFullScreen
                 ? 'p-3 sm:p-6 md:p-8 lg:p-12'
                 : 'p-3 sm:p-5 md:p-6 lg:p-8'
@@ -803,7 +803,7 @@ export default function App() {
         {/* Authentic iOS Bottom Tab Bar (Only on mobile < md) */}
         <nav
           aria-label="Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7] dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
+          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7] dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
         >
           <button
             onClick={() => handleSetViewMode('home')}

@@ -67,7 +67,7 @@ export const DaysYouWroteCard: React.FC<DaysYouWroteCardProps> = React.memo(({
               title={`${day.fullName}: ${isFilled ? 'Entry written' : 'No entries'}`}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono select-none transition-colors ${
                 isFilled
-                  ? 'bg-amber-500 text-stone-950 font-bold border border-amber-500 shadow-2xs'
+                  ? 'bg-amber-500 text-stone-900 font-medium border border-amber-500 shadow-2xs'
                   : 'bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-400 border border-stone-200/80 dark:border-white/10 font-medium'
               }`}
             >

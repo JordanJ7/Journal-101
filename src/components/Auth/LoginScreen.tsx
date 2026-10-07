@@ -3,7 +3,8 @@ import {
   Lock, 
   ShieldCheck, 
   AlertCircle,
-  Users
+  Users,
+  RotateCcw
 } from 'lucide-react';
 import { 
   PermissionsDoc, 
@@ -26,17 +27,43 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isPopupIssue, setIsPopupIssue] = useState(false);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setErrorMsg(null);
+    setIsPopupIssue(false);
     try {
       const user = await signInWithGoogle();
       onLoginSuccess(user);
     } catch (err: any) {
       console.error('Google sign-in error:', err);
-      setErrorMsg(err?.message || 'Failed to sign in with Google. Please try again.');
+      const code = err?.code || '';
+      const message = err?.message || '';
+
+      if (
+        code === 'auth/popup-blocked' ||
+        message.includes('popup-blocked')
+      ) {
+        setIsPopupIssue(true);
+        setErrorMsg('Sign-in popup was blocked by your browser. Please allow popups for this site, or tap Try again.');
+      } else if (
+        code === 'auth/cancelled-popup-request' ||
+        message.includes('cancelled-popup-request')
+      ) {
+        setIsPopupIssue(true);
+        setErrorMsg('The sign-in popup was cancelled or interrupted. Tap Try again to open Google Sign-In.');
+      } else if (
+        code === 'auth/popup-closed-by-user' ||
+        message.includes('popup-closed-by-user')
+      ) {
+        setIsPopupIssue(true);
+        setErrorMsg('The sign-in window was closed before completing. Tap Try again to sign in.');
+      } else {
+        setIsPopupIssue(false);
+        setErrorMsg(message || 'Failed to sign in with Google. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -61,11 +88,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         {/* Error Alert Message */}
         {errorMsg && (
-          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 rounded-2xl flex items-start gap-3 text-xs text-rose-800 dark:text-rose-200 animate-in fade-in duration-150">
-            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1 font-medium leading-relaxed">
-              {errorMsg}
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 rounded-2xl space-y-2.5 text-xs text-rose-800 dark:text-rose-200 animate-in fade-in duration-150">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <div className="flex-1 font-medium leading-relaxed">
+                {errorMsg}
+              </div>
             </div>
+            {isPopupIssue && (
+              <div className="pt-1 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Try again</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
