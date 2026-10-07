@@ -46,6 +46,31 @@ export function checkIsViewer(userOrRole?: CurrentUserProfile | UserRole | strin
  */
 export function usePermissions() {
   const currentUser = useJournalStore((state) => state.currentUser);
+  const previewGuest = useJournalStore((state) => state.previewGuest);
+
+  if (previewGuest) {
+    const previewUser: CurrentUserProfile = {
+      ...currentUser,
+      email: previewGuest.email,
+      role: previewGuest.role,
+      displayName: previewGuest.email,
+    };
+    return {
+      currentUser: previewUser,
+      role: previewGuest.role,
+      isOwner: false,
+      isEditor: false,
+      isCommenter: false,
+      isViewer: true,
+      isUnauthorized: false,
+      canEdit: false,
+      canDelete: false,
+      canComment: false,
+      isPreviewing: true,
+      previewEmail: previewGuest.email,
+    };
+  }
+
   const role = currentUser?.role || 'viewer';
 
   const isOwner = role === 'owner';
@@ -69,18 +94,26 @@ export function usePermissions() {
     canEdit,
     canDelete,
     canComment,
+    isPreviewing: false,
+    previewEmail: null,
   };
 }
 
 export function useCanEdit(): boolean {
+  const previewGuest = useJournalStore((state) => state.previewGuest);
+  if (previewGuest) return false;
   return useJournalStore((state) => checkCanEdit(state.currentUser));
 }
 
 export function useCanComment(): boolean {
+  const previewGuest = useJournalStore((state) => state.previewGuest);
+  if (previewGuest) return false;
   return useJournalStore((state) => checkCanComment(state.currentUser));
 }
 
 export function useIsOwner(): boolean {
+  const previewGuest = useJournalStore((state) => state.previewGuest);
+  if (previewGuest) return false;
   return useJournalStore((state) => checkIsOwner(state.currentUser));
 }
 

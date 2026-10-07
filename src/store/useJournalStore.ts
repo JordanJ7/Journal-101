@@ -117,6 +117,8 @@ export interface JournalStoreState {
   // Auth & Permissions state
   permissions: PermissionsDoc;
   currentUser: CurrentUserProfile;
+  previewGuest: { email: string; role: UserRole } | null;
+  setPreviewGuest: (guest: { email: string; role: UserRole } | null) => void;
 
   // Direct Atomic Action methods
   createFolder: (folderData: CoreCategoryConfig) => Promise<void>;
@@ -310,6 +312,11 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
   }
 
   const s = get();
+
+  // Guard: Safe preview mode (zero writes or cloud saves)
+  if (s.previewGuest != null) {
+    return;
+  }
 
   // Guard: Offline check
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -681,6 +688,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   permissions: DEFAULT_PERMISSIONS,
   currentUser: INITIAL_USER_PROFILE,
+  previewGuest: null,
+  setPreviewGuest: (previewGuest) => set({ previewGuest }),
 
   // Direct Atomic Helper Handlers
   createFolder: async (folderData) => {
@@ -2303,3 +2312,5 @@ export const useSetNextSessionAt = () => useJournalStore((s) => s.setNextSession
 export const useSetSessionPrepNotes = () => useJournalStore((s) => s.setSessionPrepNotes);
 export const useToggleEntryForSession = () => useJournalStore((s) => s.toggleEntryForSession);
 export const useSetEntryDiscussed = () => useJournalStore((s) => s.setEntryDiscussed);
+export const usePreviewGuest = () => useJournalStore((s) => s.previewGuest);
+export const useSetPreviewGuest = () => useJournalStore((s) => s.setPreviewGuest);

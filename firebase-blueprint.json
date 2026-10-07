@@ -365,9 +365,25 @@
         }
       },
       "required": ["id", "title"]
+    },
+    "PresenceDoc": {
+      "title": "PresenceDoc",
+      "description": "User presence document recording the last viewed timestamp of the user.",
+      "type": "object",
+      "properties": {
+        "lastViewedAt": {
+          "type": "string",
+          "description": "ISO timestamp of when the user last loaded the app."
+        }
+      },
+      "required": ["lastViewedAt"]
     }
   },
   "firestore": {
+    "/presence/{email}": {
+      "schema": "PresenceDoc",
+      "description": "Presence tracking document containing lastViewedAt for each signed in user."
+    },
     "/permissions/{docId}": {
       "schema": "PermissionsDoc",
       "description": "Role-based access permissions and global share settings."

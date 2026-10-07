@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState, useTransition } from 'react';
-import { Calendar, Film, FolderOpen, Home, Menu, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-react';
+import { Calendar, Film, FolderOpen, Home, Menu, PanelLeftOpen, Maximize2, Minimize2, Eye } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { CoreTopicsView } from './components/CoreSections/CoreTopicsView';
 import { EntranceOverlay } from './components/EntranceOverlay';
@@ -15,6 +15,7 @@ import { RecentlyDeletedModal } from './components/RecentlyDeletedModal';
 import { Toast } from './components/Toast';
 import { NextSessionCard } from './components/SessionPrep/NextSessionCard';
 import { SessionPrepModal } from './components/SessionPrep/SessionPrepModal';
+import { WhoCanSeeThisCard } from './components/WhoCanSeeThisCard';
 import { AccentTheme, CoreCategoryId, FilterOptions, ViewMode, WeeklyBlock, CoreTopicItem, BulletPoint, CoreCategoryConfig, CommentItem } from './types';
 import { ACCENT_THEMES } from './utils/theme';
 import { navigateToComment } from './utils/commentNavigation';
@@ -37,6 +38,8 @@ import {
   useIsOpenMobile,
   useIsFullScreen,
   useIsEditorOpen,
+  usePreviewGuest,
+  useSetPreviewGuest,
 } from './store/useJournalStore';
 import {
   subscribePermissions,
@@ -44,6 +47,7 @@ import {
   onAuthStateChangedWrapper,
   resolveUserRole,
   refreshFirestoreSync,
+  subscribePresence,
   UserRole,
 } from './lib/firebase';
 import { canUserViewItem } from './hooks/usePermissions';
@@ -87,22 +91,50 @@ export default function App() {
   const isOpenMobile = useIsOpenMobile();
   const isFullScreen = useIsFullScreen();
   const isEditorOpen = useIsEditorOpen();
+  const previewGuest = usePreviewGuest();
+  const setPreviewGuest = useSetPreviewGuest();
+  const [presenceMap, setPresenceMap] = useState<Record<string, { lastViewedAt: string }>>({});
+
+  // Real-time presence listener for the owner only
+  useEffect(() => {
+    if (!currentUser?.isLoggedIn || currentUser?.role !== 'owner') {
+      return;
+    }
+    const unsubscribe = subscribePresence((map) => {
+      setPresenceMap(map);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser?.isLoggedIn, currentUser?.role]);
+
+  // Safe guest preview: applies guest role & email for client-side filtering only.
+  // Does not alter authenticated user, write permissions, or Firestore rules access.
+  const effectiveUser = useMemo(() => {
+    if (!previewGuest) return currentUser;
+    return {
+      ...currentUser,
+      email: previewGuest.email,
+      role: previewGuest.role,
+      displayName: previewGuest.email,
+    };
+  }, [currentUser, previewGuest]);
 
   // Client-side visibility filtering enforced against user's email:
   // - Owner sees everything, always.
   // - Other users see an item IF visibleToEmails is empty/absent OR user's email is included.
   const visibleCoreCategories = useMemo(() => {
-    return coreCategories.filter((cat) => !cat.deletedAt && canUserViewItem(cat.visibleToEmails, currentUser));
-  }, [coreCategories, currentUser]);
+    return coreCategories.filter((cat) => !cat.deletedAt && canUserViewItem(cat.visibleToEmails, effectiveUser));
+  }, [coreCategories, effectiveUser]);
 
   const visibleCoreItems = useMemo(() => {
     const visibleCategoryIds = new Set(visibleCoreCategories.map((c) => c.id));
     return coreItems.filter((item) => {
       if (item.deletedAt) return false;
       if (!visibleCategoryIds.has(item.categoryId)) return false;
-      return canUserViewItem(item.visibleToEmails, currentUser);
+      return canUserViewItem(item.visibleToEmails, effectiveUser);
     });
-  }, [coreItems, visibleCoreCategories, currentUser]);
+  }, [coreItems, visibleCoreCategories, effectiveUser]);
 
   // Non-deleted weeks with non-deleted journal entries for active views
   const activeWeeks = useMemo(() => {
@@ -110,9 +142,11 @@ export default function App() {
       .filter((w) => !w.deletedAt)
       .map((w) => ({
         ...w,
-        bullets: (w.bullets || []).filter((b) => !b.deletedAt),
+        bullets: (w.bullets || []).filter(
+          (b) => !b.deletedAt && canUserViewItem(b.visibleToEmails, effectiveUser)
+        ),
       }));
-  }, [weeks]);
+  }, [weeks, effectiveUser]);
 
   const {
     isExportModalOpen,
@@ -506,6 +540,23 @@ export default function App() {
       <div
         className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#f8f9fa] dark:bg-[#0f0f11] text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
       >
+        {/* Preview Mode Sticky Banner (Read-only safe view) */}
+        {previewGuest && (
+          <div className="shrink-0 z-50 w-full bg-amber-500 text-stone-950 px-4 py-2 sm:py-2.5 flex items-center justify-between shadow-md">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
+              <Eye className="w-4 h-4 shrink-0 text-stone-950" />
+              <span>Previewing as {previewGuest.email} — read-only</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPreviewGuest(null)}
+              className="px-3 py-1 bg-stone-950 hover:bg-stone-850 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+            >
+              Exit
+            </button>
+          </div>
+        )}
+
         {/* Top Navigation Bar with Dynamic Safe Area */}
         <Navbar
           viewMode={viewMode}
@@ -521,7 +572,7 @@ export default function App() {
           onOpenQuotesModal={handleOpenQuotesModal}
           onOpenSessionPrep={() => setIsSessionPrepOpen(true)}
           onLogout={logout}
-          currentUser={currentUser}
+          currentUser={effectiveUser}
           totalCoreCount={visibleCoreCategories.length}
           weeks={activeWeeks}
           coreItems={visibleCoreItems}
@@ -566,7 +617,7 @@ export default function App() {
             accentTheme={accentTheme}
             isOpenMobile={isOpenMobile}
             setIsOpenMobile={setIsOpenMobile}
-            currentUser={currentUser}
+            currentUser={effectiveUser}
             filters={filters}
             coreItems={visibleCoreItems}
             pinnedCategoryIds={pinnedCategoryIds}
@@ -628,7 +679,7 @@ export default function App() {
                 filters={filters}
                 setFilters={handleSetFilters}
                 accentTheme={accentTheme}
-                currentUser={currentUser}
+                currentUser={effectiveUser}
                 comments={comments}
                 onOpenCommentSection={handleOpenCommentSection}
                 activeCommentSectionTag={activeCommentSectionTag}
@@ -647,7 +698,7 @@ export default function App() {
                 accentTheme={accentTheme}
                 filters={filters}
                 setFilters={handleSetFilters}
-                currentUser={currentUser}
+                currentUser={effectiveUser}
                 pinnedCategoryIds={pinnedCategoryIds}
                 onTogglePinCategory={togglePinCategory}
                 comments={comments}
@@ -662,7 +713,7 @@ export default function App() {
               <SharedMediaHub
                 weeks={activeWeeks}
                 coreItems={visibleCoreItems}
-                currentUser={currentUser}
+                currentUser={effectiveUser}
                 onUpdateWeeks={setWeeks}
                 onUpdateCoreItems={setCoreItems}
                 accentTheme={accentTheme}
@@ -686,9 +737,22 @@ export default function App() {
               onSetNextSessionAt={setNextSessionAt}
               onOpenSessionPrep={() => setIsSessionPrepOpen(true)}
               onToggleDiscussed={setEntryDiscussed}
-              isOwner={currentUser?.role === 'owner'}
+              isOwner={currentUser?.role === 'owner' && !previewGuest}
               accentTheme={accentTheme}
             />
+
+            {/* Who can see this (Owner only in right-side panel) */}
+            {currentUser?.role === 'owner' && (
+              <WhoCanSeeThisCard
+                permissions={permissions}
+                presenceMap={presenceMap}
+                previewGuest={previewGuest}
+                onStartPreview={(email, role) => setPreviewGuest({ email, role })}
+                onExitPreview={() => setPreviewGuest(null)}
+                onOpenAccessManagement={handleOpenAccessManagement}
+                accentTheme={accentTheme}
+              />
+            )}
           </aside>
         </div>
 
@@ -798,6 +862,8 @@ export default function App() {
               onClose={handleCloseAccessManagement}
               permissions={permissions}
               currentUser={currentUser}
+              presenceMap={presenceMap}
+              onStartPreview={(email, role) => setPreviewGuest({ email, role })}
             />
           </Suspense>
         )}

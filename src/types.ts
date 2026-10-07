@@ -49,6 +49,7 @@ export interface BulletPoint {
   pinnedLearnedId?: string;
   forSession?: boolean; // Tagged for therapy session prep ("Bring to session")
   discussedAt?: string | null; // Timestamp when discussed in session
+  visibleToEmails?: string[]; // Optional user visibility restriction
   deletedAt?: string; // Soft delete timestamp (ISO 8601)
 }
 

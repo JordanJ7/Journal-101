@@ -178,6 +178,12 @@ service cloud.firestore {
       allow write: if canEditContent();
     }
 
+    // 8. Presence Tracking
+    match /presence/{email} {
+      allow read: if isOwner();
+      allow write: if isSignedIn() && email == getUserEmail();
+    }
+
     // Default Fallback
     match /{document=**} {
       allow read, write: if false;

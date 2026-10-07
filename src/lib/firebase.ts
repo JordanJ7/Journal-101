@@ -1326,6 +1326,9 @@ export function onAuthStateChangedWrapper(callback: (user: CurrentUserProfile | 
     if (firebaseUser && firebaseUser.email) {
       const emailClean = firebaseUser.email.toLowerCase();
 
+      // On app load, each signed-in user writes only their own presence doc { lastViewedAt }
+      recordUserPresence(emailClean);
+
       // Refresh permissions from Firestore so invited members always get fresh roles
       let perms = loadStoredPermissions();
       try {
@@ -1370,6 +1373,54 @@ export function onAuthStateChangedWrapper(callback: (user: CurrentUserProfile | 
     authStateListeners.delete(callback);
     unsubscribeAuth();
   };
+}
+
+/**
+ * User Presence Tracking (/presence/{email})
+ * On app load each signed-in user writes only their own doc { lastViewedAt }.
+ */
+export async function recordUserPresence(email: string): Promise<void> {
+  if (!email) return;
+  const emailClean = email.trim().toLowerCase();
+  try {
+    const presenceRef = doc(db, 'presence', emailClean);
+    await setDoc(presenceRef, {
+      lastViewedAt: new Date().toISOString(),
+    }, { merge: true });
+  } catch (err) {
+    console.warn('Presence write note:', err);
+  }
+}
+
+/**
+ * Real-time subscription to /presence for owner
+ */
+export function subscribePresence(
+  onUpdate: (presenceMap: Record<string, { lastViewedAt: string }>) => void
+): () => void {
+  try {
+    const presenceCol = collection(db, 'presence');
+    const unsubscribe = onSnapshot(
+      presenceCol,
+      (snapshot) => {
+        const map: Record<string, { lastViewedAt: string }> = {};
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data() as { lastViewedAt?: string };
+          if (data?.lastViewedAt) {
+            map[docSnap.id.toLowerCase()] = { lastViewedAt: data.lastViewedAt };
+          }
+        });
+        onUpdate(map);
+      },
+      (err) => {
+        console.warn('Presence subscription note:', err.message);
+      }
+    );
+    return unsubscribe;
+  } catch (err) {
+    console.warn('Failed to subscribe to presence:', err);
+    return () => {};
+  }
 }
 
 /**

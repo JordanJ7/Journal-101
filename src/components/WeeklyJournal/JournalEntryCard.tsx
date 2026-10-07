@@ -896,7 +896,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200">
                     <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                    <span>Therapist · commented {formatCommentWeekday(comment.timestamp)}</span>
+                    <span>{(comment.authorName || comment.authorEmail || 'Commenter')} · commented {formatCommentWeekday(comment.timestamp)}</span>
                   </div>
                   <button
                     type="button"
