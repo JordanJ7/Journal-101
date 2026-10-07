@@ -16,6 +16,7 @@ import { Toast } from './components/Toast';
 import { NextSessionCard } from './components/SessionPrep/NextSessionCard';
 import { SessionPrepModal } from './components/SessionPrep/SessionPrepModal';
 import { WhoCanSeeThisCard } from './components/WhoCanSeeThisCard';
+import { DaysYouWroteCard } from './components/WeeklyJournal/DaysYouWroteCard';
 import { AccentTheme, CoreCategoryId, FilterOptions, ViewMode, WeeklyBlock, CoreTopicItem, BulletPoint, CoreCategoryConfig, CommentItem } from './types';
 import { ACCENT_THEMES } from './utils/theme';
 import { navigateToComment } from './utils/commentNavigation';
@@ -541,7 +542,7 @@ export default function App() {
   return (
     <ConfirmDeleteProvider>
       <div
-        className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#f8f9fa] dark:bg-[#0f0f11] text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
+        className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#f8f9fa] dark:bg-[#0c0c0e] text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
       >
         {/* Preview Mode Sticky Banner (Read-only safe view) */}
         {previewGuest && (
@@ -553,7 +554,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setPreviewGuest(null)}
-              className="px-3 py-1 bg-stone-950 hover:bg-stone-850 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+              className="px-3 py-1 bg-stone-950 hover:bg-stone-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
             >
               Exit
             </button>
@@ -593,6 +594,11 @@ export default function App() {
           onToggleMobileDrawer={() => setIsOpenMobile(!isOpenMobile)}
           isFullScreen={isFullScreen}
           onToggleFullScreen={toggleFullScreen}
+          isOwner={currentUser?.role === 'owner'}
+          previewGuest={previewGuest}
+          onStartPreview={(email, role) => setPreviewGuest({ email, role })}
+          onExitPreview={() => setPreviewGuest(null)}
+          permissions={permissions}
         />
 
         {/* Dynamic Edge-to-Edge Workspace Layout */}
@@ -730,10 +736,40 @@ export default function App() {
                 }}
               />
             )}
+
+            {/* Below 1280px (< xl): Move the right panel's cards below the main content */}
+            <div className="xl:hidden mt-8 pt-6 border-t border-stone-200/80 dark:border-white/10 space-y-4 max-w-2xl mx-auto">
+              <NextSessionCard
+                weeks={weeks}
+                nextSessionAt={nextSessionAt}
+                onSetNextSessionAt={setNextSessionAt}
+                onOpenSessionPrep={() => setIsSessionPrepOpen(true)}
+                onToggleDiscussed={setEntryDiscussed}
+                isOwner={currentUser?.role === 'owner' && !previewGuest}
+                accentTheme={accentTheme}
+              />
+
+              <DaysYouWroteCard
+                weeks={activeWeeks}
+                activeWeekId={activeWeekId}
+              />
+
+              {currentUser?.role === 'owner' && (
+                <WhoCanSeeThisCard
+                  permissions={permissions}
+                  presenceMap={presenceMap}
+                  previewGuest={previewGuest}
+                  onStartPreview={(email, role) => setPreviewGuest({ email, role })}
+                  onExitPreview={() => setPreviewGuest(null)}
+                  onOpenAccessManagement={handleOpenAccessManagement}
+                  accentTheme={accentTheme}
+                />
+              )}
+            </div>
           </main>
 
-          {/* Right-Side Panel on Wide Screens */}
-          <aside className="hidden xl:flex flex-col w-80 2xl:w-84 h-full border-l border-stone-200/80 dark:border-white/10 bg-[#FAFAF9]/60 dark:bg-[#121214]/60 backdrop-blur-md overflow-y-auto shrink-0 p-4 space-y-4">
+          {/* Right-Side Panel on Wide Screens (>= 1280px) */}
+          <aside className="hidden xl:flex flex-col w-80 2xl:w-84 h-full border-l border-stone-200/80 dark:border-white/10 bg-[#FAFAF9]/80 dark:bg-[#121214] backdrop-blur-md overflow-y-auto shrink-0 p-4 space-y-4">
             <NextSessionCard
               weeks={weeks}
               nextSessionAt={nextSessionAt}
@@ -742,6 +778,11 @@ export default function App() {
               onToggleDiscussed={setEntryDiscussed}
               isOwner={currentUser?.role === 'owner' && !previewGuest}
               accentTheme={accentTheme}
+            />
+
+            <DaysYouWroteCard
+              weeks={activeWeeks}
+              activeWeekId={activeWeekId}
             />
 
             {/* Who can see this (Owner only in right-side panel) */}

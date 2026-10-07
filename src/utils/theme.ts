@@ -42,7 +42,7 @@ export const ACCENT_THEMES: Record<AccentTheme, ThemeColorDef> = {
     iconBoxHover: 'group-hover:bg-amber-500/20 group-hover:text-amber-700 dark:group-hover:text-amber-300',
     iconBoxSelected: 'bg-amber-500/20 text-amber-600 dark:text-amber-400 shadow-2xs',
     bulletDot: 'bg-amber-500 dark:bg-amber-400',
-    buttonPrimary: 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-xs',
+    buttonPrimary: 'bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-stone-950 font-semibold shadow-xs',
     border: 'border-amber-500/40 dark:border-amber-400/30',
     hoverBorder: 'hover:border-amber-500/40 dark:hover:border-amber-400/30',
     activeBorder: 'border-amber-500/60 ring-1 ring-amber-500/40',

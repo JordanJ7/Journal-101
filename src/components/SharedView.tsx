@@ -58,7 +58,7 @@ export const SharedView: React.FC<SharedViewProps> = ({
   if (error || !snapshot) {
     return (
       <div className="min-h-screen bg-stone-50 dark:bg-stone-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-stone-850 p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-lg text-center max-w-md w-full space-y-3">
+        <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-lg text-center max-w-md w-full space-y-3">
           <h3 className="text-base font-bold text-rose-600">Snapshot Unavailable</h3>
           <p className="text-xs text-stone-500">{error || 'Unable to load snapshot data'}</p>
           <button
@@ -141,7 +141,7 @@ export const SharedView: React.FC<SharedViewProps> = ({
             {snapshot.weeks.map((week) => (
               <div
                 key={week.id}
-                className="bg-white dark:bg-stone-850 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-xs space-y-4"
+                className="bg-white dark:bg-stone-900 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-xs space-y-4"
               >
                 <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
                   <h3 className="text-base font-bold">{week.weekTitle}</h3>
@@ -190,7 +190,7 @@ export const SharedView: React.FC<SharedViewProps> = ({
               return (
                 <div
                   key={cat.id}
-                  className="bg-white dark:bg-stone-850 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-xs space-y-3"
+                  className="bg-white dark:bg-stone-900 rounded-3xl p-6 border border-stone-200 dark:border-stone-800 shadow-xs space-y-3"
                 >
                   <h3 className={`text-base font-bold ${currentAccent.textPrimary}`}>
                     {cat.title}

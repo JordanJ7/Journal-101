@@ -396,10 +396,10 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             )}
             <p className="truncate text-xs sm:text-xs font-medium">{week.weekTitle}</p>
           </div>
-          <p className="text-[10px] text-stone-400 dark:text-stone-500 font-mono truncate mt-0.5">
+          <p className="text-[10px] text-stone-400 dark:text-stone-400 font-mono truncate mt-0.5">
             <span>{subtitle}</span>
             {isCurrent && (
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium"> · this week</span>
+              <span className="text-amber-600 dark:text-amber-400 font-semibold"> · this week</span>
             )}
           </p>
         </div>

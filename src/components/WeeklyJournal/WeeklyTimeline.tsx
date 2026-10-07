@@ -145,7 +145,7 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Top Single-Week Navigation Bar */}
-      <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#1C1C1E] px-3 sm:px-4 py-2 rounded-2xl border border-black/5 dark:border-white/10 shadow-xs">
+      <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#18181b] px-3 sm:px-4 py-2 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs">
         <div className="flex items-center gap-1">
           <button
             onClick={handlePrevWeek}

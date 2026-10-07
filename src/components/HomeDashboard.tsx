@@ -426,7 +426,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
         {latestWeeklyData ? (
           <div
             onClick={() => onNavigateToWeek(latestWeeklyData.week.id)}
-            className={`w-full rounded-2xl bg-white dark:bg-[#18181b] border border-neutral-200 dark:border-white/5 p-5 sm:p-6 hover:bg-neutral-50/80 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4 ${currentAccent.hoverBorder}`}
+            className={`w-full rounded-[14px] bg-white dark:bg-[#18181b] border border-neutral-200 dark:border-white/10 p-5 sm:p-6 hover:bg-neutral-50/80 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4 ${currentAccent.hoverBorder}`}
           >
             {/* Header: Entry Title & Time */}
             <div className="flex items-start justify-between gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
@@ -435,7 +435,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                   <span className={`text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-md ${currentAccent.tagBadge}`}>
                     Week Reflection
                   </span>
-                  <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                  <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400 font-mono">
                     <Clock className="w-3 h-3" />
                     <span>{latestWeeklyData.displayTime}</span>
                   </div>

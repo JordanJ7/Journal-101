@@ -368,7 +368,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* 1. Top Folder Navigation Bar */}
-      <div className="bg-white dark:bg-[#1C1C1E] p-3.5 sm:p-4 rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-[#18181b] p-3.5 sm:p-4 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           {/* Active Folder Switcher */}
           <div className="relative flex-1 min-w-[200px]">
@@ -586,7 +586,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
       </div>
 
       {/* 2. Prominent Topic Title & Integrated Bulleted Topic Notes Canvas */}
-      <div className="bg-white dark:bg-[#1C1C1E] p-5 sm:p-6 rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-[#18181b] p-5 sm:p-6 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-4">
         {/* Topic Title and Description */}
         <div className="border-b border-black/5 dark:border-white/5 pb-3">
           <div className="flex items-center gap-2.5">

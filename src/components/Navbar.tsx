@@ -24,9 +24,10 @@ import {
   WifiOff,
   AlertCircle,
   X,
+  Eye,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CurrentUserProfile } from '../lib/firebase';
+import { CurrentUserProfile, PermissionsDoc, UserPermission, UserRole } from '../lib/firebase';
 import { useJournalStore } from '../store/useJournalStore';
 import {
   AccentTheme,
@@ -65,6 +66,11 @@ interface NavbarProps {
   isFullScreen?: boolean;
   onToggleFullScreen?: () => void;
   onToggleMobileDrawer?: () => void;
+  isOwner?: boolean;
+  previewGuest?: { email: string; role: UserRole } | null;
+  onStartPreview?: (email: string, role: UserRole) => void;
+  onExitPreview?: () => void;
+  permissions?: PermissionsDoc;
 }
 
 function getRelativeTimeString(timestamp: number | null): string {
@@ -99,34 +105,39 @@ const NavbarSaveIndicator = React.memo(() => {
 
   return (
     <div
-      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all select-none"
+      className="inline-flex items-center gap-1.5 transition-all select-none min-h-[36px]"
       style={{
         contain: 'layout paint',
         transform: 'translateZ(0)',
       }}
     >
       {saveStatus === 'saving' && (
-        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
-          <Loader2 className="w-2.5 h-2.5 animate-spin" />
-          <span className="text-[10px]">Saving…</span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25 text-xs font-mono">
+          <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
+          <span>Saving…</span>
         </span>
       )}
       {saveStatus === 'saved_cloud' && (
-        <span className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-          <span className="text-[10px]">Saved to cloud · {relativeTime}</span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs font-mono font-medium shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          <span>Saved to cloud</span>
+          {relativeTime && (
+            <span className="text-[11px] text-emerald-700/90 dark:text-emerald-400 font-mono">
+              · {relativeTime}
+            </span>
+          )}
         </span>
       )}
       {saveStatus === 'saved_local' && (
-        <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
-          <HardDrive className="w-2.5 h-2.5 text-stone-400 shrink-0" />
-          <span className="text-[10px]">Saved on this device only</span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-500/10 text-stone-700 dark:text-stone-300 border border-stone-500/20 text-xs font-mono">
+          <HardDrive className="w-3 h-3 text-stone-400 shrink-0" />
+          <span>Saved on device</span>
         </span>
       )}
       {saveStatus === 'offline' && (
-        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-          <WifiOff className="w-2.5 h-2.5 text-amber-500 shrink-0" />
-          <span className="text-[10px]">Offline</span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 text-xs font-mono">
+          <WifiOff className="w-3 h-3 text-amber-500 shrink-0" />
+          <span>Offline</span>
         </span>
       )}
       {saveStatus === 'error' && (
@@ -134,10 +145,10 @@ const NavbarSaveIndicator = React.memo(() => {
           type="button"
           onClick={() => retrySave()}
           title="Click to retry saving pending changes"
-          className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:underline cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/25 hover:bg-rose-500/20 text-xs font-mono cursor-pointer"
         >
-          <AlertCircle className="w-2.5 h-2.5 text-rose-500 shrink-0" />
-          <span className="text-[10px]">Couldn't save — <span className="font-semibold underline">Retry</span></span>
+          <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
+          <span>Couldn't save — <span className="underline font-bold">Retry</span></span>
         </button>
       )}
     </div>
@@ -172,25 +183,25 @@ const MobileNavbarSaveIndicator = React.memo(() => {
       }}
     >
       {saveStatus === 'saving' && (
-        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
-          <Loader2 className="w-3 h-3 animate-spin" />
+        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-mono">
+          <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
           <span>Saving…</span>
         </span>
       )}
       {saveStatus === 'saved_cloud' && (
-        <span className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-mono">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
           <span>Saved to cloud · {relativeTime}</span>
         </span>
       )}
       {saveStatus === 'saved_local' && (
-        <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
+        <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-mono text-[11px]">
           <HardDrive className="w-3 h-3 text-stone-400 shrink-0" />
-          <span>Saved on this device only</span>
+          <span>Saved on device</span>
         </span>
       )}
       {saveStatus === 'offline' && (
-        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-mono text-[11px]">
           <WifiOff className="w-3 h-3 text-amber-500 shrink-0" />
           <span>Offline</span>
         </span>
@@ -199,7 +210,7 @@ const MobileNavbarSaveIndicator = React.memo(() => {
         <button
           type="button"
           onClick={() => retrySave()}
-          className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+          className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:underline cursor-pointer font-mono text-[11px]"
         >
           <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
           <span>Couldn't save — <span className="font-semibold underline">Retry</span></span>
@@ -235,18 +246,43 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   isFullScreen = false,
   onToggleFullScreen,
   onToggleMobileDrawer,
+  isOwner = false,
+  previewGuest = null,
+  onStartPreview,
+  onExitPreview,
+  permissions,
 }) => {
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const [isGuestPickerOpen, setIsGuestPickerOpen] = useState(false);
   const [searchInputValue, setSearchInputValue] = useState(filters.searchQuery || '');
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
 
   const themeMenuRef = useRef<HTMLDivElement>(null);
+  const guestPickerRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (guestPickerRef.current && !guestPickerRef.current.contains(e.target as Node)) {
+        setIsGuestPickerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const invitedGuests = useMemo(() => {
+    if (!permissions?.users) return [];
+    return (Object.entries(permissions.users) as [string, UserPermission][]).map(([emailKey, u]) => ({
+      email: (u.email || emailKey).trim().toLowerCase(),
+      role: u.role,
+    }));
+  }, [permissions?.users]);
 
   useEffect(() => {
     if (filters.searchQuery === '' && searchInputValue !== '') {
@@ -369,7 +405,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   const userInitial = (currentUser.displayName || currentUser.email || 'U')[0].toUpperCase();
 
   return (
-    <header className="shrink-0 w-full relative z-30 border-b border-black/5 dark:border-white/10 bg-[#F2F2F7] dark:bg-[#000000] transition-colors">
+    <header className="shrink-0 w-full relative z-30 border-b border-stone-200/80 dark:border-white/10 bg-white/95 dark:bg-[#121214]/95 backdrop-blur-md transition-colors">
       <div className="w-full px-2.5 sm:px-6 h-14 flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left: Desktop Toggle / Mobile Menu Trigger & App Title */}
         <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
@@ -413,17 +449,12 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
               Journal
             </span>
           </button>
-
-          <div className="flex items-center gap-2">
-            {/* Subtle Visual Sync Indicator */}
-            <NavbarSaveIndicator />
-          </div>
         </div>
 
-        {/* Center: Apple-style Translucent Pill Search Bar */}
-        <div className="relative flex-1 max-w-md mx-1 sm:mx-2" ref={searchContainerRef}>
+        {/* Center: Wide Search Bar */}
+        <div className="relative flex-1 max-w-lg md:max-w-xl lg:max-w-2xl mx-1 sm:mx-3" ref={searchContainerRef}>
           <div className="relative flex items-center">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 dark:text-stone-500 pointer-events-none" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-400 pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
@@ -447,7 +478,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   searchInputRef.current?.blur();
                 }
               }}
-              className="w-full pl-8 pr-14 sm:pr-16 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/10 hover:bg-black/[0.07] dark:hover:bg-white/[0.14] focus:bg-white dark:focus:bg-[#1C1C1E] border border-transparent focus:border-black/10 dark:focus:border-white/15 rounded-full text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none transition-all min-h-[38px]"
+              className="w-full pl-10 pr-14 sm:pr-16 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/5 hover:bg-black/[0.07] dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-[#18181b] border border-stone-200/80 dark:border-white/10 focus:border-amber-500/50 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-400 focus:outline-none transition-all min-h-[44px]"
             />
 
             {/* In-Search Controls */}
@@ -541,17 +572,143 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
         </div>
 
         {/* Right Desktop Controls (md:flex) */}
-        <div className="hidden md:flex items-center gap-1 sm:gap-1.5 shrink-0">
+        <div className="hidden md:flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Save Status Pill (green-tinted when saved to cloud) */}
+          <NavbarSaveIndicator />
+
+          {/* Viewing as: Owner button (owner only; opens the guest preview picker) */}
+          {isOwner && (
+            <div className="relative" ref={guestPickerRef}>
+              <button
+                type="button"
+                onClick={() => setIsGuestPickerOpen((prev) => !prev)}
+                title="Viewing mode & guest preview"
+                className={`min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all cursor-pointer shadow-2xs ${
+                  previewGuest
+                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-900 dark:text-amber-300 hover:bg-amber-500/25'
+                    : 'bg-black/5 dark:bg-white/5 border-stone-200/80 dark:border-white/10 text-stone-700 dark:text-stone-300 hover:bg-black/10 dark:hover:bg-white/10'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="truncate max-w-[130px] lg:max-w-[170px]">
+                  {previewGuest ? `Viewing as: ${previewGuest.email.split('@')[0]}` : 'Viewing as: Owner'}
+                </span>
+                <ChevronDown className="w-3 h-3 text-stone-400 shrink-0" />
+              </button>
+
+              {isGuestPickerOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40 bg-transparent"
+                    onClick={() => setIsGuestPickerOpen(false)}
+                  />
+                  <div
+                    className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-[#18181b] border border-stone-200/90 dark:border-white/10 rounded-[14px] shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-white/10">
+                      <span className="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider">
+                        Guest Preview Picker
+                      </span>
+                      {previewGuest && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onExitPreview?.();
+                            setIsGuestPickerOpen(false);
+                          }}
+                          className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+                        >
+                          Reset to Owner
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Owner mode option */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onExitPreview?.();
+                        setIsGuestPickerOpen(false);
+                      }}
+                      className={`w-full text-left p-2.5 rounded-xl text-xs flex items-center justify-between min-h-[44px] transition-colors cursor-pointer ${
+                        !previewGuest
+                          ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 font-semibold border border-amber-500/30'
+                          : 'hover:bg-black/5 dark:hover:bg-white/5 text-stone-700 dark:text-stone-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                        <div>
+                          <span className="font-semibold text-stone-900 dark:text-stone-100">Owner</span>
+                          <span className="text-[11px] text-stone-400 dark:text-stone-400 font-mono ml-1.5">(Full Access)</span>
+                        </div>
+                      </div>
+                      {!previewGuest && <Check className="w-4 h-4 text-amber-500 shrink-0" />}
+                    </button>
+
+                    {/* Invited Guests list */}
+                    <div className="space-y-1 pt-1.5 border-t border-stone-100 dark:border-white/10 max-h-56 overflow-y-auto">
+                      <span className="text-[10px] uppercase font-mono tracking-wider text-stone-400 px-1 block mb-1">
+                        Preview as Invited Guest
+                      </span>
+                      {invitedGuests.length === 0 ? (
+                        <div className="p-3 text-center text-xs text-stone-400 italic">
+                          No invited guests yet
+                        </div>
+                      ) : (
+                        invitedGuests.map((guest) => {
+                          const isSelected = previewGuest?.email === guest.email;
+                          return (
+                            <button
+                              key={guest.email}
+                              type="button"
+                              onClick={() => {
+                                onStartPreview?.(guest.email, guest.role);
+                                setIsGuestPickerOpen(false);
+                              }}
+                              className={`w-full text-left p-2.5 rounded-xl text-xs flex items-center justify-between min-h-[44px] transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 font-semibold border border-amber-500/30'
+                                  : 'hover:bg-black/5 dark:hover:bg-white/5 text-stone-700 dark:text-stone-300'
+                              }`}
+                            >
+                              <div className="min-w-0 pr-2">
+                                <div className="truncate font-medium text-stone-900 dark:text-stone-100">
+                                  {guest.email}
+                                </div>
+                                <div className="text-[10px] font-mono text-stone-400 capitalize">
+                                  {guest.role}
+                                </div>
+                              </div>
+                              {isSelected ? (
+                                <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                              ) : (
+                                <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 shrink-0 px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800">
+                                  Preview
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Session Prep Quick Button */}
           {onOpenSessionPrep && (
             <button
               onClick={onOpenSessionPrep}
               title="Session Prep"
               aria-label="Session Prep"
-              className="min-h-[38px] px-3 py-1.5 rounded-full text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-200 dark:border-violet-800/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+              className="min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-200 dark:border-violet-800/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
-              <span>Session Prep</span>
+              <span className="hidden lg:inline">Session Prep</span>
             </button>
           )}
 
@@ -560,7 +717,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             onClick={onOpenAccessManagement}
             title="Access & Sharing"
             aria-label="Access & Sharing"
-            className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
+            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
           >
             <Shield className="w-4 h-4" />
           </button>

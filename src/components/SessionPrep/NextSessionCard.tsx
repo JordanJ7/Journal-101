@@ -113,13 +113,13 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
   };
 
   return (
-    <div className="w-full bg-white dark:bg-[#1C1C1E] rounded-2xl border border-stone-200/80 dark:border-white/10 p-4 shadow-xs space-y-3.5">
+    <div className="w-full bg-white dark:bg-[#18181b] rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs space-y-3.5">
       {/* Header & Next Session Date */}
       <div>
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex items-center gap-1.5">
             <div
-              className={`w-6 h-6 rounded-lg flex items-center justify-center text-white ${currentAccent.bg500}`}
+              className={`w-6 h-6 rounded-lg flex items-center justify-center text-stone-950 bg-amber-500 font-bold`}
             >
               <Calendar className="w-3.5 h-3.5" />
             </div>
@@ -132,7 +132,7 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
             <button
               type="button"
               onClick={handleStartEdit}
-              className="text-[11px] font-medium text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors flex items-center gap-1"
+              className="min-h-[44px] px-2 text-[11px] font-medium text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors flex items-center gap-1 cursor-pointer"
               title="Change session date & time"
             >
               <Edit2 className="w-3 h-3" />
@@ -144,21 +144,21 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
         {/* Date / Time Display or Editor */}
         {isEditingDateTime ? (
           <div className="mt-2 p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 space-y-2">
-            <label className="block text-[11px] font-medium text-stone-600 dark:text-stone-400">
+            <label className="block text-[11px] font-medium text-stone-600 dark:text-stone-300 font-mono">
               Session Date & Time
             </label>
             <input
               type="datetime-local"
               value={dateTimeInput}
               onChange={(e) => setDateTimeInput(e.target.value)}
-              className="w-full text-xs p-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full text-xs font-mono p-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
             <div className="flex items-center justify-end gap-1.5 pt-1">
               {nextSessionAt && (
                 <button
                   type="button"
                   onClick={handleClearDateTime}
-                  className="px-2 py-1 text-[11px] rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                  className="min-h-[44px] px-2.5 py-1 text-xs rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors font-medium cursor-pointer"
                 >
                   Clear
                 </button>
@@ -166,14 +166,14 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditingDateTime(false)}
-                className="px-2 py-1 text-[11px] rounded-lg text-stone-500 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+                className="min-h-[44px] px-3 py-1 text-xs rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors font-medium cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveDateTime}
-                className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg text-white ${currentAccent.buttonPrimary} transition-colors`}
+                className="min-h-[44px] px-3.5 py-1 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 transition-colors shadow-xs cursor-pointer"
               >
                 Save
               </button>
@@ -182,7 +182,7 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
         ) : (
           <div
             onClick={isOwner ? handleStartEdit : undefined}
-            className={`p-2.5 rounded-xl border transition-all ${
+            className={`min-h-[44px] p-2.5 rounded-xl border transition-all flex items-center ${
               nextSessionAt
                 ? 'bg-amber-50/70 dark:bg-amber-950/20 border-amber-200/80 dark:border-amber-900/40 text-amber-950 dark:text-amber-200'
                 : 'bg-stone-50 dark:bg-stone-800/40 border-dashed border-stone-300 dark:border-stone-700 text-stone-500 dark:text-stone-400'
@@ -190,21 +190,21 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
             title={isOwner ? 'Click to set or change session date & time' : undefined}
           >
             {nextSessionAt ? (
-              <div className="flex items-center justify-between gap-2">
+              <div className="w-full flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span className="font-semibold text-xs sm:text-xs truncate">
+                  <span className="font-semibold font-mono text-xs truncate">
                     {formatSessionDateTime(nextSessionAt)}
                   </span>
                 </div>
                 {isOwner && (
-                  <span className="text-[10px] text-amber-700 dark:text-amber-300 shrink-0 font-medium">
+                  <span className="text-[10px] text-amber-700 dark:text-amber-300 shrink-0 font-medium font-mono">
                     Change
                   </span>
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-1.5 py-0.5 text-center">
+              <div className="w-full flex items-center justify-center gap-1.5 py-0.5 text-center">
                 <Plus className="w-3.5 h-3.5" />
                 <span className="text-xs font-medium">
                   {isOwner ? 'Schedule Next Session' : 'No Session Scheduled'}
@@ -231,19 +231,19 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
         {/* Checklist Entries */}
         <div className="space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
           {unDiscussedEntries.length === 0 ? (
-            <p className="text-xs text-stone-400 dark:text-stone-500 py-3 text-center italic">
+            <p className="text-xs text-stone-400 dark:text-stone-400 py-3 text-center italic">
               No items tagged yet. Tag entries with "Bring to session" to list them here.
             </p>
           ) : (
             unDiscussedEntries.map(({ weekId, weekTitle, bullet }) => (
               <div
                 key={bullet.id}
-                className="group flex items-start gap-2 p-2 rounded-xl bg-stone-50/80 dark:bg-stone-800/40 hover:bg-stone-100/90 dark:hover:bg-stone-800/80 border border-stone-200/60 dark:border-white/5 transition-colors"
+                className="group flex items-center gap-2 p-2 min-h-[44px] rounded-xl bg-stone-50/80 dark:bg-stone-800/40 hover:bg-stone-100/90 dark:hover:bg-stone-800/80 border border-stone-200/60 dark:border-white/5 transition-colors"
               >
                 <button
                   type="button"
                   onClick={() => onToggleDiscussed(weekId, bullet.id, true)}
-                  className="mt-0.5 text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0"
+                  className="min-h-[44px] min-w-[32px] flex items-center justify-center text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
                   title="Mark as discussed"
                 >
                   <Square className="w-3.5 h-3.5" />
@@ -252,7 +252,7 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
                   <p className="text-xs font-medium text-stone-800 dark:text-stone-200 truncate leading-snug">
                     {bullet.text || 'Untitled entry'}
                   </p>
-                  <p className="text-[10px] text-stone-400 dark:text-stone-500 font-mono truncate mt-0.5">
+                  <p className="text-[10px] text-stone-400 dark:text-stone-400 font-mono truncate mt-0.5">
                     {weekTitle}
                   </p>
                 </div>
@@ -267,7 +267,7 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
         <button
           type="button"
           onClick={onOpenSessionPrep}
-          className={`w-full min-h-[38px] py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer ${currentAccent.buttonPrimary} text-white`}
+          className="w-full min-h-[44px] py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer bg-amber-500 hover:bg-amber-400 text-stone-950"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>Open session prep</span>

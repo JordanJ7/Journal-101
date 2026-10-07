@@ -23,7 +23,7 @@ import { AccentTheme, AssignmentSwitches, BulletPoint, ExternalLink, WeeklyBlock
 import { exportWeekToPDF } from '../../utils/pdfExport';
 import { sanitizeUrl } from '../../utils/security';
 import { formatTimestamp, parseDateFromTimestamp } from '../../utils/storage';
-import { formatWeekDateRange } from '../../utils/dateUtils';
+import { formatWeekDateRange, isCurrentWeek } from '../../utils/dateUtils';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
@@ -283,18 +283,32 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
     }
   }, [canEdit, togglePinWeek, onUpdateWeek, week]);
 
+  const isCurrent = isCurrentWeek(week);
+
   return (
-    <div id={`week-card-${week.id}`} className="bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-xs overflow-visible mb-6">
+    <div
+      id={`week-card-${week.id}`}
+      className={`bg-white dark:bg-[#18181b] rounded-[14px] border shadow-xs overflow-visible mb-6 transition-colors ${
+        isCurrent
+          ? 'border-amber-500/50 ring-1 ring-amber-500/30'
+          : 'border-stone-200/80 dark:border-white/10'
+      }`}
+    >
       {/* Week Header */}
-      <div className="p-4 sm:p-5 border-b border-black/5 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 border-b border-stone-100 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
               <HighlightText text={week.weekTitle} highlight={searchQuery} />
               {week.isPinned && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold font-mono bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                   <Pin className="w-3 h-3 fill-current" />
                   Pinned
+                </span>
+              )}
+              {isCurrent && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold font-mono bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                  Current week
                 </span>
               )}
             </h2>
