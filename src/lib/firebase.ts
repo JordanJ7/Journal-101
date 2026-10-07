@@ -796,9 +796,9 @@ export function subscribeJournalData(
         hasReceivedCoreTopicsSnapshot;
 
       const payload: Partial<AppState> & { clientSessionId?: string; updatedAt?: string; isInitialHydrationComplete?: boolean } = {
-        weeks: cachedConsolidatedWeeks,
-        coreItems: cachedConsolidatedCoreItems,
-        ...(cachedConsolidatedFolders.length > 0 ? { coreCategories: cachedConsolidatedFolders } : {}),
+        ...(hasReceivedWeeksSnapshot ? { weeks: cachedConsolidatedWeeks } : {}),
+        ...(hasReceivedCoreTopicsSnapshot ? { coreItems: cachedConsolidatedCoreItems } : {}),
+        ...(hasReceivedFoldersSnapshot ? { coreCategories: cachedConsolidatedFolders } : {}),
         pinnedCategoryIds: cachedPinnedCategoryIds,
         introQuotes: cachedIntroQuotes,
         nextSessionAt: cachedNextSessionAt,
@@ -809,13 +809,15 @@ export function subscribeJournalData(
         isInitialHydrationComplete: allCoreSnapshotsReceived,
       };
 
-      try {
-        const localSafe = sanitizeStateForLocalStorage(payload);
-        const serialized = JSON.stringify(localSafe);
-        localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, serialized);
-        localStorage.setItem('journal_backup', serialized);
-      } catch (err) {
-        console.warn('[LocalStorage] Safe backup notice:', err);
+      if (allCoreSnapshotsReceived) {
+        try {
+          const localSafe = sanitizeStateForLocalStorage(payload);
+          const serialized = JSON.stringify(localSafe);
+          localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, serialized);
+          localStorage.setItem('journal_backup', serialized);
+        } catch (err) {
+          console.warn('[LocalStorage] Safe backup notice:', err);
+        }
       }
 
       onUpdate(payload);
@@ -913,16 +915,9 @@ export function subscribeJournalData(
     async (weeksSnap) => {
       hasReceivedWeeksSnapshot = true;
 
-      // Skip snapshot updates if this is solely a local uncommitted write
-      if (weeksSnap.metadata.hasPendingWrites) {
-        return;
-      }
-
       let hasStructuralChanges = false;
       if (!weeksSnap.empty) {
         weeksSnap.docChanges().forEach((change) => {
-          if (change.doc.metadata.hasPendingWrites) return;
-
           const weekData = change.doc.data() as WeeklyBlock;
           const weekId = change.doc.id;
 
@@ -944,6 +939,12 @@ export function subscribeJournalData(
             hasStructuralChanges = true;
           }
         });
+        syncConsolidatedWeeks();
+      } else {
+        weeksMap.clear();
+        entriesPerWeekMap.clear();
+        cachedConsolidatedWeeks = [];
+        hasStructuralChanges = true;
       }
 
       if (hasStructuralChanges || !isInitialHydratedFired) {
@@ -961,16 +962,9 @@ export function subscribeJournalData(
     const entriesGroupUnsub = onSnapshot(
       collectionGroup(db, 'entries'),
       (entriesSnap) => {
-        // Skip snapshot processing if it is an uncommitted local write
-        if (entriesSnap.metadata.hasPendingWrites) {
-          return;
-        }
-
         const affectedWeekIds = new Set<string>();
 
         entriesSnap.docChanges().forEach((change) => {
-          if (change.doc.metadata.hasPendingWrites) return;
-
           const entry = { id: change.doc.id, ...change.doc.data() } as BulletPoint;
           const parentWeekId = change.doc.ref.parent.parent?.id;
 
@@ -1011,15 +1005,9 @@ export function subscribeJournalData(
     (snap) => {
       hasReceivedFoldersSnapshot = true;
 
-      if (snap.metadata.hasPendingWrites) {
-        return;
-      }
-
       let hasChanges = false;
       if (!snap.empty) {
         snap.docChanges().forEach((change) => {
-          if (change.doc.metadata.hasPendingWrites) return;
-
           const folder = { id: change.doc.id, ...change.doc.data() } as CoreCategoryConfig;
           if (change.type === 'removed') {
             foldersMap.delete(folder.id);
@@ -1033,6 +1021,13 @@ export function subscribeJournalData(
         if (hasChanges) {
           cachedConsolidatedFolders = Array.from(foldersMap.values());
         }
+      } else {
+        if (coreCategoriesFallback && coreCategoriesFallback.length > 0) {
+          cachedConsolidatedFolders = coreCategoriesFallback;
+        } else {
+          cachedConsolidatedFolders = [];
+        }
+        hasChanges = true;
       }
 
       if (hasChanges || !isInitialHydratedFired) {
@@ -1051,22 +1046,14 @@ export function subscribeJournalData(
     (snap) => {
       hasReceivedCoreTopicsSnapshot = true;
 
-      // (1) Skip processing snapshot changes where snapshot.metadata.hasPendingWrites is true for local writes
-      if (snap.metadata.hasPendingWrites) {
-        return;
-      }
-
       let hasChanges = false;
       if (!snap.empty) {
         snap.docChanges().forEach((change) => {
-          if (change.doc.metadata.hasPendingWrites) return;
-
           const item = { id: change.doc.id, ...change.doc.data() } as CoreTopicItem;
           if (change.type === 'removed') {
             coreItemsMap.delete(item.id);
             hasChanges = true;
           } else {
-            // (2) Granular check: Only update item if different
             const existing = coreItemsMap.get(item.id);
             if (!existing || JSON.stringify(existing) !== JSON.stringify(item)) {
               coreItemsMap.set(item.id, item);
@@ -1078,6 +1065,10 @@ export function subscribeJournalData(
         if (hasChanges) {
           cachedConsolidatedCoreItems = Array.from(coreItemsMap.values());
         }
+      } else {
+        coreItemsMap.clear();
+        cachedConsolidatedCoreItems = [];
+        hasChanges = true;
       }
 
       if (hasChanges || !isInitialHydratedFired) {
@@ -1094,10 +1085,6 @@ export function subscribeJournalData(
   const coreCategoriesUnsub = onSnapshot(
     doc(db, 'core_categories', 'settings'),
     (snap) => {
-      if (snap.metadata.hasPendingWrites) {
-        return;
-      }
-
       if (snap.exists()) {
         const data = snap.data();
         if (data && Array.isArray(data.categories)) {
@@ -1119,10 +1106,6 @@ export function subscribeJournalData(
   const commentsUnsub = onSnapshot(
     collection(db, 'comments'),
     (snap) => {
-      if (snap.metadata.hasPendingWrites) {
-        return;
-      }
-
       commentsList = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CommentItem[];
       cachedComments = commentsList;
       scheduleBroadcast();
@@ -1137,9 +1120,6 @@ export function subscribeJournalData(
   const appStateUnsub = onSnapshot(
     doc(db, 'app_state', 'journal'),
     (snap) => {
-      if (snap.metadata.hasPendingWrites) {
-        return;
-      }
       if (snap.exists()) {
         const data = snap.data() as Partial<AppState>;
         let hasChanges = false;

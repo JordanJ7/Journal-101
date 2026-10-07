@@ -71,7 +71,6 @@ const SharedView = lazy(() =>
 
 export default function App() {
   const [isPending, startTransition] = useTransition();
-  const [subscriptionVersion, setSubscriptionVersion] = useState(0);
 
   // Atomic selectors from Zustand store
   const weeks = useWeeks();
@@ -332,24 +331,28 @@ export default function App() {
     return () => {
       unsubscribe();
     };
-  }, [currentUser?.isLoggedIn, setPermissions, subscriptionVersion]);
+  }, [currentUser?.isLoggedIn, setPermissions]);
 
-  // Tab Focus / Visibility Listener for Desktop Safari & multi-device sync
+  // Tab Visibility Listener: immediate flush when hidden / pagehide, read-only refresh on visible
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Refresh / reattach active Firestore subscriptions without writing any state to the cloud
-        console.log('[App] Tab regained focus - refreshing active subscriptions');
-        setSubscriptionVersion((v) => v + 1);
+      if (document.visibilityState === 'hidden') {
+        useJournalStore.getState().flushAutoSave();
+      } else if (document.visibilityState === 'visible') {
+        // Read-only refresh without tearing down or recreating active Firestore subscriptions
         refreshFirestoreSync();
       }
     };
 
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleVisibilityChange);
+    const handlePageHide = () => {
+      useJournalStore.getState().flushAutoSave();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
     return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
     };
   }, []);
 
@@ -402,7 +405,7 @@ export default function App() {
     return () => {
       unsubscribe();
     };
-  }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud, subscriptionVersion]);
+  }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud]);
 
   // Global Keyboard Shortcuts (Ctrl+B/Cmd+B for Sidebar toggle, Escape for Fullscreen exit)
   useEffect(() => {

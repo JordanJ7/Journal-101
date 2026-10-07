@@ -305,7 +305,7 @@ let isSyncInProgress = false;
 let pendingSaveAfterSync = false;
 let pendingTargetEntryId: string | undefined = undefined;
 
-const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
+const executeSave = async (get: () => JournalStoreState, targetId?: string, isImmediate = false) => {
   if (syncTimeout) {
     clearTimeout(syncTimeout);
     syncTimeout = null;
@@ -361,14 +361,16 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
     return;
   }
 
-  // Guard: If user typed within the debounce window, reschedule for smooth input flow
-  const timeSinceLastKeystroke = Date.now() - lastUserKeystrokeTime;
-  if (timeSinceLastKeystroke < AUTO_SAVE_DEBOUNCE_MS && lastUserKeystrokeTime > 0) {
-    const remainingDelay = Math.max(250, AUTO_SAVE_DEBOUNCE_MS - timeSinceLastKeystroke);
-    syncTimeout = setTimeout(() => {
-      executeSave(get, targetId || pendingTargetEntryId);
-    }, remainingDelay);
-    return;
+  // Guard: If user typed within the debounce window, reschedule for smooth input flow unless an immediate flush was requested
+  if (!isImmediate) {
+    const timeSinceLastKeystroke = Date.now() - lastUserKeystrokeTime;
+    if (timeSinceLastKeystroke < AUTO_SAVE_DEBOUNCE_MS && lastUserKeystrokeTime > 0) {
+      const remainingDelay = Math.max(250, AUTO_SAVE_DEBOUNCE_MS - timeSinceLastKeystroke);
+      syncTimeout = setTimeout(() => {
+        executeSave(get, targetId || pendingTargetEntryId);
+      }, remainingDelay);
+      return;
+    }
   }
 
   if (isSyncInProgress) {
@@ -579,18 +581,29 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
   }, delayMs);
 };
 
-// Global window lifecycle listener: flush pending debounced saves strictly on actual tab unload if unsaved
+// Global window lifecycle listener: flush pending debounced saves strictly on pagehide / visibilitychange to hidden / beforeunload
 if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
+  const handleImmediateFlushOnHidden = () => {
     if (useJournalStore.getState().saveStatus === 'saving' || syncTimeout || hasDirtyItems()) {
       useJournalStore.getState().flushAutoSave();
     }
-  });
+  };
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        handleImmediateFlushOnHidden();
+      }
+    });
+  }
+
+  window.addEventListener('pagehide', handleImmediateFlushOnHidden);
+  window.addEventListener('beforeunload', handleImmediateFlushOnHidden);
 
   window.addEventListener('online', () => {
     const s = useJournalStore.getState();
     if (hasDirtyItems()) {
-      executeSave(useJournalStore.getState);
+      executeSave(useJournalStore.getState, undefined, true);
     } else if (s.lastCloudSavedAt != null) {
       useJournalStore.setState({ saveStatus: 'saved_cloud' });
     } else {
@@ -671,7 +684,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       clearTimeout(syncTimeout);
       syncTimeout = null;
     }
-    await executeSave(get, entryId);
+    await executeSave(get, entryId, true);
   },
 
   isExportModalOpen: false,
@@ -2213,14 +2226,99 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   syncFromCloud: (cloudData: Partial<AppState> & { clientSessionId?: string; updatedAt?: string; isInitialHydrationComplete?: boolean }) => {
     const state = get();
 
-    const incomingWeeks = cloudData.weeks && Array.isArray(cloudData.weeks) ? cloudData.weeks : state.weeks;
-    const incomingCoreItems = cloudData.coreItems && Array.isArray(cloudData.coreItems) ? cloudData.coreItems : state.coreItems;
-    const incomingCoreCategories = cloudData.coreCategories && Array.isArray(cloudData.coreCategories) ? cloudData.coreCategories : state.coreCategories;
-    const incomingPinnedCategoryIds = cloudData.pinnedCategoryIds && Array.isArray(cloudData.pinnedCategoryIds) ? cloudData.pinnedCategoryIds : state.pinnedCategoryIds;
-    const incomingIntroQuotes = cloudData.introQuotes !== undefined && Array.isArray(cloudData.introQuotes) ? cloudData.introQuotes : state.introQuotes;
+    // Merge incoming weeks while strictly preserving local versions for any dirty or locally deleted items
+    let incomingWeeks: WeeklyBlock[] = state.weeks;
+    if (cloudData.weeks && Array.isArray(cloudData.weeks)) {
+      const mergedWeeks: WeeklyBlock[] = [];
+      for (const incWeek of cloudData.weeks) {
+        if (deletedWeekIds.has(incWeek.id)) {
+          // Local deletion pending; keep it deleted locally
+          continue;
+        }
+        if (dirtyWeekIds.has(incWeek.id)) {
+          // Keep local version with unsaved changes
+          const localWeek = state.weeks.find((w) => w.id === incWeek.id);
+          mergedWeeks.push(localWeek || incWeek);
+        } else {
+          mergedWeeks.push(incWeek);
+        }
+      }
+      // Retain any locally dirty weeks not present in the incoming cloud array
+      for (const localWeek of state.weeks) {
+        if (dirtyWeekIds.has(localWeek.id) && !mergedWeeks.some((w) => w.id === localWeek.id)) {
+          mergedWeeks.push(localWeek);
+        }
+      }
+      incomingWeeks = mergedWeeks;
+    }
+
+    // Merge incoming core categories (folders) while preserving dirty items
+    let incomingCoreCategories: CoreCategoryConfig[] = state.coreCategories;
+    if (cloudData.coreCategories && Array.isArray(cloudData.coreCategories)) {
+      const mergedFolders: CoreCategoryConfig[] = [];
+      for (const incFolder of cloudData.coreCategories) {
+        if (deletedFolderIds.has(incFolder.id)) {
+          continue;
+        }
+        if (dirtyFolderIds.has(incFolder.id)) {
+          const localFolder = state.coreCategories.find((c) => c.id === incFolder.id);
+          mergedFolders.push(localFolder || incFolder);
+        } else {
+          mergedFolders.push(incFolder);
+        }
+      }
+      for (const localFolder of state.coreCategories) {
+        if (dirtyFolderIds.has(localFolder.id) && !mergedFolders.some((c) => c.id === localFolder.id)) {
+          mergedFolders.push(localFolder);
+        }
+      }
+      incomingCoreCategories = mergedFolders;
+    }
+
+    // Merge incoming core items (topic notes) while preserving dirty items
+    let incomingCoreItems: CoreTopicItem[] = state.coreItems;
+    if (cloudData.coreItems && Array.isArray(cloudData.coreItems)) {
+      const mergedItems: CoreTopicItem[] = [];
+      for (const incItem of cloudData.coreItems) {
+        if (deletedCoreItemIds.has(incItem.id)) {
+          continue;
+        }
+        if (dirtyCoreItemIds.has(incItem.id)) {
+          const localItem = state.coreItems.find((i) => i.id === incItem.id);
+          mergedItems.push(localItem || incItem);
+        } else {
+          mergedItems.push(incItem);
+        }
+      }
+      for (const localItem of state.coreItems) {
+        if (dirtyCoreItemIds.has(localItem.id) && !mergedItems.some((i) => i.id === localItem.id)) {
+          mergedItems.push(localItem);
+        }
+      }
+      incomingCoreItems = mergedItems;
+    }
+
+    const incomingPinnedCategoryIds = isAppStateDirty
+      ? state.pinnedCategoryIds
+      : cloudData.pinnedCategoryIds && Array.isArray(cloudData.pinnedCategoryIds)
+      ? cloudData.pinnedCategoryIds
+      : state.pinnedCategoryIds;
+    const incomingIntroQuotes = isAppStateDirty
+      ? state.introQuotes
+      : cloudData.introQuotes !== undefined && Array.isArray(cloudData.introQuotes)
+      ? cloudData.introQuotes
+      : state.introQuotes;
     const incomingComments = cloudData.comments && Array.isArray(cloudData.comments) ? cloudData.comments : state.comments;
-    const incomingNextSessionAt = cloudData.nextSessionAt !== undefined ? cloudData.nextSessionAt : state.nextSessionAt;
-    const incomingSessionPrepNotes = cloudData.sessionPrepNotes !== undefined ? cloudData.sessionPrepNotes : state.sessionPrepNotes;
+    const incomingNextSessionAt = isAppStateDirty
+      ? state.nextSessionAt
+      : cloudData.nextSessionAt !== undefined
+      ? cloudData.nextSessionAt
+      : state.nextSessionAt;
+    const incomingSessionPrepNotes = isAppStateDirty
+      ? state.sessionPrepNotes
+      : cloudData.sessionPrepNotes !== undefined
+      ? cloudData.sessionPrepNotes
+      : state.sessionPrepNotes;
 
     const isWeeksEqual = incomingWeeks.length === state.weeks.length && JSON.stringify(incomingWeeks) === JSON.stringify(state.weeks);
     const isCoreItemsEqual = incomingCoreItems.length === state.coreItems.length && JSON.stringify(incomingCoreItems) === JSON.stringify(state.coreItems);
@@ -2271,7 +2369,6 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
     if (shouldOpenWriteGate) {
       setGlobalFirestoreSnapshotReceived(true);
-      clearDirtyTracking();
       console.log('[Write-Gate] All required snapshots (weeks, folders, core_topics) received and applied. Write-gate opened.');
 
       // Run once per session only after write-gate has opened (weeks, folders, and core_topics snapshots applied), owner-only
