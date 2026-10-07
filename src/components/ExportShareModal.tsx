@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { CoreCategoryConfig, CoreTopicItem, WeeklyBlock } from '../types';
 import { exportCoreCategoryToPDF, exportWeekToPDF } from '../utils/pdfExport';
 import { createShareableLink, formatTimestamp, generateMarkdownExport } from '../utils/storage';
+import { formatWeekDateRange } from '../utils/dateUtils';
 
 interface ExportShareModalProps {
   weeks: WeeklyBlock[];
@@ -142,7 +143,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
                   >
                     {weeks.map((w) => (
                       <option key={w.id} value={w.id}>
-                        {w.weekTitle} ({w.startDate})
+                        {w.weekTitle} ({formatWeekDateRange(w.startDate, w.endDate)})
                       </option>
                     ))}
                   </select>

@@ -1,4 +1,5 @@
 import { CoreCategoryConfig, CoreTopicItem, WeeklyBlock } from '../types';
+import { formatWeekDateRange } from './dateUtils';
 
 /**
  * Opens a print-formatted window that converts cleanly to PDF via browser print.
@@ -208,7 +209,7 @@ function printHtmlDocument(title: string, subtitle: string, bodyContentHtml: str
  * Export an individual weekly journal block as a clean PDF for therapy review.
  */
 export function exportWeekToPDF(week: WeeklyBlock) {
-  const subtitle = `Period: ${week.startDate} to ${week.endDate} • ${week.bullets.length} entries`;
+  const subtitle = `Period: ${formatWeekDateRange(week.startDate, week.endDate)} • ${week.bullets.length} entries`;
 
   let html = '';
 

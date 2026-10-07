@@ -39,7 +39,16 @@ import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
 import { usePermissions } from '../hooks/usePermissions';
-import { findMatchingWeekForDate, findOverlappingWeek, isDateWithinWeek, sortWeeksForSidebar } from '../utils/dateUtils';
+import {
+  findMatchingWeekForDate,
+  findOverlappingWeek,
+  isDateWithinWeek,
+  sortWeeksForSidebar,
+  formatWeekDateRange,
+  groupWeeksByMonth,
+  isCurrentWeek,
+  normalizeDateToIso,
+} from '../utils/dateUtils';
 import { getWeekTitleAndRangeForDate, parseDateFromTimestamp } from '../utils/storage';
 import { useJournalStore } from '../store/useJournalStore';
 import { MergeWeekModal } from './WeeklyJournal/MergeWeekModal';
@@ -145,11 +154,51 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
   const startThisWeek = useJournalStore((s) => s.startThisWeek);
   const deleteWeek = useJournalStore((s) => s.deleteWeek);
+  const togglePinWeek = useJournalStore((s) => s.togglePinWeek);
   const mergeWeekInto = useJournalStore((s) => s.mergeWeekInto);
   const setIsRecentlyDeletedOpen = useJournalStore((s) => s.setIsRecentlyDeletedOpen);
   const allStoreWeeks = useJournalStore((s) => s.weeks);
   const allStoreCategories = useJournalStore((s) => s.coreCategories);
   const allStoreCoreItems = useJournalStore((s) => s.coreItems);
+
+  // Remember expanded/collapsed state per device
+  const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('weekly_sidebar_expanded_months');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {}
+    return {};
+  });
+
+  const { currentMonthKey, prevMonthKey } = useMemo(() => {
+    const now = new Date();
+    const cKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const pDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const pKey = `${pDate.getFullYear()}-${String(pDate.getMonth() + 1).padStart(2, '0')}`;
+    return { currentMonthKey: cKey, prevMonthKey: pKey };
+  }, []);
+
+  const toggleMonth = useCallback(
+    (monthKey: string) => {
+      setExpandedMonths((prev) => {
+        const isCurrentlyExpanded =
+          prev[monthKey] !== undefined
+            ? prev[monthKey]
+            : monthKey === currentMonthKey || monthKey === prevMonthKey;
+        const updated = {
+          ...prev,
+          [monthKey]: !isCurrentlyExpanded,
+        };
+        try {
+          localStorage.setItem('weekly_sidebar_expanded_months', JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
+    },
+    [currentMonthKey, prevMonthKey]
+  );
 
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const permissions = usePermissions();
@@ -197,6 +246,18 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     return sortWeeksForSidebar(list);
   }, [activeWeeks, weekSearchQuery]);
 
+  const pinnedWeeks = useMemo(() => {
+    return filteredWeeks.filter((w) => Boolean(w.isPinned));
+  }, [filteredWeeks]);
+
+  const unpinnedWeeks = useMemo(() => {
+    return filteredWeeks.filter((w) => !w.isPinned);
+  }, [filteredWeeks]);
+
+  const monthGroups = useMemo(() => {
+    return groupWeeksByMonth(unpinnedWeeks);
+  }, [unpinnedWeeks]);
+
   const filteredCategories = useMemo(() => {
     if (!categorySearchQuery.trim()) return activeCategories;
     const q = categorySearchQuery.toLowerCase();
@@ -237,8 +298,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     );
 
     const finalTitle = newWeekTitle.trim() || calcTitle;
-    const finalStartDate = newWeekStartDate || calcStart;
-    const finalEndDate = newWeekEndDate || calcEnd;
+    const finalStartDate = normalizeDateToIso(newWeekStartDate || calcStart);
+    const finalEndDate = normalizeDateToIso(newWeekEndDate || calcEnd);
 
     // Check if an existing week matches the exact dates, week title, or covers the target date range
     const existingWeek = findOverlappingWeek(
@@ -308,6 +369,102 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     handleSelectCategory(newCat.id);
     setShowAddCategoryModal(false);
     setNewCatTitle('');
+  };
+
+  const renderWeekRow = (week: WeeklyBlock) => {
+    const isSelected = activeWeekId === week.id;
+    const isCurrent = isCurrentWeek(week);
+    const entryCount = (week.bullets || []).filter((b) => !b.deletedAt).length;
+    const dateRange = formatWeekDateRange(week.startDate, week.endDate);
+    const countText = `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'}`;
+    const subtitle = dateRange ? `${dateRange} · ${countText}` : countText;
+
+    return (
+      <div
+        key={week.id}
+        className={`group shrink-0 flex items-center justify-between px-3 py-2 min-h-[44px] rounded-xl text-xs transition-all cursor-pointer select-none active:scale-[0.99] ${
+          isSelected
+            ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
+            : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
+        }`}
+        onClick={() => handleSelectWeek(week.id)}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            {week.isPinned && (
+              <Pin className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+            )}
+            <p className="truncate text-xs sm:text-xs font-medium">{week.weekTitle}</p>
+          </div>
+          <p className="text-[10px] text-stone-400 dark:text-stone-500 font-mono truncate mt-0.5">
+            <span>{subtitle}</span>
+            {isCurrent && (
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium"> · this week</span>
+            )}
+          </p>
+        </div>
+
+        {canEdit && (
+          <div className="relative shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setOpenWeekMenuId(openWeekMenuId === week.id ? null : week.id)}
+              className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
+              title="Week options"
+            >
+              <MoreVertical className="w-3.5 h-3.5" />
+            </button>
+            {openWeekMenuId === week.id && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setOpenWeekMenuId(null)} />
+                <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[150px] text-xs font-normal">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenWeekMenuId(null);
+                      togglePinWeek(week.id);
+                    }}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
+                  >
+                    <Pin className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{week.isPinned ? 'Unpin week' : 'Pin week'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenWeekMenuId(null);
+                      setMergingWeek(week);
+                    }}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
+                  >
+                    <GitMerge className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Merge into…</span>
+                  </button>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenWeekMenuId(null);
+                        confirmDelete({
+                          title: `Delete "${week.weekTitle}"?`,
+                          message: `Delete this week and all entries inside it?`,
+                          confirmText: 'Delete',
+                          onConfirm: () => deleteWeek(week.id),
+                        });
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 text-rose-600 dark:text-rose-400 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Week</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderSidebarContent = (isMobileView = false) => (
@@ -509,84 +666,66 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             {filteredWeeks.length === 0 ? (
               <p className="text-xs text-stone-400 p-4 text-center">No entries</p>
             ) : (
-              filteredWeeks.map((week) => {
-                const isSelected = activeWeekId === week.id;
+              <>
+                {/* 1. Pinned Section at the Top */}
+                {pinnedWeeks.length > 0 && (
+                  <div className="space-y-1 mb-3">
+                    <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-stone-400 dark:text-stone-500 select-none">
+                      <Pin className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+                      <span>PINNED</span>
+                      <span className="text-[10px] text-stone-400 font-mono">({pinnedWeeks.length})</span>
+                    </div>
+                    <div className="space-y-1">
+                      {pinnedWeeks.map((week) => renderWeekRow(week))}
+                    </div>
+                  </div>
+                )}
 
-                return (
-                  <div
-                    key={week.id}
-                    className={`group shrink-0 flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-xs transition-all cursor-pointer select-none active:scale-[0.99] ${
-                      isSelected
-                        ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
-                        : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
-                    }`}
-                    onClick={() => handleSelectWeek(week.id)}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        {week.isPinned && (
-                          <Pin className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+                {/* 2. Unpinned Weeks Grouped by Month */}
+                {monthGroups.map((group) => {
+                  const isMonthExpanded =
+                    Boolean(weekSearchQuery.trim()) ||
+                    (expandedMonths[group.monthKey] !== undefined
+                      ? expandedMonths[group.monthKey]
+                      : group.monthKey === currentMonthKey || group.monthKey === prevMonthKey);
+
+                  const weekCount = group.weeks.length;
+                  const countLabel = weekCount === 1 ? '1 WEEK' : `${weekCount} WEEKS`;
+
+                  return (
+                    <div key={group.monthKey} className="space-y-1 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleMonth(group.monthKey)}
+                        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors group cursor-pointer select-none"
+                        aria-expanded={isMonthExpanded}
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {isMonthExpanded ? (
+                            <ChevronDown className="w-3.5 h-3.5 text-stone-400 shrink-0 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+                          ) : (
+                            <ChevronRight className="w-3.5 h-3.5 text-stone-400 shrink-0 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+                          )}
+                          <span className="text-[11px] font-semibold tracking-wider uppercase text-stone-500 dark:text-stone-400 group-hover:text-stone-800 dark:group-hover:text-stone-200 truncate font-mono">
+                            {isMonthExpanded ? group.monthTitle : `${group.monthTitle} · ${countLabel}`}
+                          </span>
+                        </div>
+                        {isMonthExpanded && (
+                          <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono shrink-0 ml-1">
+                            ({weekCount})
+                          </span>
                         )}
-                        <p className="truncate text-xs sm:text-xs font-medium">{week.weekTitle}</p>
-                      </div>
-                      {(week.startDate || week.endDate) && (
-                        <p className="text-[10px] text-stone-400 truncate mt-0.5">
-                          {week.startDate} {week.endDate && week.endDate !== week.startDate ? `– ${week.endDate}` : ''}
-                        </p>
+                      </button>
+
+                      {isMonthExpanded && (
+                        <div className="space-y-1">
+                          {group.weeks.map((week) => renderWeekRow(week))}
+                        </div>
                       )}
                     </div>
-
-                    {canEdit && (
-                      <div className="relative shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => setOpenWeekMenuId(openWeekMenuId === week.id ? null : week.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
-                          title="Week options"
-                        >
-                          <MoreVertical className="w-3.5 h-3.5" />
-                        </button>
-                        {openWeekMenuId === week.id && (
-                          <>
-                            <div className="fixed inset-0 z-30" onClick={() => setOpenWeekMenuId(null)} />
-                            <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[150px] text-xs font-normal">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setOpenWeekMenuId(null);
-                                  setMergingWeek(week);
-                                }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
-                              >
-                                <GitMerge className="w-3.5 h-3.5 text-amber-500" />
-                                <span>Merge into…</span>
-                              </button>
-                              {isOwner && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setOpenWeekMenuId(null);
-                                    confirmDelete({
-                                      title: `Delete "${week.weekTitle}"?`,
-                                      message: `Delete this week and all entries inside it?`,
-                                      confirmText: 'Delete',
-                                      onConfirm: () => deleteWeek(week.id),
-                                    });
-                                  }}
-                                  className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 text-rose-600 dark:text-rose-400 cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  <span>Delete Week</span>
-                                </button>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
+                  );
+                })}
+              </>
             )}
           </div>
         </div>

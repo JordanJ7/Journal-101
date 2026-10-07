@@ -69,7 +69,34 @@ export function parseWeekStartDate(dateStr?: string | null): Date | null {
     return new Date(parsedTime);
   }
 
+  // 4. Fallback: parseDateFromTimestamp
+  const tsParsed = parseDateFromTimestamp(trimmed);
+  if (tsParsed && !isNaN(tsParsed.getTime())) {
+    return tsParsed;
+  }
+
   return null;
+}
+
+/**
+ * Normalizes a date string or timestamp to 'YYYY-MM-DD'.
+ * If already 'YYYY-MM-DD', returns it directly.
+ * Parses both stored formats ('2026-08-24' and 'Sep 7, 2026').
+ */
+export function normalizeDateToIso(dateStr?: string | null): string {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const trimmed = dateStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const parsed = parseWeekStartDate(trimmed);
+  if (parsed && !isNaN(parsed.getTime())) {
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth() + 1).padStart(2, '0');
+    const d = String(parsed.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return trimmed;
 }
 
 /**
@@ -393,5 +420,122 @@ export function findOverlappingWeek(
     return weeksOverlap(target, w);
   });
 }
+
+/**
+ * Standard date range display formatter used everywhere across the app.
+ * Parses both stored formats ('2026-08-24' and 'Sep 7, 2026').
+ * Examples:
+ * - Same month: "Sep 7 – 13"
+ * - Cross month: "Sep 28 – Oct 4"
+ * - Cross year: "Dec 28, 2026 – Jan 3, 2027"
+ */
+export function formatWeekDateRange(
+  startDateStr?: string | null,
+  endDateStr?: string | null
+): string {
+  const start = parseWeekStartDate(startDateStr);
+  if (!start) {
+    if (startDateStr && endDateStr) return `${startDateStr} – ${endDateStr}`;
+    return startDateStr || '';
+  }
+
+  const end = parseWeekStartDate(endDateStr) || new Date(start.getTime() + 6 * 86400000);
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const startMonth = months[start.getMonth()];
+  const endMonth = months[end.getMonth()];
+  const startDay = start.getDate();
+  const endDay = end.getDate();
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+
+  if (startYear === endYear) {
+    if (start.getMonth() === end.getMonth()) {
+      return `${startMonth} ${startDay} – ${endDay}`;
+    }
+    return `${startMonth} ${startDay} – ${endMonth} ${endDay}`;
+  }
+
+  return `${startMonth} ${startDay}, ${startYear} – ${endMonth} ${endDay}, ${endYear}`;
+}
+
+/**
+ * Checks whether the given week corresponds to the current week (contains today's date).
+ */
+export function isCurrentWeek(week: WeeklyBlock, today: Date = new Date()): boolean {
+  if (!week) return false;
+  const start = parseWeekStartDate(week.startDate);
+  if (!start) return false;
+  const end = parseWeekStartDate(week.endDate) || new Date(start.getTime() + 6 * 86400000);
+
+  const startMs = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0, 0).getTime();
+  const endMs = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999).getTime();
+  const todayMs = today.getTime();
+
+  return todayMs >= startMs && todayMs <= endMs;
+}
+
+export interface MonthGroup {
+  monthKey: string;      // e.g. "2026-10"
+  monthTitle: string;    // e.g. "OCTOBER 2026"
+  year: number;
+  monthIndex: number;    // 0-11
+  weeks: WeeklyBlock[];
+}
+
+const FULL_MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+/**
+ * Groups unpinned weeks by month of their start date ("OCTOBER 2026"),
+ * newest month first, newest week first within each month.
+ */
+export function groupWeeksByMonth(weeks: WeeklyBlock[]): MonthGroup[] {
+  const groupsMap = new Map<string, MonthGroup>();
+
+  for (const week of weeks) {
+    const d =
+      parseWeekStartDate(week.startDate) ||
+      parseDateFromTimestamp(week.startDate || week.createdAt || week.weekTitle);
+    let monthKey = '9999-99';
+    let monthTitle = 'OTHER';
+    let year = 0;
+    let monthIndex = -1;
+
+    if (d && !isNaN(d.getTime())) {
+      year = d.getFullYear();
+      monthIndex = d.getMonth();
+      monthKey = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+      monthTitle = `${FULL_MONTH_NAMES[monthIndex].toUpperCase()} ${year}`;
+    }
+
+    let group = groupsMap.get(monthKey);
+    if (!group) {
+      group = {
+        monthKey,
+        monthTitle,
+        year,
+        monthIndex,
+        weeks: [],
+      };
+      groupsMap.set(monthKey, group);
+    }
+    group.weeks.push(week);
+  }
+
+  // Sort weeks within each month group: newest week first
+  for (const group of groupsMap.values()) {
+    group.weeks.sort(compareWeeksForSidebar);
+  }
+
+  // Sort groups: newest month first
+  return Array.from(groupsMap.values()).sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return b.monthIndex - a.monthIndex;
+  });
+}
+
 
 

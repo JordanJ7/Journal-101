@@ -25,6 +25,7 @@ import {
   CoreTopicItem,
   WeeklyBlock,
 } from '../types';
+import { formatWeekDateRange } from '../utils/dateUtils';
 import { ACCENT_THEMES } from '../utils/theme';
 import { CustomizePinnedTopicsModal } from './CustomizePinnedTopicsModal';
 
@@ -229,8 +230,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
 
     // Format display date for the week
     let displayTime = targetWeek.startDate || targetWeek.createdAt || 'Recent';
-    if (targetWeek.startDate && targetWeek.endDate) {
-      displayTime = `${targetWeek.startDate} – ${targetWeek.endDate}`;
+    if (targetWeek.startDate || targetWeek.endDate) {
+      displayTime = formatWeekDateRange(targetWeek.startDate, targetWeek.endDate) || displayTime;
     }
 
     return {

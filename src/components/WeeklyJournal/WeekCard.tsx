@@ -23,6 +23,7 @@ import { AccentTheme, AssignmentSwitches, BulletPoint, ExternalLink, WeeklyBlock
 import { exportWeekToPDF } from '../../utils/pdfExport';
 import { sanitizeUrl } from '../../utils/security';
 import { formatTimestamp, parseDateFromTimestamp } from '../../utils/storage';
+import { formatWeekDateRange } from '../../utils/dateUtils';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
@@ -304,7 +305,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
             {(week.startDate || week.endDate) && (
               <p className="text-[11px] text-stone-400 font-mono">
-                {week.startDate} – {week.endDate}
+                {formatWeekDateRange(week.startDate, week.endDate)}
               </p>
             )}
 

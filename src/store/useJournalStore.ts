@@ -33,6 +33,7 @@ import {
   findMatchingWeekForDate,
   findOverlappingWeek,
   weeksOverlap,
+  normalizeDateToIso,
 } from '../utils/dateUtils';
 import {
   CurrentUserProfile,
@@ -220,6 +221,7 @@ const deletedFolderIds = new Set<string>();
 const dirtyCoreItemIds = new Set<string>();
 const deletedCoreItemIds = new Set<string>();
 let isAppStateDirty = false;
+let hasPurgedThisSession = false;
 
 export function markWeekDirty(weekId: string) {
   if (!weekId) return;
@@ -849,19 +851,24 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addWeek: (newWeek) => {
+    const normalizedWeek: WeeklyBlock = {
+      ...newWeek,
+      startDate: newWeek.startDate ? normalizeDateToIso(newWeek.startDate) : newWeek.startDate,
+      endDate: newWeek.endDate ? normalizeDateToIso(newWeek.endDate) : newWeek.endDate,
+    };
     const nonDeleted = get().weeks.filter((w) => !w.deletedAt);
     const overlapping = findOverlappingWeek(
-      newWeek.startDate,
-      newWeek.endDate,
-      newWeek.weekTitle,
-      newWeek.id,
+      normalizedWeek.startDate,
+      normalizedWeek.endDate,
+      normalizedWeek.weekTitle,
+      normalizedWeek.id,
       nonDeleted
     );
 
     if (overlapping) {
-      if (newWeek.bullets && newWeek.bullets.length > 0) {
+      if (normalizedWeek.bullets && normalizedWeek.bullets.length > 0) {
         const existingBullets = [...(overlapping.bullets || [])];
-        for (const b of newWeek.bullets) {
+        for (const b of normalizedWeek.bullets) {
           if (!existingBullets.some((eb) => eb.id === b.id)) {
             existingBullets.push(b);
           }
@@ -878,19 +885,24 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       return;
     }
 
-    markWeekDirty(newWeek.id);
+    markWeekDirty(normalizedWeek.id);
     set((state) => ({
-      weeks: [newWeek, ...state.weeks],
-      activeWeekId: newWeek.id,
+      weeks: [normalizedWeek, ...state.weeks],
+      activeWeekId: normalizedWeek.id,
       viewMode: 'weekly',
     }));
     schedulePersistence(get);
   },
 
   updateWeek: (updatedWeek) => {
-    markWeekDirty(updatedWeek.id);
+    const normalizedWeek: WeeklyBlock = {
+      ...updatedWeek,
+      startDate: updatedWeek.startDate ? normalizeDateToIso(updatedWeek.startDate) : updatedWeek.startDate,
+      endDate: updatedWeek.endDate ? normalizeDateToIso(updatedWeek.endDate) : updatedWeek.endDate,
+    };
+    markWeekDirty(normalizedWeek.id);
     set((state) => ({
-      weeks: state.weeks.map((w) => (w.id === updatedWeek.id ? updatedWeek : w)),
+      weeks: state.weeks.map((w) => (w.id === normalizedWeek.id ? normalizedWeek : w)),
     }));
     schedulePersistence(get);
   },
@@ -2034,11 +2046,22 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     set((state) => ({
       currentUser: typeof userOrUpdater === 'function' ? userOrUpdater(state.currentUser) : userOrUpdater,
     }));
+    // Run once per session only after write-gate has opened (weeks, folders, and core_topics snapshots applied), owner-only
+    const s = get();
+    if (
+      !hasPurgedThisSession &&
+      s.currentUser?.role === 'owner' &&
+      (s.hasReceivedFirstFirestoreSnapshot || getHasReceivedFirstFirestoreSnapshot())
+    ) {
+      hasPurgedThisSession = true;
+      s.purgeOldDeletedItems();
+    }
   },
 
   setPermissions: (permissions) => set({ permissions }),
  
   logout: async () => {
+    hasPurgedThisSession = false;
     await logoutUser();
     setGlobalFirestoreSnapshotReceived(false);
     clearDirtyTracking();
@@ -2112,6 +2135,12 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       setGlobalFirestoreSnapshotReceived(true);
       clearDirtyTracking();
       console.log('[Write-Gate] All required snapshots (weeks, folders, core_topics) received and applied. Write-gate opened.');
+
+      // Run once per session only after write-gate has opened (weeks, folders, and core_topics snapshots applied), owner-only
+      if (!hasPurgedThisSession && get().currentUser?.role === 'owner') {
+        hasPurgedThisSession = true;
+        get().purgeOldDeletedItems();
+      }
     }
 
     try {

@@ -2,7 +2,7 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { CurrentUserProfile } from '../../lib/firebase';
 import { AccentTheme, BulletPoint, CommentItem, FilterOptions, WeeklyBlock } from '../../types';
-import { sortWeeksForSidebar } from '../../utils/dateUtils';
+import { sortWeeksForSidebar, formatWeekDateRange } from '../../utils/dateUtils';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { WeekCard } from './WeekCard';
 
@@ -175,7 +175,7 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
         </div>
 
         <div className="text-[10px] sm:text-[11px] text-stone-400 font-mono text-right truncate max-w-[120px] sm:max-w-none">
-          {currentWeek.startDate || currentWeek.endDate ? `${currentWeek.startDate} – ${currentWeek.endDate}` : ''}
+          {formatWeekDateRange(currentWeek.startDate, currentWeek.endDate)}
         </div>
       </div>
 

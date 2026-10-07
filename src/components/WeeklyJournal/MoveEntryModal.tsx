@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Calendar, ArrowRight, Pin } from 'lucide-react';
 import { useJournalStore } from '../../store/useJournalStore';
 import { BulletPoint, WeeklyBlock } from '../../types';
-import { compareWeeksForSidebar } from '../../utils/dateUtils';
+import { compareWeeksForSidebar, formatWeekDateRange } from '../../utils/dateUtils';
 
 interface MoveEntryModalProps {
   isOpen: boolean;
@@ -80,8 +80,8 @@ export const MoveEntryModal: React.FC<MoveEntryModalProps> = ({
                     <span className="text-xs font-semibold truncate">{week.weekTitle}</span>
                   </div>
                   {(week.startDate || week.endDate) && (
-                    <p className="text-[11px] text-stone-400 mt-0.5">
-                      {week.startDate} {week.endDate && `– ${week.endDate}`} · {week.bullets?.filter((b) => !b.deletedAt).length || 0} entries
+                    <p className="text-[11px] text-stone-400 mt-0.5 font-mono">
+                      {formatWeekDateRange(week.startDate, week.endDate)} · {week.bullets?.filter((b) => !b.deletedAt).length || 0} entries
                     </p>
                   )}
                 </div>

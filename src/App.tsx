@@ -144,7 +144,6 @@ export default function App() {
     setIsAccessManagementOpen,
     setIsQuotesModalOpen,
     setIsRecentlyDeletedOpen,
-    purgeOldDeletedItems,
     setIsCommentsSidebarOpen,
     setActiveCommentSectionTag,
     setIsOpenMobile,
@@ -191,7 +190,6 @@ export default function App() {
       setIsAccessManagementOpen: s.setIsAccessManagementOpen,
       setIsQuotesModalOpen: s.setIsQuotesModalOpen,
       setIsRecentlyDeletedOpen: s.setIsRecentlyDeletedOpen,
-      purgeOldDeletedItems: s.purgeOldDeletedItems,
       setIsCommentsSidebarOpen: s.setIsCommentsSidebarOpen,
       setActiveCommentSectionTag: s.setActiveCommentSectionTag,
       setIsOpenMobile: s.setIsOpenMobile,
@@ -271,13 +269,6 @@ export default function App() {
     },
     [setAccentTheme, accentTheme]
   );
-
-  // Automatically purge soft-deleted items older than 30 days when owner opens the app
-  useEffect(() => {
-    if (currentUser?.isLoggedIn && currentUser?.role === 'owner') {
-      purgeOldDeletedItems();
-    }
-  }, [currentUser?.isLoggedIn, currentUser?.role, purgeOldDeletedItems]);
 
   // Real-time Firestore permissions subscription with clean unsubscribe
   useEffect(() => {

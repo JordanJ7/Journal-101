@@ -1,5 +1,6 @@
 import { CORE_CATEGORIES_CONFIG, INITIAL_COMMENTS, INITIAL_CORE_ITEMS, INITIAL_WEEKS } from '../data/initialData';
 import { AppState, CoreTopicItem, SharedSnapshotData, WeeklyBlock } from '../types';
+import { formatWeekDateRange } from './dateUtils';
 
 const STORAGE_KEY = 'journal_therapy_tracker_v1';
 const BACKUP_KEY = 'journal_backup';
@@ -158,9 +159,16 @@ export function toDateTimeLocalString(date: Date = new Date()): string {
   return `${y}-${m}-${d}T${h}:${min}`;
 }
 
+export function toIsoDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 /**
  * Given a Date, computes the corresponding ISO week start (Monday) and end (Sunday),
- * and generates the title e.g. "Week of August 17th, 2026".
+ * and generates the title e.g. "Week of August 17th, 2026" with startDate/endDate as YYYY-MM-DD.
  */
 export function getWeekTitleAndRangeForDate(d: Date): { weekTitle: string; startDate: string; endDate: string } {
   const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -187,11 +195,8 @@ export function getWeekTitleAndRangeForDate(d: Date): { weekTitle: string; start
   else if (mDay === 3 || mDay === 23) suffix = 'rd';
 
   const weekTitle = `Week of ${mMonth} ${mDay}${suffix}, ${mYear}`;
-  const startDate = `${mMonth.substring(0, 3)} ${mDay}, ${mYear}`;
-  const sMonth = months[sunday.getMonth()];
-  const sDay = sunday.getDate();
-  const sYear = sunday.getFullYear();
-  const endDate = `${sMonth.substring(0, 3)} ${sDay}, ${sYear}`;
+  const startDate = toIsoDateString(monday);
+  const endDate = toIsoDateString(sunday);
 
   return { weekTitle, startDate, endDate };
 }
@@ -312,7 +317,7 @@ export function generateMarkdownExport(weeks: WeeklyBlock[], coreItems: CoreTopi
   md += `## 1. Weekly Journaling Engine (Timeline)\n\n`;
   weeks.forEach((week) => {
     md += `### ${week.weekTitle}\n`;
-    md += `*Period: ${week.startDate} to ${week.endDate}*\n\n`;
+    md += `*Period: ${formatWeekDateRange(week.startDate, week.endDate)}*\n\n`;
 
     // Assignments
     const assign = week.assignments;

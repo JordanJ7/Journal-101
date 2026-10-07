@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, GitMerge, Pin, AlertCircle } from 'lucide-react';
 import { useJournalStore } from '../../store/useJournalStore';
 import { WeeklyBlock } from '../../types';
-import { compareWeeksForSidebar } from '../../utils/dateUtils';
+import { compareWeeksForSidebar, formatWeekDateRange } from '../../utils/dateUtils';
 
 interface MergeWeekModalProps {
   isOpen: boolean;
@@ -97,8 +97,8 @@ export const MergeWeekModal: React.FC<MergeWeekModalProps> = ({
                       <span className="text-xs font-semibold truncate">{week.weekTitle}</span>
                     </div>
                     {(week.startDate || week.endDate) && (
-                      <p className="text-[11px] text-stone-400 mt-0.5">
-                        {week.startDate} {week.endDate && `– ${week.endDate}`} · {week.bullets?.filter((b) => !b.deletedAt).length || 0} existing entries
+                      <p className="text-[11px] text-stone-400 mt-0.5 font-mono">
+                        {formatWeekDateRange(week.startDate, week.endDate)} · {week.bullets?.filter((b) => !b.deletedAt).length || 0} existing entries
                       </p>
                     )}
                   </div>

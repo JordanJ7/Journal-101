@@ -2,6 +2,7 @@ import { ArrowLeft, BookOpen, Calendar, Printer, Sparkles } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { CORE_CATEGORIES_CONFIG } from '../data/initialData';
 import { AccentTheme, CoreTopicItem, SharedSnapshotData, WeeklyBlock } from '../types';
+import { formatWeekDateRange } from '../utils/dateUtils';
 import { ACCENT_THEMES } from '../utils/theme';
 
 interface SharedViewProps {
@@ -145,7 +146,7 @@ export const SharedView: React.FC<SharedViewProps> = ({
                 <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
                   <h3 className="text-base font-bold">{week.weekTitle}</h3>
                   <p className="text-xs text-stone-400 font-mono">
-                    Period: {week.startDate} to {week.endDate}
+                    Period: {formatWeekDateRange(week.startDate, week.endDate)}
                   </p>
                 </div>
 
