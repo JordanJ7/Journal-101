@@ -773,6 +773,8 @@ export function subscribeJournalData(
   let commentsList: CommentItem[] = [];
   let cachedPinnedCategoryIds: string[] = [];
   let cachedIntroQuotes: string[] = [];
+  let cachedNextSessionAt: string | null = null;
+  let cachedSessionPrepNotes: string = '';
 
   // Cached stable array references to prevent full-tree re-renders when only 1 item changes
   let cachedConsolidatedWeeks: WeeklyBlock[] = [];
@@ -799,6 +801,8 @@ export function subscribeJournalData(
         ...(cachedConsolidatedFolders.length > 0 ? { coreCategories: cachedConsolidatedFolders } : {}),
         pinnedCategoryIds: cachedPinnedCategoryIds,
         introQuotes: cachedIntroQuotes,
+        nextSessionAt: cachedNextSessionAt,
+        sessionPrepNotes: cachedSessionPrepNotes,
         comments: cachedComments,
         updatedAt: new Date().toISOString(),
         clientSessionId: CLIENT_SESSION_ID,
@@ -1154,6 +1158,14 @@ export function subscribeJournalData(
           cachedIntroQuotes = [];
           hasChanges = true;
         }
+        if (data && data.nextSessionAt !== undefined && data.nextSessionAt !== cachedNextSessionAt) {
+          cachedNextSessionAt = data.nextSessionAt;
+          hasChanges = true;
+        }
+        if (data && data.sessionPrepNotes !== undefined && data.sessionPrepNotes !== cachedSessionPrepNotes) {
+          cachedSessionPrepNotes = data.sessionPrepNotes;
+          hasChanges = true;
+        }
         if (hasChanges) {
           scheduleBroadcast();
         }
@@ -1256,6 +1268,8 @@ export async function saveAppStateDoc(state: Partial<AppState>): Promise<void> {
       ...state,
       pinnedCategoryIds: state.pinnedCategoryIds || [],
       ...(state.introQuotes !== undefined ? { introQuotes: state.introQuotes } : {}),
+      ...(state.nextSessionAt !== undefined ? { nextSessionAt: state.nextSessionAt } : {}),
+      ...(state.sessionPrepNotes !== undefined ? { sessionPrepNotes: state.sessionPrepNotes } : {}),
       updatedAt: new Date().toISOString(),
       clientSessionId: CLIENT_SESSION_ID,
     });

@@ -96,7 +96,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 
   // Bullet Handlers
   const handleAddBulletSubmit = useCallback(
-    (text: string, customTs: string | null, customIso: string | null) => {
+    (text: string, customTs: string | null, customIso: string | null, forSession?: boolean) => {
       const finalTimestamp = customTs || formatTimestamp();
       const newBullet: BulletPoint = {
         id: 'b-' + Date.now(),
@@ -106,6 +106,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
         timestamp: finalTimestamp,
         isoDate: customIso || undefined,
         isCustomDate: !!customTs,
+        forSession: !!forSession,
       };
 
       // If custom backdated date was picked, use store helper which auto-places in the right week & sorts chronologically
@@ -712,7 +713,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 });
 
 interface QuickAddBulletFormProps {
-  onAdd: (text: string, customTs: string | null, customIso: string | null) => void;
+  onAdd: (text: string, customTs: string | null, customIso: string | null, forSession?: boolean) => void;
   buttonPrimaryClass: string;
 }
 
@@ -722,14 +723,16 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
     const [customTs, setCustomTs] = useState<string | null>(null);
     const [customIso, setCustomIso] = useState<string | null>(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [forSession, setForSession] = useState(false);
 
     const handleSubmit = () => {
       if (!text.trim()) return;
-      onAdd(text.trim(), customTs, customIso);
+      onAdd(text.trim(), customTs, customIso, forSession);
       setText('');
       setCustomTs(null);
       setCustomIso(null);
       setShowDatePicker(false);
+      setForSession(false);
     };
 
     return (
@@ -804,6 +807,23 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Add</span>
+          </button>
+        </div>
+
+        {/* Bring to session toggle chip */}
+        <div className="flex items-center gap-2 px-0.5">
+          <button
+            type="button"
+            onClick={() => setForSession(!forSession)}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all flex items-center gap-1.5 cursor-pointer select-none ${
+              forSession
+                ? 'bg-violet-100 text-violet-800 border-violet-300 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-700 shadow-2xs'
+                : 'bg-black/5 dark:bg-white/5 text-stone-500 dark:text-stone-400 border-transparent hover:text-stone-800 dark:hover:text-stone-200'
+            }`}
+            title="Tag to bring up in your next therapy session"
+          >
+            <Sparkles className="w-3 h-3 text-violet-500 shrink-0" />
+            <span>Bring to session</span>
           </button>
         </div>
       </div>

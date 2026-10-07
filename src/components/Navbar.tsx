@@ -51,6 +51,7 @@ interface NavbarProps {
   onOpenExportModal: () => void;
   onOpenAccessManagement: () => void;
   onOpenQuotesModal?: () => void;
+  onOpenSessionPrep?: () => void;
   onLogout?: () => void;
   currentUser: CurrentUserProfile;
   totalCoreCount?: number;
@@ -221,6 +222,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   onOpenExportModal,
   onOpenAccessManagement,
   onOpenQuotesModal,
+  onOpenSessionPrep,
   onLogout,
   currentUser,
   weeks = [],
@@ -540,6 +542,19 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
 
         {/* Right Desktop Controls (md:flex) */}
         <div className="hidden md:flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Session Prep Quick Button */}
+          {onOpenSessionPrep && (
+            <button
+              onClick={onOpenSessionPrep}
+              title="Session Prep"
+              aria-label="Session Prep"
+              className="min-h-[38px] px-3 py-1.5 rounded-full text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-200 dark:border-violet-800/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+              <span>Session Prep</span>
+            </button>
+          )}
+
           {/* Access / Permissions Button */}
           <button
             onClick={onOpenAccessManagement}

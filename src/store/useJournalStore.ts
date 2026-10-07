@@ -190,6 +190,15 @@ export interface JournalStoreState {
 
   togglePinTakeaway: (bullet: BulletPoint, week: WeeklyBlock) => void;
 
+  nextSessionAt: string | null;
+  sessionPrepNotes: string;
+  isSessionPrepOpen: boolean;
+  setIsSessionPrepOpen: (isOpen: boolean) => void;
+  setNextSessionAt: (nextSessionAt: string | null) => void;
+  setSessionPrepNotes: (notes: string) => void;
+  toggleEntryForSession: (weekId: string, bulletId: string) => void;
+  setEntryDiscussed: (weekId: string, bulletId: string, discussed: boolean) => void;
+
   flushAutoSave: (entryId?: string) => Promise<void>;
 
   setIsExportModalOpen: (isOpen: boolean) => void;
@@ -373,6 +382,8 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
     coreCategories: s.coreCategories,
     pinnedCategoryIds: s.pinnedCategoryIds,
     introQuotes: s.introQuotes,
+    nextSessionAt: s.nextSessionAt,
+    sessionPrepNotes: s.sessionPrepNotes,
     filters: s.filters,
     comments: s.comments,
   };
@@ -487,6 +498,8 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
       await saveAppStateDoc({
         pinnedCategoryIds: s.pinnedCategoryIds,
         introQuotes: s.introQuotes,
+        nextSessionAt: s.nextSessionAt,
+        sessionPrepNotes: s.sessionPrepNotes,
       });
       isAppStateDirty = false;
       savedSummaries.push('app_state:journal');
@@ -661,6 +674,10 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   isSidebarOpen: true,
   isFullScreen: false,
   isEditorOpen: true,
+
+  nextSessionAt: initialLoaded.nextSessionAt || null,
+  sessionPrepNotes: initialLoaded.sessionPrepNotes || '',
+  isSessionPrepOpen: false,
 
   permissions: DEFAULT_PERMISSIONS,
   currentUser: INITIAL_USER_PROFILE,
@@ -2041,6 +2058,59 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   setIsEditorOpen: (isEditorOpen) => set({ isEditorOpen }),
   toggleEditor: () => set((state) => ({ isEditorOpen: !state.isEditorOpen })),
 
+  // Session Prep Handlers
+  setIsSessionPrepOpen: (isSessionPrepOpen) => set({ isSessionPrepOpen }),
+  setNextSessionAt: (nextSessionAt) => {
+    markAppStateDirty();
+    set({ nextSessionAt });
+    schedulePersistence(get);
+  },
+  setSessionPrepNotes: (sessionPrepNotes) => {
+    markAppStateDirty();
+    set({ sessionPrepNotes });
+    schedulePersistence(get);
+  },
+  toggleEntryForSession: (weekId, bulletId) => {
+    markWeekDirty(weekId);
+    set((state) => ({
+      weeks: state.weeks.map((w) => {
+        if (w.id !== weekId) return w;
+        return {
+          ...w,
+          updatedAt: new Date().toISOString(),
+          bullets: (w.bullets || []).map((b) => {
+            if (b.id !== bulletId) return b;
+            return {
+              ...b,
+              forSession: !b.forSession,
+            };
+          }),
+        };
+      }),
+    }));
+    schedulePersistence(get);
+  },
+  setEntryDiscussed: (weekId, bulletId, discussed) => {
+    markWeekDirty(weekId);
+    set((state) => ({
+      weeks: state.weeks.map((w) => {
+        if (w.id !== weekId) return w;
+        return {
+          ...w,
+          updatedAt: new Date().toISOString(),
+          bullets: (w.bullets || []).map((b) => {
+            if (b.id !== bulletId) return b;
+            return {
+              ...b,
+              discussedAt: discussed ? new Date().toISOString() : null,
+            };
+          }),
+        };
+      }),
+    }));
+    schedulePersistence(get);
+  },
+
   // Auth / Permissions
   setCurrentUser: (userOrUpdater) => {
     set((state) => ({
@@ -2087,6 +2157,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     const incomingPinnedCategoryIds = cloudData.pinnedCategoryIds && Array.isArray(cloudData.pinnedCategoryIds) ? cloudData.pinnedCategoryIds : state.pinnedCategoryIds;
     const incomingIntroQuotes = cloudData.introQuotes !== undefined && Array.isArray(cloudData.introQuotes) ? cloudData.introQuotes : state.introQuotes;
     const incomingComments = cloudData.comments && Array.isArray(cloudData.comments) ? cloudData.comments : state.comments;
+    const incomingNextSessionAt = cloudData.nextSessionAt !== undefined ? cloudData.nextSessionAt : state.nextSessionAt;
+    const incomingSessionPrepNotes = cloudData.sessionPrepNotes !== undefined ? cloudData.sessionPrepNotes : state.sessionPrepNotes;
 
     const isWeeksEqual = incomingWeeks.length === state.weeks.length && JSON.stringify(incomingWeeks) === JSON.stringify(state.weeks);
     const isCoreItemsEqual = incomingCoreItems.length === state.coreItems.length && JSON.stringify(incomingCoreItems) === JSON.stringify(state.coreItems);
@@ -2094,11 +2166,13 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     const isPinnedEqual = incomingPinnedCategoryIds.length === state.pinnedCategoryIds.length && JSON.stringify(incomingPinnedCategoryIds) === JSON.stringify(state.pinnedCategoryIds);
     const isQuotesEqual = (incomingIntroQuotes?.length || 0) === (state.introQuotes?.length || 0) && JSON.stringify(incomingIntroQuotes) === JSON.stringify(state.introQuotes);
     const isCommentsEqual = (incomingComments?.length || 0) === (state.comments?.length || 0) && JSON.stringify(incomingComments) === JSON.stringify(state.comments);
+    const isNextSessionEqual = incomingNextSessionAt === state.nextSessionAt;
+    const isPrepNotesEqual = incomingSessionPrepNotes === state.sessionPrepNotes;
 
     // The write-gate opens only after the weeks, folders, and core_topics snapshots have each been received AND applied to the store.
     const shouldOpenWriteGate = Boolean(cloudData.isInitialHydrationComplete) && !state.hasReceivedFirstFirestoreSnapshot;
 
-    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isQuotesEqual && isCommentsEqual && !shouldOpenWriteGate) {
+    if (isWeeksEqual && isCoreItemsEqual && isCategoriesEqual && isPinnedEqual && isQuotesEqual && isCommentsEqual && isNextSessionEqual && isPrepNotesEqual && !shouldOpenWriteGate) {
       return;
     }
 
@@ -2125,6 +2199,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         coreCategories: nextCoreCategories,
         pinnedCategoryIds: incomingPinnedCategoryIds,
         introQuotes: incomingIntroQuotes,
+        nextSessionAt: incomingNextSessionAt,
+        sessionPrepNotes: incomingSessionPrepNotes,
         comments: incomingComments,
         activeWeekId,
         activeCoreCategory,
@@ -2156,6 +2232,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         coreCategories: s.coreCategories,
         pinnedCategoryIds: s.pinnedCategoryIds,
         introQuotes: s.introQuotes,
+        nextSessionAt: s.nextSessionAt,
+        sessionPrepNotes: s.sessionPrepNotes,
         filters: s.filters,
         comments: s.comments,
       });
@@ -2218,3 +2296,10 @@ export const useCreateFolder = () => useJournalStore((s) => s.createFolder);
 export const useSaveEntry = () => useJournalStore((s) => s.saveEntry);
 export const useTogglePinWeek = () => useJournalStore((s) => s.togglePinWeek);
 export const useUpdateWeek = () => useJournalStore((s) => s.updateWeek);
+export const useNextSessionAt = () => useJournalStore((s) => s.nextSessionAt);
+export const useSessionPrepNotes = () => useJournalStore((s) => s.sessionPrepNotes);
+export const useIsSessionPrepOpen = () => useJournalStore((s) => s.isSessionPrepOpen);
+export const useSetNextSessionAt = () => useJournalStore((s) => s.setNextSessionAt);
+export const useSetSessionPrepNotes = () => useJournalStore((s) => s.setSessionPrepNotes);
+export const useToggleEntryForSession = () => useJournalStore((s) => s.toggleEntryForSession);
+export const useSetEntryDiscussed = () => useJournalStore((s) => s.setEntryDiscussed);

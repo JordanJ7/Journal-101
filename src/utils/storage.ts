@@ -260,6 +260,8 @@ export function loadAppState(): AppState {
               ? parsed.pinnedCategoryIds
               : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
             introQuotes: Array.isArray(parsed.introQuotes) ? parsed.introQuotes : [],
+            nextSessionAt: parsed.nextSessionAt || null,
+            sessionPrepNotes: parsed.sessionPrepNotes || '',
             filters: parsed.filters || {
               searchQuery: '',
               hasMediaOnly: false,
@@ -285,6 +287,8 @@ export function loadAppState(): AppState {
     coreCategories: CORE_CATEGORIES_CONFIG,
     pinnedCategoryIds: ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
     introQuotes: [],
+    nextSessionAt: null,
+    sessionPrepNotes: '',
     comments: INITIAL_COMMENTS,
     filters: {
       searchQuery: '',

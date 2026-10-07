@@ -370,6 +370,105 @@ export function exportCoreCategoryToPDF(category: CoreCategoryConfig, items: Cor
   printHtmlDocument(`Core Topic: ${category.title}`, subtitle, html);
 }
 
+export interface SessionPrepExportItem {
+  id: string;
+  text: string;
+  timestamp?: string;
+  weekTitle?: string;
+  discussed?: boolean;
+}
+
+export function exportSessionPrepToPDF(options: {
+  nextSessionAt?: string | null;
+  items: SessionPrepExportItem[];
+  notes?: string;
+}) {
+  const { nextSessionAt, items, notes } = options;
+  const toDiscuss = items.filter((i) => !i.discussed);
+  const alreadyDiscussed = items.filter((i) => i.discussed);
+
+  let sessionSubtitle = 'Session Agenda & Preparation';
+  if (nextSessionAt) {
+    const d = new Date(nextSessionAt);
+    if (!isNaN(d.getTime())) {
+      sessionSubtitle = `Next Session: ${d.toLocaleString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })}`;
+    }
+  }
+
+  let html = `
+    <div class="section-card">
+      <div style="font-size: 13pt; font-weight: 700; color: #1c1917; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <span>Items to Discuss in Session (${toDiscuss.length})</span>
+        <span style="font-size: 9pt; font-weight: 600; color: #6b7280; text-transform: uppercase;">Checklist</span>
+      </div>
+  `;
+
+  if (toDiscuss.length === 0) {
+    html += `<p style="font-style: italic; color: #78716c; padding: 12px 0;">No pending items marked for this session.</p>`;
+  } else {
+    toDiscuss.forEach((item) => {
+      html += `
+        <div class="item-box" style="margin-bottom: 10px; padding: 10px 12px;">
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <span style="display: inline-block; width: 14px; height: 14px; border: 1.5px solid #4b5563; border-radius: 3px; margin-top: 2px; flex-shrink: 0;"></span>
+            <div style="flex: 1;">
+              <div style="font-size: 10.5pt; font-weight: 600; color: #1f2937;">${escapeHtml(item.text)}</div>
+              <div class="item-meta" style="margin-top: 4px;">
+                ${item.weekTitle ? `From: ${escapeHtml(item.weekTitle)}` : ''} ${item.timestamp ? `• ${escapeHtml(item.timestamp)}` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  html += `</div>`;
+
+  if (notes && notes.trim()) {
+    html += `
+      <div class="section-card" style="margin-top: 16px;">
+        <div style="font-size: 12pt; font-weight: 700; color: #1c1917; margin-bottom: 8px;">
+          Anything else to remember to say?
+        </div>
+        <div style="font-size: 10pt; line-height: 1.6; color: #374151; white-space: pre-wrap; background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          ${escapeHtml(notes.trim())}
+        </div>
+      </div>
+    `;
+  }
+
+  if (alreadyDiscussed.length > 0) {
+    html += `
+      <div class="section-card" style="margin-top: 16px;">
+        <div style="font-size: 11pt; font-weight: 700; color: #4b5563; margin-bottom: 8px;">
+          Already Discussed (${alreadyDiscussed.length})
+        </div>
+    `;
+    alreadyDiscussed.forEach((item) => {
+      html += `
+        <div class="item-box" style="margin-bottom: 6px; padding: 8px 10px; background: #fafafa; opacity: 0.85;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #10b981; font-weight: bold;">✓</span>
+            <span style="font-size: 9.5pt; text-decoration: line-through; color: #6b7280;">${escapeHtml(item.text)}</span>
+            ${item.weekTitle ? `<span style="font-size: 8.5pt; color: #9ca3af; margin-left: auto;">(${escapeHtml(item.weekTitle)})</span>` : ''}
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  printHtmlDocument('Therapy Session Prep', sessionSubtitle, html);
+}
+
 function escapeHtml(str: string): string {
   if (!str) return '';
   return str

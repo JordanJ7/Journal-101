@@ -47,6 +47,8 @@ export interface BulletPoint {
   completed?: boolean;
   pinnedToLearned?: boolean;
   pinnedLearnedId?: string;
+  forSession?: boolean; // Tagged for therapy session prep ("Bring to session")
+  discussedAt?: string | null; // Timestamp when discussed in session
   deletedAt?: string; // Soft delete timestamp (ISO 8601)
 }
 
@@ -210,6 +212,8 @@ export interface AppState {
   filters: FilterOptions;
   comments?: CommentItem[];
   introQuotes?: string[];
+  nextSessionAt?: string | null;
+  sessionPrepNotes?: string;
 }
 
 export interface SharedSnapshotData {

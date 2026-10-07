@@ -18,17 +18,19 @@ import {
   Pin,
   Play,
   Plus,
+  Reply,
   Save,
+  Sparkles,
   Trash2,
   Upload,
   Video,
   X,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useJournalStore } from '../../store/useJournalStore';
 import { AccentTheme, Attachment, BulletPoint } from '../../types';
 import { ACCENT_THEMES } from '../../utils/theme';
-import { formatTimestamp } from '../../utils/storage';
+import { formatTimestamp, parseDateFromTimestamp } from '../../utils/storage';
 import { HighlightText } from '../HighlightText';
 import { TimestampPickerPopover } from './TimestampPickerPopover';
 import { MediaInspectModal } from '../MediaInspectModal';
@@ -42,6 +44,20 @@ import {
   isVideoMedia,
 } from '../../utils/mediaUtils';
 import { LightboxMedia } from '../MediaLightboxModal';
+
+function formatCommentWeekday(timestampStr?: string): string {
+  if (!timestampStr) return 'Fri';
+  const parsed = parseDateFromTimestamp(timestampStr);
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  if (parsed && !isNaN(parsed.getTime())) {
+    return days[parsed.getDay()];
+  }
+  const d = new Date(timestampStr);
+  if (!isNaN(d.getTime())) {
+    return days[d.getDay()];
+  }
+  return 'Fri';
+}
 
 export interface JournalEntryCardProps {
   bullet: BulletPoint;
@@ -74,7 +90,19 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
 }) => {
   const { updateEntryTimestamp } = useJournalStore();
   const moveEntryToWeek = useJournalStore((s) => s.moveEntryToWeek);
+  const allComments = useJournalStore((s) => s.comments);
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
+
+  const entryComments = useMemo(() => {
+    return (allComments || []).filter((c) => c.itemId === bullet.id && !c.resolved);
+  }, [allComments, bullet.id]);
+
+  const toggleForSession = () => {
+    onUpdate({
+      ...bullet,
+      forSession: !bullet.forSession,
+    });
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(bullet.text);
@@ -309,9 +337,21 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
             : 'bg-white dark:bg-neutral-900 border-stone-200/80 dark:border-white/5 shadow-2xs'
         }`}
       >
-        {/* Highlight Callout Badge & Pinned Badge */}
-        {(bullet.isAnswerHighlight || bullet.pinnedToLearned) && (
+        {/* Highlight Callout Badge, Pinned Badge & Session Prep Badge */}
+        {(bullet.isAnswerHighlight || bullet.pinnedToLearned || bullet.forSession) && (
           <div className="flex flex-wrap items-center gap-1.5 w-full min-w-0">
+            {bullet.forSession && (
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-violet-800 dark:text-violet-300 bg-violet-100/90 dark:bg-violet-950/70 border border-violet-200 dark:border-violet-800/60 px-2.5 py-0.5 rounded-full w-fit shadow-2xs">
+                <Sparkles className="w-3 h-3 text-violet-600 dark:text-violet-400 shrink-0" />
+                <span>For session</span>
+                {bullet.discussedAt && (
+                  <span className="text-[10px] text-stone-500 dark:text-stone-400 font-mono ml-0.5">
+                    (discussed)
+                  </span>
+                )}
+              </div>
+            )}
+
             {bullet.isAnswerHighlight && (
               <div
                 className={`flex items-center gap-1.5 text-xs font-semibold ${currentAccent.iconBox} ${currentAccent.textPrimary} px-2.5 py-0.5 rounded-full w-fit`}
@@ -795,6 +835,27 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   </button>
                 )}
 
+                {/* Bring to session tag toggle chip (owner/editor only) */}
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={toggleForSession}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${
+                      bullet.forSession
+                        ? 'bg-violet-100 text-violet-800 border-violet-300 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-700 shadow-2xs font-semibold'
+                        : 'bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/5'
+                    }`}
+                    title={bullet.forSession ? 'Tagged for session (click to untag)' : 'Bring to session'}
+                  >
+                    <Sparkles
+                      className={`w-3 h-3 ${
+                        bullet.forSession ? 'text-violet-600 dark:text-violet-400' : 'text-stone-400'
+                      }`}
+                    />
+                    <span>{bullet.forSession ? 'For session' : 'Bring to session'}</span>
+                  </button>
+                )}
+
                 {/* Move to another week */}
                 {canEdit && weekId && (
                   <button
@@ -823,6 +884,38 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
             </div>
           </div>
         </div>
+
+        {/* Therapist Comments: small inset box ("Therapist · commented Fri" + text) with Reply button */}
+        {entryComments.length > 0 && (
+          <div className="space-y-2 pt-1 border-t border-stone-200/80 dark:border-white/5 w-full">
+            {entryComments.map((comment) => (
+              <div
+                key={comment.id}
+                className="p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-xs space-y-1.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>Therapist · commented {formatCommentWeekday(comment.timestamp)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenCommentSection?.('Journal Bullets', bullet.id, 'weekly', weekId)
+                    }
+                    className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Reply className="w-3 h-3" />
+                    <span>Reply</span>
+                  </button>
+                </div>
+                <p className="text-stone-800 dark:text-stone-200 text-xs leading-relaxed whitespace-pre-wrap">
+                  {comment.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Dedicated Inspect Modal */}

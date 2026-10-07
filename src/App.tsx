@@ -13,6 +13,8 @@ import { AccessRestrictedScreen } from './components/AccessRestrictedScreen';
 import { ConfirmDeleteProvider } from './components/ConfirmDeleteModal';
 import { RecentlyDeletedModal } from './components/RecentlyDeletedModal';
 import { Toast } from './components/Toast';
+import { NextSessionCard } from './components/SessionPrep/NextSessionCard';
+import { SessionPrepModal } from './components/SessionPrep/SessionPrepModal';
 import { AccentTheme, CoreCategoryId, FilterOptions, ViewMode, WeeklyBlock, CoreTopicItem, BulletPoint, CoreCategoryConfig, CommentItem } from './types';
 import { ACCENT_THEMES } from './utils/theme';
 import { navigateToComment } from './utils/commentNavigation';
@@ -119,6 +121,13 @@ export default function App() {
     isRecentlyDeletedOpen,
     isCommentsSidebarOpen,
     activeCommentSectionTag,
+    nextSessionAt,
+    sessionPrepNotes,
+    isSessionPrepOpen,
+    setIsSessionPrepOpen,
+    setNextSessionAt,
+    setSessionPrepNotes,
+    setEntryDiscussed,
     setWeeks,
     addWeek,
     reorderWeeks,
@@ -165,6 +174,13 @@ export default function App() {
       isRecentlyDeletedOpen: s.isRecentlyDeletedOpen,
       isCommentsSidebarOpen: s.isCommentsSidebarOpen,
       activeCommentSectionTag: s.activeCommentSectionTag,
+      nextSessionAt: s.nextSessionAt,
+      sessionPrepNotes: s.sessionPrepNotes,
+      isSessionPrepOpen: s.isSessionPrepOpen,
+      setIsSessionPrepOpen: s.setIsSessionPrepOpen,
+      setNextSessionAt: s.setNextSessionAt,
+      setSessionPrepNotes: s.setSessionPrepNotes,
+      setEntryDiscussed: s.setEntryDiscussed,
       setWeeks: s.setWeeks,
       addWeek: s.addWeek,
       reorderWeeks: s.reorderWeeks,
@@ -503,6 +519,7 @@ export default function App() {
           onOpenExportModal={handleOpenExportModal}
           onOpenAccessManagement={handleOpenAccessManagement}
           onOpenQuotesModal={handleOpenQuotesModal}
+          onOpenSessionPrep={() => setIsSessionPrepOpen(true)}
           onLogout={logout}
           currentUser={currentUser}
           totalCoreCount={visibleCoreCategories.length}
@@ -660,6 +677,19 @@ export default function App() {
               />
             )}
           </main>
+
+          {/* Right-Side Panel on Wide Screens */}
+          <aside className="hidden xl:flex flex-col w-80 2xl:w-84 h-full border-l border-stone-200/80 dark:border-white/10 bg-[#FAFAF9]/60 dark:bg-[#121214]/60 backdrop-blur-md overflow-y-auto shrink-0 p-4 space-y-4">
+            <NextSessionCard
+              weeks={weeks}
+              nextSessionAt={nextSessionAt}
+              onSetNextSessionAt={setNextSessionAt}
+              onOpenSessionPrep={() => setIsSessionPrepOpen(true)}
+              onToggleDiscussed={setEntryDiscussed}
+              isOwner={currentUser?.role === 'owner'}
+              accentTheme={accentTheme}
+            />
+          </aside>
         </div>
 
         {/* Authentic iOS Bottom Tab Bar (Only on mobile < md) */}
@@ -786,6 +816,20 @@ export default function App() {
         <RecentlyDeletedModal
           isOpen={isRecentlyDeletedOpen}
           onClose={() => setIsRecentlyDeletedOpen(false)}
+        />
+
+        {/* Session Prep Popup Modal */}
+        <SessionPrepModal
+          isOpen={isSessionPrepOpen}
+          onClose={() => setIsSessionPrepOpen(false)}
+          weeks={weeks}
+          nextSessionAt={nextSessionAt}
+          onSetNextSessionAt={setNextSessionAt}
+          sessionPrepNotes={sessionPrepNotes}
+          onSetSessionPrepNotes={setSessionPrepNotes}
+          onToggleDiscussed={setEntryDiscussed}
+          isOwner={currentUser?.role === 'owner'}
+          accentTheme={accentTheme}
         />
 
         {/* Global Toast Notification */}
