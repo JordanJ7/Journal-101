@@ -199,10 +199,11 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   onNavigateToWeek,
 }) => {
   const permissions = usePermissions();
-  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
-  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
-  const isCommenter = permissions.isCommenter || currentUser?.role === 'commenter';
-  const isViewer = permissions.isViewer || currentUser?.role === 'viewer';
+  const effectiveUser = permissions.currentUser;
+  const isOwner = permissions.isOwner;
+  const canEdit = permissions.canEdit;
+  const isCommenter = permissions.isCommenter;
+  const isViewer = permissions.isViewer;
   const readOnlyBadgeText = isCommenter ? 'Commenting only' : 'View only';
 
   const storeSetFilters = useJournalStore((s) => s.setFilters);
@@ -666,7 +667,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
         {activeCategory === 'questions-to-ask-her' && questionsLayoutMode === 'qa_dashboard' ? (
           <DeepQuestionsView
             items={items.filter((i) => i.categoryId === 'questions-to-ask-her')}
-            currentUser={currentUser}
+            currentUser={effectiveUser}
             searchQuery={filters.searchQuery}
             onUpdateItems={(updatedQuestions) => {
               setItems((prev) => {

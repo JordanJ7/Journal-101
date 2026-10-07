@@ -534,6 +534,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string) => {
 };
 
 const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_DEBOUNCE_MS, targetId?: string) => {
+  if (get().previewGuest != null) return;
   lastLocalMutationTime = Date.now();
   lastUserKeystrokeTime = Date.now();
   if (targetId) {
@@ -665,6 +666,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   flushAutoSave: async (entryId?: string) => {
+    if (get().previewGuest != null) return;
     if (syncTimeout) {
       clearTimeout(syncTimeout);
       syncTimeout = null;
@@ -693,6 +695,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   // Direct Atomic Helper Handlers
   createFolder: async (folderData) => {
+    if (get().previewGuest != null) return;
     markFolderDirty(folderData.id);
     set((state) => ({
       coreCategories: [...state.coreCategories.filter((c) => c.id !== folderData.id), folderData],
@@ -708,6 +711,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteFolder: async (folderId) => {
+    if (get().previewGuest != null) return;
     const cat = get().coreCategories.find((c) => c.id === folderId);
     if (!cat) return;
     const deletedAt = new Date().toISOString();
@@ -729,6 +733,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   saveEntry: async (weekId, entryData) => {
+    if (get().previewGuest != null) return;
     let updatedWeek: WeeklyBlock | undefined;
     const currentWeeks = get().weeks;
     let targetWeek = currentWeeks.find((w) => w.id === weekId);
@@ -798,6 +803,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteEntry: async (weekId, entryId) => {
+    if (get().previewGuest != null) return;
     markWeekDirty(weekId);
     const deletedAt = new Date().toISOString();
     set((state) => ({
@@ -816,6 +822,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   // Week Operations
   setWeeks: (weeksOrUpdater) => {
+    if (get().previewGuest != null) return;
     set((state) => {
       const nextWeeks = typeof weeksOrUpdater === 'function' ? weeksOrUpdater(state.weeks) : weeksOrUpdater;
       for (const nw of nextWeeks) {
@@ -830,6 +837,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   startThisWeek: () => {
+    if (get().previewGuest != null) return;
     const { weekTitle, startDate, endDate } = getWeekTitleAndRangeForDate(new Date());
     const nonDeleted = get().weeks.filter((w) => !w.deletedAt);
     const overlapping = findOverlappingWeek(startDate, endDate, weekTitle, undefined, nonDeleted);
@@ -877,6 +885,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addWeek: (newWeek) => {
+    if (get().previewGuest != null) return;
     const normalizedWeek: WeeklyBlock = {
       ...newWeek,
       startDate: newWeek.startDate ? normalizeDateToIso(newWeek.startDate) : newWeek.startDate,
@@ -921,6 +930,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateWeek: (updatedWeek) => {
+    if (get().previewGuest != null) return;
     const normalizedWeek: WeeklyBlock = {
       ...updatedWeek,
       startDate: updatedWeek.startDate ? normalizeDateToIso(updatedWeek.startDate) : updatedWeek.startDate,
@@ -934,6 +944,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   togglePinWeek: (weekId) => {
+    if (get().previewGuest != null) return;
     const s = get();
     const target = s.weeks.find((w) => w.id === weekId);
     if (!target) return;
@@ -951,6 +962,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteWeek: (weekId) => {
+    if (get().previewGuest != null) return;
     const week = get().weeks.find((w) => w.id === weekId);
     if (!week) return;
     const deletedAt = new Date().toISOString();
@@ -969,6 +981,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   moveEntryToWeek: (sourceWeekId, targetWeekId, entryId) => {
+    if (get().previewGuest != null) return;
     const state = get();
     const sourceWeek = state.weeks.find((w) => w.id === sourceWeekId);
     const targetWeek = state.weeks.find((w) => w.id === targetWeekId);
@@ -1000,6 +1013,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   mergeWeekInto: (sourceWeekId, targetWeekId) => {
+    if (get().previewGuest != null) return;
     const state = get();
     const sourceWeek = state.weeks.find((w) => w.id === sourceWeekId);
     const targetWeek = state.weeks.find((w) => w.id === targetWeekId);
@@ -1044,6 +1058,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   restoreItem: (type, id, parentId) => {
+    if (get().previewGuest != null) return;
     if (type === 'week') {
       const week = get().weeks.find((w) => w.id === id);
       if (!week) return;
@@ -1091,6 +1106,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   permanentlyDeleteItem: async (type, id, parentId) => {
+    if (get().previewGuest != null) return;
     if (type === 'week') {
       markWeekDeleted(id);
       set((state) => ({
@@ -1133,6 +1149,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   purgeOldDeletedItems: () => {
+    if (get().previewGuest != null) return;
     const s = get();
     if (s.currentUser?.role !== 'owner') return;
 
@@ -1209,6 +1226,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderWeeks: (weeks) => {
+    if (get().previewGuest != null) return;
     for (const w of weeks) {
       markWeekDirty(w.id);
     }
@@ -1220,6 +1238,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateBulletTimestamp: (weekId, bulletId, newTimestamp, newIsoDate, isCustom = true) => {
+    if (get().previewGuest != null) return;
     markWeekDirty(weekId);
     set((state) => {
       const sourceWeek = state.weeks.find((w) => w.id === weekId);
@@ -1278,6 +1297,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateEntryTimestamp: async (entryId: string, isoTimestamp: string) => {
+    if (get().previewGuest != null) return;
     const dateObj = new Date(isoTimestamp);
     if (isNaN(dateObj.getTime())) return;
     const formattedTimestamp = formatTimestamp(dateObj);
@@ -1364,6 +1384,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateWeeklyEntryTimestamp: async (weekId: string, newTimestamp: string, newIsoDate?: string) => {
+    if (get().previewGuest != null) return;
     markWeekDirty(weekId);
     const dateObj = parseDateFromTimestamp(newIsoDate || newTimestamp);
     if (isNaN(dateObj.getTime())) return;
@@ -1410,6 +1431,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   // Core Topic Item Operations
   setCoreItems: (itemsOrUpdater) => {
+    if (get().previewGuest != null) return;
     set((state) => {
       const nextItems = typeof itemsOrUpdater === 'function' ? itemsOrUpdater(state.coreItems) : itemsOrUpdater;
       for (const ni of nextItems) {
@@ -1424,6 +1446,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addCoreItem: (item) => {
+    if (get().previewGuest != null) return;
     markCoreItemDirty(item.id);
     set((state) => ({
       coreItems: [item, ...state.coreItems],
@@ -1435,6 +1458,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateCoreItem: (item) => {
+    if (get().previewGuest != null) return;
     markCoreItemDirty(item.id);
     set((state) => {
       const exists = state.coreItems.some((i) => i.id === item.id);
@@ -1451,6 +1475,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteCoreItem: (id) => {
+    if (get().previewGuest != null) return;
     const item = get().coreItems.find((i) => i.id === id);
     if (!item) return;
     const deletedAt = new Date().toISOString();
@@ -1463,6 +1488,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   toggleCompleteCoreItem: (item) => {
+    if (get().previewGuest != null) return;
     markCoreItemDirty(item.id);
     const nextStatus: ItemActivityStatus = item.status === 'Completed' ? 'Pending' : 'Completed';
     const updated = { ...item, status: nextStatus, updatedAt: new Date().toISOString() };
@@ -1478,6 +1504,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateCoreItemStatus: (item, status) => {
+    if (get().previewGuest != null) return;
     markCoreItemDirty(item.id);
     const updated = { ...item, status, updatedAt: new Date().toISOString() };
     set((state) => ({
@@ -1507,6 +1534,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   // Folder / Category Operations
   setCoreCategories: (catsOrUpdater) => {
+    if (get().previewGuest != null) return;
     set((state) => {
       const nextCats = typeof catsOrUpdater === 'function' ? catsOrUpdater(state.coreCategories) : catsOrUpdater;
       for (const nc of nextCats) {
@@ -1521,6 +1549,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addCoreCategory: (newCat) => {
+    if (get().previewGuest != null) return;
     markFolderDirty(newCat.id);
     set((state) => ({
       coreCategories: [...state.coreCategories, newCat],
@@ -1535,6 +1564,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateCoreCategory: (catId, updated) => {
+    if (get().previewGuest != null) return;
     markFolderDirty(catId);
     let updatedCat: CoreCategoryConfig | null = null;
     set((state) => {
@@ -1557,6 +1587,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteCoreCategory: (catId) => {
+    if (get().previewGuest != null) return;
     const cat = get().coreCategories.find((c) => c.id === catId);
     if (!cat) return;
     const deletedAt = new Date().toISOString();
@@ -1578,6 +1609,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderCoreCategories: (cats) => {
+    if (get().previewGuest != null) return;
     for (const c of cats) {
       markFolderDirty(c.id);
     }
@@ -1590,6 +1622,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setPinnedCategoryIds: (ids) => {
+    if (get().previewGuest != null) return;
     markAppStateDirty();
     set({ pinnedCategoryIds: ids });
     try {
@@ -1614,6 +1647,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   togglePinCategory: (categoryId) => {
+    if (get().previewGuest != null) return;
     markAppStateDirty();
     let updated: string[] = [];
     set((state) => {
@@ -1645,6 +1679,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderPinnedCategories: (ids) => {
+    if (get().previewGuest != null) return;
     markAppStateDirty();
     set({ pinnedCategoryIds: ids });
     try {
@@ -1669,6 +1704,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setIntroQuotes: async (quotes) => {
+    if (get().previewGuest != null) return;
     markAppStateDirty();
     set({ introQuotes: quotes });
     try {
@@ -1692,6 +1728,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addIntroQuote: async (quote) => {
+    if (get().previewGuest != null) return;
     const trimmed = quote.trim();
     if (!trimmed) return;
     markAppStateDirty();
@@ -1719,6 +1756,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   removeIntroQuote: async (index) => {
+    if (get().previewGuest != null) return;
     markAppStateDirty();
     const current = get().introQuotes || [];
     const updated = current.filter((_, i) => i !== index);
@@ -1744,6 +1782,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addSubCategory: (categoryId, subCategory) => {
+    if (get().previewGuest != null) return;
     markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
@@ -1773,6 +1812,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   updateSubCategory: (categoryId, subCategoryId, updated) => {
+    if (get().previewGuest != null) return;
     markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
@@ -1797,6 +1837,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteSubCategory: (categoryId, subCategoryId) => {
+    if (get().previewGuest != null) return;
     markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
@@ -1830,6 +1871,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   reorderSubCategories: (categoryId, subCategories) => {
+    if (get().previewGuest != null) return;
     markFolderDirty(categoryId);
     let parentCat: CoreCategoryConfig | null = null;
     set((state) => {
@@ -1850,6 +1892,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   moveCoreItemToSubCategory: (itemId, targetCategoryId, targetSubCategoryId) => {
+    if (get().previewGuest != null) return;
     markCoreItemDirty(itemId);
     let movedItem: CoreTopicItem | null = null;
     set((state) => ({
@@ -1918,6 +1961,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   // Comment Operations
   setComments: (commentsOrUpdater) => {
+    if (get().previewGuest != null) return;
     set((state) => {
       const nextComments = typeof commentsOrUpdater === 'function' ? commentsOrUpdater(state.comments) : commentsOrUpdater;
       return { comments: nextComments };
@@ -1926,6 +1970,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   addComment: (commentData) => {
+    if (get().previewGuest != null) return;
     const newComment: CommentItem = {
       ...commentData,
       id: 'comm-' + Date.now(),
@@ -1941,6 +1986,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   resolveComment: (id) => {
+    if (get().previewGuest != null) return;
     let resolvedItem: CommentItem | null = null;
     set((state) => ({
       comments: state.comments.map((c) => {
@@ -1958,6 +2004,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   deleteComment: (id) => {
+    if (get().previewGuest != null) return;
     set((state) => ({
       comments: state.comments.filter((c) => c.id !== id),
     }));
@@ -1968,6 +2015,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   editComment: (id, newContent) => {
+    if (get().previewGuest != null) return;
     let editedItem: CommentItem | null = null;
     set((state) => ({
       comments: state.comments.map((c) => {
@@ -1986,6 +2034,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   // Takeaway Pinning
   togglePinTakeaway: (bullet, week) => {
+    if (get().previewGuest != null) return;
     set((state) => {
       const isCurrentlyPinned = Boolean(bullet.pinnedToLearned);
       const newPinnedState = !isCurrentlyPinned;
@@ -2070,16 +2119,19 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   // Session Prep Handlers
   setIsSessionPrepOpen: (isSessionPrepOpen) => set({ isSessionPrepOpen }),
   setNextSessionAt: (nextSessionAt) => {
+    if (get().previewGuest != null) return;
     markAppStateDirty();
     set({ nextSessionAt });
     schedulePersistence(get);
   },
   setSessionPrepNotes: (sessionPrepNotes) => {
+    if (get().previewGuest != null) return;
     markAppStateDirty();
     set({ sessionPrepNotes });
     schedulePersistence(get);
   },
   toggleEntryForSession: (weekId, bulletId) => {
+    if (get().previewGuest != null) return;
     markWeekDirty(weekId);
     set((state) => ({
       weeks: state.weeks.map((w) => {
@@ -2100,6 +2152,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     schedulePersistence(get);
   },
   setEntryDiscussed: (weekId, bulletId, discussed) => {
+    if (get().previewGuest != null) return;
     markWeekDirty(weekId);
     set((state) => ({
       weeks: state.weeks.map((w) => {
@@ -2252,6 +2305,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   resetAllData: () => {
+    if (get().previewGuest != null) return;
     set({
       weeks: [],
       activeWeekId: '',

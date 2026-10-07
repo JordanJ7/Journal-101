@@ -202,8 +202,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const permissions = usePermissions();
-  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
-  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const isOwner = permissions.isOwner;
+  const canEdit = permissions.canEdit;
   const { confirmDelete } = useConfirmDelete();
 
   const handleSelectWeek = useCallback(

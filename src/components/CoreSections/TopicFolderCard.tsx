@@ -75,8 +75,8 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
   onDeleteCategory,
 }) => {
   const permissions = usePermissions();
-  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
-  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const isOwner = permissions.isOwner;
+  const canEdit = permissions.canEdit;
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
 
   // Filter items specifically for this topic folder

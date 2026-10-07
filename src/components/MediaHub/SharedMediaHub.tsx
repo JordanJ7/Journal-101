@@ -86,8 +86,9 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
   const [newVisibleToEmails, setNewVisibleToEmails] = useState<string[]>([]);
 
   const permissions = usePermissions();
-  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
-  const canDelete = permissions.canDelete || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const effectiveUser = permissions.currentUser;
+  const canEdit = permissions.canEdit;
+  const canDelete = permissions.canDelete;
 
   // Aggregate media
   const allMediaItems = useMemo<ExtractedMediaItem[]>(() => {
@@ -190,10 +191,10 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
     return list;
   }, [weeks, coreItems]);
 
-  // Client-side filtering: filter against signed-in user's email
+  // Client-side filtering: filter against signed-in user's email or preview identity
   const userAccessibleMedia = useMemo(() => {
-    return allMediaItems.filter((item) => canUserViewItem(item.visibleToEmails, currentUser));
-  }, [allMediaItems, currentUser]);
+    return allMediaItems.filter((item) => canUserViewItem(item.visibleToEmails, effectiveUser));
+  }, [allMediaItems, effectiveUser]);
 
   const counts = useMemo(() => {
     return {

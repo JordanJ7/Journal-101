@@ -83,8 +83,9 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
 
   // Can comment if owner, editor, or commenter
   const permissions = usePermissions();
-  const canComment = permissions.canComment || (currentUser?.role === 'owner' || currentUser?.role === 'editor' || currentUser?.role === 'commenter');
-  const canDeleteAny = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const effectiveUser = permissions.currentUser;
+  const canComment = permissions.canComment;
+  const canDeleteAny = permissions.canDelete;
 
   // Filter comments for this scope and state
   const scopeComments = comments.filter((c) => {
@@ -352,7 +353,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       </button>
                     )}
 
-                    {(currentUser.role === 'owner' || (comment.authorEmail?.trim().toLowerCase() === currentUser.email?.trim().toLowerCase())) && onEditComment && (
+                    {!permissions.isPreviewing && (permissions.isOwner || (comment.authorEmail?.trim().toLowerCase() === effectiveUser.email?.trim().toLowerCase())) && onEditComment && (
                       <button
                         onClick={() => {
                           setEditingCommentId(comment.id);
@@ -365,7 +366,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       </button>
                     )}
 
-                    {(currentUser.role === 'owner' || (comment.authorEmail?.trim().toLowerCase() === currentUser.email?.trim().toLowerCase())) && (
+                    {!permissions.isPreviewing && (permissions.canDelete || permissions.isOwner || (comment.authorEmail?.trim().toLowerCase() === effectiveUser.email?.trim().toLowerCase())) && (
                       <button
                         onClick={() => {
                           confirmDelete({

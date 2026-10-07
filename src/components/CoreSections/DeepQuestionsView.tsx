@@ -89,9 +89,9 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
   const [editingItem, setEditingItem] = useState<CoreTopicItem | null>(null);
 
   const permissions = usePermissions();
-  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
-  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
-  const canDelete = permissions.canDelete || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const isOwner = permissions.isOwner;
+  const canEdit = permissions.canEdit;
+  const canDelete = permissions.canDelete;
 
   // Toggle group collapse
   const toggleGroup = (groupId: string) => {

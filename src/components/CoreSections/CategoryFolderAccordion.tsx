@@ -76,9 +76,9 @@ export const CategoryFolderAccordion: React.FC<CategoryFolderAccordionProps> = (
   onDeleteCategory,
 }) => {
   const permissions = usePermissions();
-  const isOwner = permissions.isOwner || currentUser?.role === 'owner';
-  const canEdit = permissions.canEdit || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
-  const canDelete = permissions.canDelete || (currentUser?.role === 'owner' || currentUser?.role === 'editor');
+  const isOwner = permissions.isOwner;
+  const canEdit = permissions.canEdit;
+  const canDelete = permissions.canDelete;
 
   const [activeSubMenuId, setActiveSubMenuId] = useState<string | null>(null);
 

@@ -101,20 +101,20 @@ export function usePermissions() {
 
 export function useCanEdit(): boolean {
   const previewGuest = useJournalStore((state) => state.previewGuest);
-  if (previewGuest) return false;
-  return useJournalStore((state) => checkCanEdit(state.currentUser));
+  const canEdit = useJournalStore((state) => checkCanEdit(state.currentUser));
+  return previewGuest ? false : canEdit;
 }
 
 export function useCanComment(): boolean {
   const previewGuest = useJournalStore((state) => state.previewGuest);
-  if (previewGuest) return false;
-  return useJournalStore((state) => checkCanComment(state.currentUser));
+  const canComment = useJournalStore((state) => checkCanComment(state.currentUser));
+  return previewGuest ? false : canComment;
 }
 
 export function useIsOwner(): boolean {
   const previewGuest = useJournalStore((state) => state.previewGuest);
-  if (previewGuest) return false;
-  return useJournalStore((state) => checkIsOwner(state.currentUser));
+  const isOwner = useJournalStore((state) => checkIsOwner(state.currentUser));
+  return previewGuest ? false : isOwner;
 }
 
 /**
