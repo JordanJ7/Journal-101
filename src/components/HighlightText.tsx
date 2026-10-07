@@ -15,19 +15,20 @@ export const HighlightText: React.FC<HighlightTextProps> = React.memo(({
   highlight,
   className = '',
 }) => {
-  if (!text) return null;
-  if (!highlight || !highlight.trim()) {
-    return <span className={className}>{text}</span>;
-  }
-
-  const query = highlight.trim();
+  const query = (highlight || '').trim();
 
   const parts = useMemo(() => {
+    if (!text || !query) return [];
     // Safely escape special regex characters
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escaped})`, 'gi');
     return text.split(regex);
   }, [text, query]);
+
+  if (!text) return null;
+  if (!query || parts.length === 0) {
+    return <span className={className}>{text}</span>;
+  }
 
   return (
     <span

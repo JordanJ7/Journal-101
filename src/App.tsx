@@ -13,6 +13,7 @@ import { AccessRestrictedScreen } from './components/AccessRestrictedScreen';
 import { ConfirmDeleteProvider } from './components/ConfirmDeleteModal';
 import { RecentlyDeletedModal } from './components/RecentlyDeletedModal';
 import { Toast } from './components/Toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { NextSessionCard } from './components/SessionPrep/NextSessionCard';
 import { SessionPrepModal } from './components/SessionPrep/SessionPrepModal';
 import { WhoCanSeeThisCard } from './components/WhoCanSeeThisCard';
@@ -540,10 +541,11 @@ export default function App() {
   const currentCategoryTitle = visibleCoreCategories.find((c) => c.id === activeCoreCategory)?.title || 'Core Topic';
 
   return (
-    <ConfirmDeleteProvider>
-      <div
-        className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#f8f9fa] dark:bg-[#0c0c0e] text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
-      >
+    <ErrorBoundary>
+      <ConfirmDeleteProvider>
+        <div
+          className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#f8f9fa] dark:bg-[#0c0c0e] text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
+        >
         {/* Preview Mode Sticky Banner (Read-only safe view) */}
         {previewGuest && (
           <div className="shrink-0 z-50 w-full bg-amber-500 text-stone-950 px-4 py-2 sm:py-2.5 flex items-center justify-between shadow-md">
@@ -949,5 +951,6 @@ export default function App() {
         <EntranceOverlay />
       </div>
     </ConfirmDeleteProvider>
+  </ErrorBoundary>
   );
 }
