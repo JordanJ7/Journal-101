@@ -39,6 +39,7 @@ import { ACCENT_THEMES } from '../utils/theme';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { EditCoreCategoryModal } from './CoreSections/EditCoreCategoryModal';
 import { usePermissions } from '../hooks/usePermissions';
+import { sortFolders } from '../utils/folderSort';
 import {
   findMatchingWeekForDate,
   findOverlappingWeek,
@@ -229,7 +230,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   }, [weeks]);
 
   const activeCategories = useMemo(() => {
-    return coreCategories.filter((c) => !c.deletedAt);
+    return sortFolders(coreCategories.filter((c) => !c.deletedAt));
   }, [coreCategories]);
 
   const filteredWeeks = useMemo(() => {
@@ -279,13 +280,16 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
   const moveCategory = useCallback(
     (fromIdx: number, toIdx: number) => {
-      if (!onReorderCoreCategories || toIdx < 0 || toIdx >= coreCategories.length || fromIdx === toIdx) return;
-      const reordered = [...coreCategories];
-      const [moved] = reordered.splice(fromIdx, 1);
-      reordered.splice(toIdx, 0, moved);
-      onReorderCoreCategories(reordered);
+      if (!onReorderCoreCategories || fromIdx === toIdx) return;
+      if (fromIdx < 0 || fromIdx >= activeCategories.length || toIdx < 0 || toIdx >= activeCategories.length) return;
+      const reorderedActive = [...activeCategories];
+      const [moved] = reorderedActive.splice(fromIdx, 1);
+      reorderedActive.splice(toIdx, 0, moved);
+
+      const deletedCats = coreCategories.filter((c) => !!c.deletedAt);
+      onReorderCoreCategories([...reorderedActive, ...deletedCats]);
     },
-    [coreCategories, onReorderCoreCategories]
+    [activeCategories, coreCategories, onReorderCoreCategories]
   );
 
   const handleCreateWeek = (e: React.FormEvent) => {

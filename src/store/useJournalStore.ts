@@ -24,6 +24,7 @@ import {
   getHasReceivedFirstFirestoreSnapshot,
   setHasReceivedFirstFirestoreSnapshot as setGlobalFirestoreSnapshotReceived,
 } from '../utils/storage';
+import { sortFolders } from '../utils/folderSort';
 import {
   relocateBulletToMatchingWeek,
   sortBulletsByDate,
@@ -641,8 +642,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   activeCoreCategory: initialLoaded.activeCoreCategory || initialLoaded.coreCategories?.[0]?.id || 'what-to-text-her',
   activeCoreSubCategory: initialLoaded.activeCoreSubCategory,
   coreCategories: initialLoaded.coreCategories && initialLoaded.coreCategories.length > 0
-    ? initialLoaded.coreCategories
-    : CORE_CATEGORIES_CONFIG,
+    ? sortFolders(initialLoaded.coreCategories)
+    : sortFolders(CORE_CATEGORIES_CONFIG),
   pinnedCategoryIds: Array.isArray(initialLoaded.pinnedCategoryIds) && initialLoaded.pinnedCategoryIds.length > 0
     ? initialLoaded.pinnedCategoryIds
     : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
@@ -710,13 +711,18 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   createFolder: async (folderData) => {
     if (get().previewGuest != null) return;
     markFolderDirty(folderData.id);
-    set((state) => ({
-      coreCategories: [...state.coreCategories.filter((c) => c.id !== folderData.id), folderData],
-      activeCoreCategory: folderData.id,
-    }));
+    let finalFolder = folderData;
+    set((state) => {
+      const order = typeof folderData.order === 'number' ? folderData.order : state.coreCategories.length;
+      finalFolder = { ...folderData, order };
+      return {
+        coreCategories: sortFolders([...state.coreCategories.filter((c) => c.id !== folderData.id), finalFolder]),
+        activeCoreCategory: folderData.id,
+      };
+    });
     try {
-      await saveFolderDoc(folderData);
-      console.log('[Firestore SUCCESS] Folder saved:', folderData.id);
+      await saveFolderDoc(finalFolder);
+      console.log('[Firestore SUCCESS] Folder saved:', finalFolder.id);
     } catch (err) {
       console.error('[Firestore CRITICAL ERROR] Failed to save folder:', err);
     }
@@ -1564,12 +1570,17 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   addCoreCategory: (newCat) => {
     if (get().previewGuest != null) return;
     markFolderDirty(newCat.id);
-    set((state) => ({
-      coreCategories: [...state.coreCategories, newCat],
-      activeCoreCategory: newCat.id,
-      viewMode: 'core',
-    }));
-    saveFolderDoc(newCat).catch((err) =>
+    let catWithOrder: CoreCategoryConfig = newCat;
+    set((state) => {
+      const order = typeof newCat.order === 'number' ? newCat.order : state.coreCategories.length;
+      catWithOrder = { ...newCat, order };
+      return {
+        coreCategories: sortFolders([...state.coreCategories, catWithOrder]),
+        activeCoreCategory: newCat.id,
+        viewMode: 'core',
+      };
+    });
+    saveFolderDoc(catWithOrder).catch((err) =>
       console.error('[Firestore CRITICAL ERROR] Failed to save folder doc:', err)
     );
     saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
@@ -1623,14 +1634,29 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
   reorderCoreCategories: (cats) => {
     if (get().previewGuest != null) return;
-    for (const c of cats) {
-      markFolderDirty(c.id);
+    const prevCats = get().coreCategories;
+    const prevFolderMap = new Map(prevCats.map((c) => [c.id, c]));
+
+    const updatedCats: CoreCategoryConfig[] = cats.map((cat, index) => {
+      const prev = prevFolderMap.get(cat.id);
+      return {
+        ...(prev || cat),
+        ...cat,
+        order: index,
+      };
+    });
+
+    // Mark dirty only the folders whose order actually changed
+    for (let index = 0; index < updatedCats.length; index++) {
+      const cat = updatedCats[index];
+      const prev = prevFolderMap.get(cat.id);
+      if (!prev || prev.order !== index) {
+        markFolderDirty(cat.id);
+      }
     }
-    set({ coreCategories: cats });
-    for (const c of cats) {
-      saveFolderDoc(c).catch(() => {});
-    }
-    saveCoreCategoriesDoc(cats).catch(() => {});
+
+    set({ coreCategories: updatedCats });
+    saveCoreCategoriesDoc(updatedCats).catch(() => {});
     schedulePersistence(get);
   },
 
@@ -2272,7 +2298,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
           mergedFolders.push(localFolder);
         }
       }
-      incomingCoreCategories = mergedFolders;
+      incomingCoreCategories = sortFolders(mergedFolders);
     }
 
     // Merge incoming core items (topic notes) while preserving dirty items

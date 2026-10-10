@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { AccentTheme, CoreCategoryConfig, CoreTopicItem } from '../types';
 import { ACCENT_THEMES } from '../utils/theme';
+import { sortFolders } from '../utils/folderSort';
 
 interface CustomizePinnedTopicsModalProps {
   isOpen: boolean;
@@ -128,8 +129,9 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
     onClose();
   };
 
-  // Filtered categories
-  const filteredCategories = categories.filter((cat) => {
+  // Filtered categories (sorted by consistent folder order)
+  const sortedCategories = sortFolders(categories);
+  const filteredCategories = sortedCategories.filter((cat) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (

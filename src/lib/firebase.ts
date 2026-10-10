@@ -39,6 +39,7 @@ import {
   getHasReceivedFirstFirestoreSnapshot,
   setHasReceivedFirstFirestoreSnapshot,
 } from '../utils/storage';
+import { sortFolders } from '../utils/folderSort';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // 1. Initialize Firebase App, Auth, Firestore and Storage with exact database ID
@@ -662,10 +663,6 @@ export async function saveCoreCategoriesDoc(categories: CoreCategoryConfig[]): P
       },
       { merge: true }
     );
-    // Also mirror each folder to /folders/{folderId}
-    for (const cat of categories) {
-      await saveFolderDoc(cat);
-    }
   } catch (err) {
     console.error('[Firestore Error] Failed to save categories config:', err);
     handleFirestoreError(err, OperationType.WRITE, path);
@@ -732,6 +729,7 @@ export function subscribeJournalData(
   let hasReceivedWeeksSnapshot = false;
   let hasReceivedFoldersSnapshot = false;
   let hasReceivedCoreTopicsSnapshot = false;
+  let hasReceivedSettingsSnapshot = false;
   const activeUnsubscribes: (() => void)[] = [];
 
   // 1. Cross-tab storage listener
@@ -793,12 +791,13 @@ export function subscribeJournalData(
       const allCoreSnapshotsReceived =
         hasReceivedWeeksSnapshot &&
         hasReceivedFoldersSnapshot &&
-        hasReceivedCoreTopicsSnapshot;
+        hasReceivedCoreTopicsSnapshot &&
+        hasReceivedSettingsSnapshot;
 
       const payload: Partial<AppState> & { clientSessionId?: string; updatedAt?: string; isInitialHydrationComplete?: boolean } = {
         ...(hasReceivedWeeksSnapshot ? { weeks: cachedConsolidatedWeeks } : {}),
         ...(hasReceivedCoreTopicsSnapshot ? { coreItems: cachedConsolidatedCoreItems } : {}),
-        ...(hasReceivedFoldersSnapshot ? { coreCategories: cachedConsolidatedFolders } : {}),
+        ...(hasReceivedFoldersSnapshot && hasReceivedSettingsSnapshot ? { coreCategories: cachedConsolidatedFolders } : {}),
         pinnedCategoryIds: cachedPinnedCategoryIds,
         introQuotes: cachedIntroQuotes,
         nextSessionAt: cachedNextSessionAt,
@@ -1019,18 +1018,18 @@ export function subscribeJournalData(
         });
 
         if (hasChanges) {
-          cachedConsolidatedFolders = Array.from(foldersMap.values());
+          cachedConsolidatedFolders = sortFolders(Array.from(foldersMap.values()), coreCategoriesFallback);
         }
       } else {
         if (coreCategoriesFallback && coreCategoriesFallback.length > 0) {
-          cachedConsolidatedFolders = coreCategoriesFallback;
+          cachedConsolidatedFolders = sortFolders(coreCategoriesFallback, coreCategoriesFallback);
         } else {
           cachedConsolidatedFolders = [];
         }
         hasChanges = true;
       }
 
-      if (hasChanges || !isInitialHydratedFired) {
+      if (hasReceivedSettingsSnapshot && (hasChanges || !isInitialHydratedFired)) {
         scheduleBroadcast();
       }
     },
@@ -1085,22 +1084,42 @@ export function subscribeJournalData(
   const coreCategoriesUnsub = onSnapshot(
     doc(db, 'core_categories', 'settings'),
     (snap) => {
+      hasReceivedSettingsSnapshot = true;
       if (snap.exists()) {
         const data = snap.data();
         if (data && Array.isArray(data.categories)) {
           coreCategoriesFallback = data.categories as CoreCategoryConfig[];
-          if (foldersMap.size === 0) {
-            cachedConsolidatedFolders = coreCategoriesFallback;
-            scheduleBroadcast();
-          }
         }
       }
+      if (foldersMap.size > 0) {
+        cachedConsolidatedFolders = sortFolders(Array.from(foldersMap.values()), coreCategoriesFallback);
+      } else if (coreCategoriesFallback && coreCategoriesFallback.length > 0) {
+        cachedConsolidatedFolders = sortFolders(coreCategoriesFallback, coreCategoriesFallback);
+      }
+      scheduleBroadcast();
     },
     (err) => {
       console.warn('Core categories settings note:', err.message);
+      hasReceivedSettingsSnapshot = true;
+      if (foldersMap.size > 0) {
+        cachedConsolidatedFolders = sortFolders(Array.from(foldersMap.values()), coreCategoriesFallback);
+      }
+      scheduleBroadcast();
     }
   );
   activeUnsubscribes.push(coreCategoriesUnsub);
+
+  // Fallback safety: ensure settings doc gate doesn't stall broadcast if slow
+  const settingsSafetyTimer = setTimeout(() => {
+    if (!hasReceivedSettingsSnapshot) {
+      hasReceivedSettingsSnapshot = true;
+      if (foldersMap.size > 0) {
+        cachedConsolidatedFolders = sortFolders(Array.from(foldersMap.values()), coreCategoriesFallback);
+      }
+      scheduleBroadcast();
+    }
+  }, 1000);
+  activeUnsubscribes.push(() => clearTimeout(settingsSafetyTimer));
 
   // 7. Real-Time Comments Listener (/comments)
   const commentsUnsub = onSnapshot(

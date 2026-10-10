@@ -53,6 +53,7 @@ import {
   UserRole,
 } from './lib/firebase';
 import { canUserViewItem } from './hooks/usePermissions';
+import { sortFolders } from './utils/folderSort';
 
 // Lazy-loaded heavy modals and slide-overs for minimal initial bundle & fast TTI
 const ExportShareModal = lazy(() =>
@@ -125,7 +126,7 @@ export default function App() {
   // - Owner sees everything, always.
   // - Other users see an item IF visibleToEmails is empty/absent OR user's email is included.
   const visibleCoreCategories = useMemo(() => {
-    return coreCategories.filter((cat) => !cat.deletedAt && canUserViewItem(cat.visibleToEmails, effectiveUser));
+    return sortFolders(coreCategories.filter((cat) => !cat.deletedAt && canUserViewItem(cat.visibleToEmails, effectiveUser)));
   }, [coreCategories, effectiveUser]);
 
   const visibleCoreItems = useMemo(() => {

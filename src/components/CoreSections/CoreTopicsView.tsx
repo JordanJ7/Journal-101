@@ -48,6 +48,7 @@ import {
 } from '../../types';
 import { exportCoreCategoryToPDF } from '../../utils/pdfExport';
 import { parseDateTag } from '../../utils/storage';
+import { sortFolders } from '../../utils/folderSort';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { HighlightText } from '../HighlightText';
@@ -220,14 +221,18 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
 
   const currentAccent = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.blue;
 
-  const activeIndex = useMemo(() => {
-    const idx = coreCategories.findIndex((c) => c.id === activeCategory);
-    return idx >= 0 ? idx : 0;
-  }, [coreCategories, activeCategory]);
+  const sortedCategories = useMemo(() => {
+    return sortFolders(coreCategories.filter((c) => !c.deletedAt));
+  }, [coreCategories]);
 
-  const activeCategoryConfig = coreCategories[activeIndex] || coreCategories[0];
-  const prevCategory = activeIndex > 0 ? coreCategories[activeIndex - 1] : null;
-  const nextCategory = activeIndex < coreCategories.length - 1 ? coreCategories[activeIndex + 1] : null;
+  const activeIndex = useMemo(() => {
+    const idx = sortedCategories.findIndex((c) => c.id === activeCategory);
+    return idx >= 0 ? idx : 0;
+  }, [sortedCategories, activeCategory]);
+
+  const activeCategoryConfig = sortedCategories[activeIndex] || sortedCategories[0];
+  const prevCategory = activeIndex > 0 ? sortedCategories[activeIndex - 1] : null;
+  const nextCategory = activeIndex < sortedCategories.length - 1 ? sortedCategories[activeIndex + 1] : null;
 
   const isWatchlistCategory =
     activeCategory === 'things-i-want-to-do-together' ||
@@ -353,13 +358,13 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
       confirmText: 'Delete',
       onConfirm: () => {
         onDeleteCoreCategory(activeCategoryConfig.id);
-        const remaining = coreCategories.filter((c) => c.id !== activeCategoryConfig.id);
+        const remaining = sortedCategories.filter((c) => c.id !== activeCategoryConfig.id);
         if (remaining.length > 0) {
           setActiveCategory(remaining[0].id);
         }
       },
     });
-  }, [activeCategoryConfig, activeFolderItems.length, confirmDelete, onDeleteCoreCategory, coreCategories, setActiveCategory]);
+  }, [activeCategoryConfig, activeFolderItems.length, confirmDelete, onDeleteCoreCategory, sortedCategories, setActiveCategory]);
 
   const CurrentTopicIcon = activeCategoryConfig
     ? CATEGORY_ICON_MAP[activeCategoryConfig.iconName] || Folder
@@ -400,7 +405,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                   onClick={() => setIsFolderDropdownOpen(false)}
                 />
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-1.5 z-40 max-h-72 overflow-y-auto space-y-0.5 animate-in fade-in duration-100">
-                  {coreCategories.map((cat) => {
+                  {sortedCategories.map((cat) => {
                     const isSelected = activeCategory === cat.id;
                     const catCount = items.filter((i) => i.categoryId === cat.id).length;
                     const CatIcon = CATEGORY_ICON_MAP[cat.iconName] || Folder;
@@ -520,7 +525,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               </button>
             )}
 
-            {isOwner && coreCategories.length > 1 && (
+            {isOwner && sortedCategories.length > 1 && (
               <button
                 onClick={handleDeleteActiveCategory}
                 title="Delete Folder"
