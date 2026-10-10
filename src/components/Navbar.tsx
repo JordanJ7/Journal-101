@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CurrentUserProfile, PermissionsDoc, UserPermission, UserRole } from '../lib/firebase';
-import { useJournalStore } from '../store/useJournalStore';
+import { useJournalStore, hasDirtyItems } from '../store/useJournalStore';
 import {
   AccentTheme,
   CoreCategoryConfig,
@@ -97,10 +97,12 @@ const NavbarSaveIndicator = React.memo(() => {
   useEffect(() => {
     const timer = setInterval(() => {
       setTick((t) => t + 1);
-    }, 15000);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
+  const isDirty = hasDirtyItems();
+  const effectiveStatus = (isDirty && saveStatus !== 'saving' && saveStatus !== 'error') ? 'unsaved' : saveStatus;
   const relativeTime = getRelativeTimeString(lastCloudSavedAt);
 
   return (
@@ -111,13 +113,19 @@ const NavbarSaveIndicator = React.memo(() => {
         transform: 'translateZ(0)',
       }}
     >
-      {saveStatus === 'saving' && (
+      {effectiveStatus === 'saving' && (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25 text-xs font-mono">
           <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
           <span>Saving…</span>
         </span>
       )}
-      {saveStatus === 'saved_cloud' && (
+      {effectiveStatus === 'unsaved' && (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-mono font-medium shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+          <span>Unsaved changes</span>
+        </span>
+      )}
+      {effectiveStatus === 'saved_cloud' && (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs font-mono font-medium shadow-2xs">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <span>Saved to cloud</span>
@@ -128,19 +136,19 @@ const NavbarSaveIndicator = React.memo(() => {
           )}
         </span>
       )}
-      {saveStatus === 'saved_local' && (
+      {effectiveStatus === 'saved_local' && (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-500/10 text-stone-700 dark:text-stone-300 border border-stone-500/20 text-xs font-mono">
           <HardDrive className="w-3 h-3 text-stone-400 shrink-0" />
           <span>Saved on device</span>
         </span>
       )}
-      {saveStatus === 'offline' && (
+      {effectiveStatus === 'offline' && (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 text-xs font-mono">
           <WifiOff className="w-3 h-3 text-amber-500 shrink-0" />
           <span>Offline</span>
         </span>
       )}
-      {saveStatus === 'error' && (
+      {effectiveStatus === 'error' && (
         <button
           type="button"
           onClick={() => retrySave()}
@@ -168,10 +176,12 @@ const MobileNavbarSaveIndicator = React.memo(() => {
   useEffect(() => {
     const timer = setInterval(() => {
       setTick((t) => t + 1);
-    }, 15000);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
+  const isDirty = hasDirtyItems();
+  const effectiveStatus = (isDirty && saveStatus !== 'saving' && saveStatus !== 'error') ? 'unsaved' : saveStatus;
   const relativeTime = getRelativeTimeString(lastCloudSavedAt);
 
   return (
@@ -182,31 +192,37 @@ const MobileNavbarSaveIndicator = React.memo(() => {
         transform: 'translateZ(0)',
       }}
     >
-      {saveStatus === 'saving' && (
+      {effectiveStatus === 'saving' && (
         <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-mono">
           <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
           <span>Saving…</span>
         </span>
       )}
-      {saveStatus === 'saved_cloud' && (
+      {effectiveStatus === 'unsaved' && (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-mono font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+          <span>Unsaved changes</span>
+        </span>
+      )}
+      {effectiveStatus === 'saved_cloud' && (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-mono">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
           <span>Saved to cloud · {relativeTime}</span>
         </span>
       )}
-      {saveStatus === 'saved_local' && (
+      {effectiveStatus === 'saved_local' && (
         <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-mono text-[11px]">
           <HardDrive className="w-3 h-3 text-stone-400 shrink-0" />
           <span>Saved on device</span>
         </span>
       )}
-      {saveStatus === 'offline' && (
+      {effectiveStatus === 'offline' && (
         <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-mono text-[11px]">
           <WifiOff className="w-3 h-3 text-amber-500 shrink-0" />
           <span>Offline</span>
         </span>
       )}
-      {saveStatus === 'error' && (
+      {effectiveStatus === 'error' && (
         <button
           type="button"
           onClick={() => retrySave()}

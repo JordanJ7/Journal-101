@@ -189,7 +189,8 @@ export type HonestSaveStatus =
   | 'saved_cloud'
   | 'saved_local'
   | 'offline'
-  | 'error';
+  | 'error'
+  | 'unsaved';
 
 export interface FilterOptions {
   searchQuery: string;

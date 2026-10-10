@@ -4,6 +4,7 @@ import { CurrentUserProfile } from '../../lib/firebase';
 import { AccentTheme, BulletPoint, CommentItem, FilterOptions, WeeklyBlock } from '../../types';
 import { sortWeeksForSidebar, formatWeekDateRange } from '../../utils/dateUtils';
 import { ACCENT_THEMES } from '../../utils/theme';
+import { useJournalStore } from '../../store/useJournalStore';
 import { WeekCard } from './WeekCard';
 
 interface WeeklyTimelineProps {
@@ -101,15 +102,11 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
     setWeeks((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
   }, [setWeeks]);
 
+  const deleteWeek = useJournalStore((s) => s.deleteWeek);
+
   const handleDeleteWeek = useCallback((id: string) => {
-    setWeeks((prev) => {
-      const updated = prev.filter((w) => w.id !== id);
-      if (activeWeekId === id && updated.length > 0) {
-        setActiveWeekId(updated[0].id);
-      }
-      return updated;
-    });
-  }, [activeWeekId, setActiveWeekId, setWeeks]);
+    deleteWeek(id);
+  }, [deleteWeek]);
 
   const handleClearSearch = useCallback(() => {
     if (setFilters) {

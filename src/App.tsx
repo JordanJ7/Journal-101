@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState, useTransition } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Calendar, Film, FolderOpen, Home, Menu, PanelLeftOpen, Maximize2, Minimize2, Eye } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { CoreTopicsView } from './components/CoreSections/CoreTopicsView';
@@ -359,12 +359,17 @@ export default function App() {
     };
   }, []);
 
-  // Auth listener with clean unsubscribe
+  const permissionsRef = useRef(permissions);
+  useEffect(() => {
+    permissionsRef.current = permissions;
+  }, [permissions]);
+
+  // Auth listener with clean unsubscribe (runs once on mount)
   useEffect(() => {
     const unsubscribe = onAuthStateChangedWrapper((user) => {
       if (user) {
         const userEmail = (user.email || '').trim().toLowerCase();
-        const resolvedRole = resolveUserRole(userEmail, permissions) || 'unauthorized';
+        const resolvedRole = user.role || resolveUserRole(userEmail, permissionsRef.current) || 'unauthorized';
 
         setCurrentUser({
           uid: user.uid,
@@ -390,13 +395,21 @@ export default function App() {
     return () => {
       unsubscribe();
     };
-  }, [permissions, setCurrentUser]);
+  }, [setCurrentUser]);
 
-  // Live Cloud data subscription with clean unsubscribe (only when authenticated and authorized)
+  const isJournalSubscribedRef = useRef(false);
+
+  // Live Cloud data subscription with clean unsubscribe (only when authenticated and authorized, runs once per session)
   useEffect(() => {
     if (!currentUser?.isLoggedIn || currentUser?.role === 'unauthorized') {
+      isJournalSubscribedRef.current = false;
       return;
     }
+
+    if (isJournalSubscribedRef.current) {
+      return;
+    }
+    isJournalSubscribedRef.current = true;
 
     const unsubscribe = subscribeJournalData(
       (cloudData) => {
@@ -406,6 +419,7 @@ export default function App() {
       }
     );
     return () => {
+      isJournalSubscribedRef.current = false;
       unsubscribe();
     };
   }, [currentUser?.isLoggedIn, currentUser?.role, syncFromCloud]);
@@ -476,15 +490,6 @@ export default function App() {
     },
     [handleSetViewMode, handleSetActiveWeekId, handleSetActiveCoreCategory, setActiveCommentSectionTag]
   );
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [theme]);
 
   // Ensure active category is valid and permitted for current user
   useEffect(() => {

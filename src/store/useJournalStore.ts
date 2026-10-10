@@ -305,6 +305,7 @@ let lastUserKeystrokeTime = 0;
 let isSyncInProgress = false;
 let pendingSaveAfterSync = false;
 let pendingTargetEntryId: string | undefined = undefined;
+let writeGateHasOpenedEver = false;
 
 const executeSave = async (get: () => JournalStoreState, targetId?: string, isImmediate = false) => {
   if (syncTimeout) {
@@ -316,6 +317,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
 
   // Guard: Safe preview mode (zero writes or cloud saves)
   if (s.previewGuest != null) {
+    console.log('[Auto-Save Diagnostic] Exit without writing: preview mode');
     return;
   }
 
@@ -337,6 +339,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     };
     saveAppState(appState);
     useJournalStore.setState({ saveStatus: 'offline' });
+    console.log('[Auto-Save Diagnostic] Exit without writing: offline');
     return;
   }
 
@@ -358,7 +361,8 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
       comments: s.comments,
     };
     saveAppState(appState);
-    useJournalStore.setState({ saveStatus: 'saved_local' });
+    useJournalStore.setState({ saveStatus: hasDirtyItems() ? 'unsaved' : 'saved_local' });
+    console.log('[Auto-Save Diagnostic] Exit without writing: hydration gate');
     return;
   }
 
@@ -370,6 +374,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
       syncTimeout = setTimeout(() => {
         executeSave(get, targetId || pendingTargetEntryId);
       }, remainingDelay);
+      console.log('[Auto-Save Diagnostic] Exit without writing: typing debounce rescheduled');
       return;
     }
   }
@@ -377,6 +382,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
   if (isSyncInProgress) {
     pendingSaveAfterSync = true;
     if (targetId) pendingTargetEntryId = targetId;
+    console.log('[Auto-Save Diagnostic] Exit without writing: save already in progress');
     return;
   }
 
@@ -412,6 +418,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
       lastSavedAt: 'Saved on this device only',
     });
     pendingTargetEntryId = undefined;
+    console.log('[Auto-Save Diagnostic] Exit without writing: no write permission');
     return;
   }
 
@@ -429,11 +436,19 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
       saveStatus: lastCloud != null ? 'saved_cloud' : 'saved_local',
     });
     pendingTargetEntryId = undefined;
+    console.log('[Auto-Save Diagnostic] Exit without writing: no dirty items');
     return;
   }
 
   isSyncInProgress = true;
   useJournalStore.setState({ saveStatus: 'saving' });
+
+  let currentlyWaitingDoc = 'initiating write';
+  const timeout15s = setTimeout(() => {
+    if (isSyncInProgress) {
+      console.warn(`[Auto-Save Timeout] executeSave call still unfinished after 15 seconds. Waiting on document: ${currentlyWaitingDoc}`);
+    }
+  }, 15000);
 
   try {
     const weeksToSave = Array.from(dirtyWeekIds);
@@ -450,6 +465,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     for (const wId of weeksToSave) {
       const week = s.weeks.find((w) => w.id === wId);
       if (week) {
+        currentlyWaitingDoc = `week:${wId}`;
         await saveWeekDoc(week);
         dirtyWeekIds.delete(wId);
         savedSummaries.push(`week:${wId}`);
@@ -460,6 +476,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
 
     // Delete deleted weeks
     for (const wId of weeksToDelete) {
+      currentlyWaitingDoc = `deleted-week:${wId}`;
       await deleteWeekDoc(wId);
       deletedWeekIds.delete(wId);
       savedSummaries.push(`deleted-week:${wId}`);
@@ -469,6 +486,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     for (const fId of foldersToSave) {
       const folder = s.coreCategories.find((c) => c.id === fId);
       if (folder) {
+        currentlyWaitingDoc = `folder:${fId}`;
         await saveFolderDoc(folder);
         dirtyFolderIds.delete(fId);
         savedSummaries.push(`folder:${fId}`);
@@ -479,6 +497,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
 
     // Delete deleted folders
     for (const fId of foldersToDelete) {
+      currentlyWaitingDoc = `deleted-folder:${fId}`;
       await deleteFolderDoc(fId);
       deletedFolderIds.delete(fId);
       savedSummaries.push(`deleted-folder:${fId}`);
@@ -488,6 +507,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     for (const itemId of coreItemsToSave) {
       const item = s.coreItems.find((i) => i.id === itemId);
       if (item) {
+        currentlyWaitingDoc = `item:${itemId}`;
         await saveCoreTopicDoc(item);
         dirtyCoreItemIds.delete(itemId);
         savedSummaries.push(`item:${itemId}`);
@@ -498,6 +518,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
 
     // Delete deleted core items
     for (const itemId of coreItemsToDelete) {
+      currentlyWaitingDoc = `deleted-item:${itemId}`;
       await deleteCoreTopicDoc(itemId);
       deletedCoreItemIds.delete(itemId);
       savedSummaries.push(`deleted-item:${itemId}`);
@@ -505,6 +526,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
 
     // Save only dirty app_state
     if (shouldSaveAppState) {
+      currentlyWaitingDoc = 'app_state:journal';
       await saveAppStateDoc({
         pinnedCategoryIds: s.pinnedCategoryIds,
         introQuotes: s.introQuotes,
@@ -516,18 +538,18 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     }
 
     const now = Date.now();
+    const stillHasDirty = hasDirtyItems();
     useJournalStore.setState({
-      saveStatus: 'saved_cloud',
-      lastCloudSavedAt: now,
+      saveStatus: stillHasDirty ? 'unsaved' : 'saved_cloud',
+      lastCloudSavedAt: stillHasDirty ? s.lastCloudSavedAt : now,
     });
-    if (savedSummaries.length > 0) {
-      console.log('[Auto-Save] Specific dirty documents saved to Firestore:', savedSummaries.join(', '));
-    }
+    console.log(`[Auto-Save] Written IDs: [${savedSummaries.join(', ')}]`);
     pendingTargetEntryId = undefined;
   } catch (err) {
     console.error('[Auto-Save] Cloud write error, items kept dirty for retry:', err);
     useJournalStore.setState({ saveStatus: 'error' });
   } finally {
+    clearTimeout(timeout15s);
     isSyncInProgress = false;
     if (pendingSaveAfterSync) {
       pendingSaveAfterSync = false;
@@ -573,7 +595,7 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     useJournalStore.setState({ saveStatus: 'offline' });
   } else {
-    useJournalStore.setState({ saveStatus: 'saving' });
+    useJournalStore.setState({ saveStatus: 'unsaved' });
   }
 
   if (syncTimeout) clearTimeout(syncTimeout);
@@ -599,7 +621,14 @@ if (typeof window !== 'undefined') {
   }
 
   window.addEventListener('pagehide', handleImmediateFlushOnHidden);
-  window.addEventListener('beforeunload', handleImmediateFlushOnHidden);
+  window.addEventListener('beforeunload', (e) => {
+    handleImmediateFlushOnHidden();
+    if (hasDirtyItems()) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+  });
 
   window.addEventListener('online', () => {
     const s = useJournalStore.getState();
@@ -629,9 +658,19 @@ if (typeof document !== 'undefined') {
 
 export const useJournalStore = create<JournalStoreState>((set, get) => ({
   isHydrated: false,
-  setIsHydrated: (isHydrated) => set({ isHydrated }),
+  setIsHydrated: (isHydrated) => {
+    const prev = get().isHydrated;
+    if (writeGateHasOpenedEver && prev !== isHydrated) {
+      console.log(`[Write-Gate] State changed: isHydrated changed from ${prev} to ${isHydrated}`);
+    }
+    set({ isHydrated });
+  },
   hasReceivedFirstFirestoreSnapshot: false,
   setHasReceivedFirstFirestoreSnapshot: (hasReceivedFirstFirestoreSnapshot) => {
+    const prev = get().hasReceivedFirstFirestoreSnapshot;
+    if (writeGateHasOpenedEver && prev !== hasReceivedFirstFirestoreSnapshot) {
+      console.log(`[Write-Gate] State changed: hasReceivedFirstFirestoreSnapshot changed from ${prev} to ${hasReceivedFirstFirestoreSnapshot}`);
+    }
     setGlobalFirestoreSnapshotReceived(hasReceivedFirstFirestoreSnapshot);
     set({ hasReceivedFirstFirestoreSnapshot });
   },
@@ -2234,6 +2273,9 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   logout: async () => {
     hasPurgedThisSession = false;
     await logoutUser();
+    if (writeGateHasOpenedEver) {
+      console.log('[Write-Gate] State changed: write-gate closed (logout).');
+    }
     setGlobalFirestoreSnapshotReceived(false);
     clearDirtyTracking();
     set({
@@ -2394,8 +2436,14 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     });
 
     if (shouldOpenWriteGate) {
+      const isFirstTime = !writeGateHasOpenedEver;
+      writeGateHasOpenedEver = true;
       setGlobalFirestoreSnapshotReceived(true);
-      console.log('[Write-Gate] All required snapshots (weeks, folders, core_topics) received and applied. Write-gate opened.');
+      if (isFirstTime) {
+        console.log('[Write-Gate] All required snapshots (weeks, folders, core_topics) received and applied. Write-gate opened.');
+      } else {
+        console.log('[Write-Gate] State changed: write-gate re-opened.');
+      }
 
       // Run once per session only after write-gate has opened (weeks, folders, and core_topics snapshots applied), owner-only
       if (!hasPurgedThisSession && get().currentUser?.role === 'owner') {
