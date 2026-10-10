@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pencil, X } from 'lucide-react';
 import { CoreCategoryConfig, CoreSubCategoryConfig } from '../../types';
+import { AutoGrowTextarea } from '../AutoGrowTextarea';
 
 interface EditSubFolderModalProps {
   category: CoreCategoryConfig;
@@ -96,19 +97,12 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
                 transform: 'translateZ(0)',
               }}
             >
-              <textarea
-                ref={(el) => {
-                  if (el) {
-                    el.style.height = 'auto';
-                    el.style.height = `${Math.max(56, el.scrollHeight)}px`;
-                  }
-                }}
+              <AutoGrowTextarea
+                minHeight={56}
                 rows={2}
                 value={description}
                 onChange={(e) => {
                   setDescription(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${e.target.scrollHeight}px`;
                 }}
                 className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden min-h-[56px]"
               />

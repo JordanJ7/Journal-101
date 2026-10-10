@@ -36,6 +36,7 @@ import { TimestampPickerPopover } from './TimestampPickerPopover';
 import { MediaInspectModal } from '../MediaInspectModal';
 import { SaveStatusBadge } from '../SaveStatusBadge';
 import { MoveEntryModal } from './MoveEntryModal';
+import { AutoGrowTextarea } from '../AutoGrowTextarea';
 import {
   createAttachmentFromUrl,
   filesToPersistentAttachments,
@@ -406,18 +407,11 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     transform: 'translateZ(0)',
                   }}
                 >
-                  <textarea
-                    ref={(el) => {
-                      if (el) {
-                        el.style.height = 'auto';
-                        el.style.height = `${Math.max(68, el.scrollHeight)}px`;
-                      }
-                    }}
+                  <AutoGrowTextarea
+                    minHeight={68}
                     value={text}
                     onChange={(e) => {
                       setText(e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
                     }}
                     onBlur={() => {
                       if (!showMediaUploader) {

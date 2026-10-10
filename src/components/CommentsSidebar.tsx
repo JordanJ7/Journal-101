@@ -21,6 +21,7 @@ import { ACCENT_THEMES } from '../utils/theme';
 import { formatTimestamp } from '../utils/storage';
 import { useConfirmDelete } from './ConfirmDeleteModal';
 import { usePermissions } from '../hooks/usePermissions';
+import { AutoGrowTextarea } from './AutoGrowTextarea';
 
 interface CommentsSidebarProps {
   isOpen: boolean;
@@ -404,19 +405,12 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                         transform: 'translateZ(0)',
                       }}
                     >
-                      <textarea
-                        ref={(el) => {
-                          if (el) {
-                            el.style.height = 'auto';
-                            el.style.height = `${Math.max(56, el.scrollHeight)}px`;
-                          }
-                        }}
+                      <AutoGrowTextarea
+                        minHeight={56}
                         rows={3}
                         value={editingCommentText}
                         onChange={(e) => {
                           setEditingCommentText(e.target.value);
-                          e.target.style.height = 'auto';
-                          e.target.style.height = `${e.target.scrollHeight}px`;
                         }}
                         className={`w-full p-2 text-xs bg-white dark:bg-stone-900 border ${currentAccent.border} rounded-lg text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 ${currentAccent.ring} resize-none overflow-hidden min-h-[56px]`}
                         autoFocus
@@ -518,13 +512,8 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                   transform: 'translateZ(0)',
                 }}
               >
-                <textarea
-                  ref={(el) => {
-                    if (el) {
-                      el.style.height = 'auto';
-                      el.style.height = `${Math.max(52, el.scrollHeight)}px`;
-                    }
-                  }}
+                <AutoGrowTextarea
+                  minHeight={52}
                   rows={2}
                   placeholder={
                     currentUser.role === 'commenter'
@@ -534,8 +523,6 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                   value={commentText}
                   onChange={(e) => {
                     setCommentText(e.target.value);
-                    e.target.style.height = 'auto';
-                    e.target.style.height = `${e.target.scrollHeight}px`;
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {

@@ -12,6 +12,7 @@ import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } 
 import { formatTimestamp } from '../../utils/storage';
 import { HighlightText } from '../HighlightText';
 import { SaveStatusBadge } from '../SaveStatusBadge';
+import { AutoGrowTextarea } from '../AutoGrowTextarea';
 
 export interface BulletedNoteEditorRef {
   focus: () => void;
@@ -64,19 +65,6 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
     const [isFocused, setIsFocused] = useState(false);
     const lastEmittedValueRef = useRef(value);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-    // Auto-resize textarea to fit content dynamically (no inner scrollbars)
-    const adjustTextareaHeight = useCallback(() => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-      textarea.style.height = 'auto';
-      textarea.style.height = `${Math.max(textarea.scrollHeight, minRows * 24)}px`;
-    }, [minRows]);
-
-    // Adjust height on value changes or resize
-    useEffect(() => {
-      adjustTextareaHeight();
-    }, [localValue, adjustTextareaHeight]);
 
     // Sync external value changes only when not actively focused to prevent cursor jump / rubber-banding
     useEffect(() => {
@@ -535,15 +523,11 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             transform: 'translateZ(0)',
           }}
         >
-          <textarea
+          <AutoGrowTextarea
             ref={textareaRef}
+            minHeight={Math.max(minRows * 24, 350)}
             value={localValue}
             onChange={handleTextChange}
-            onInput={(e) => {
-              const target = e.currentTarget;
-              target.style.height = 'auto';
-              target.style.height = `${target.scrollHeight}px`;
-            }}
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => {

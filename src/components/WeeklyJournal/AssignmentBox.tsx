@@ -8,6 +8,7 @@ import { HighlightText } from '../HighlightText';
 import { useJournalStore, useSaveStatus } from '../../store/useJournalStore';
 import { TimestampPickerPopover } from './TimestampPickerPopover';
 import { SaveStatusBadge } from '../SaveStatusBadge';
+import { AutoGrowTextarea } from '../AutoGrowTextarea';
 
 const AssignmentSaveBadge = React.memo(() => {
   const saveStatus = useSaveStatus();
@@ -225,19 +226,12 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                     transform: 'translateZ(0)',
                   }}
                 >
-                  <textarea
-                    ref={(el) => {
-                      if (el) {
-                        el.style.height = 'auto';
-                        el.style.height = `${Math.max(52, el.scrollHeight)}px`;
-                      }
-                    }}
+                  <AutoGrowTextarea
+                    minHeight={52}
                     placeholder="Chapter notes, key takeaways, pages read..."
                     value={assignments.readBookProgress}
                     onChange={(e) => {
                       updateField('readBookProgress', e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
                     }}
                     onBlur={() => useJournalStore.getState().flushAutoSave()}
                     readOnly={!canEdit}
@@ -300,19 +294,12 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                     transform: 'translateZ(0)',
                   }}
                 >
-                  <textarea
-                    ref={(el) => {
-                      if (el) {
-                        el.style.height = 'auto';
-                        el.style.height = `${Math.max(52, el.scrollHeight)}px`;
-                      }
-                    }}
+                  <AutoGrowTextarea
+                    minHeight={52}
                     placeholder="What resonated with you? Character dynamics..."
                     value={assignments.watchMovieThoughts}
                     onChange={(e) => {
                       updateField('watchMovieThoughts', e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
                     }}
                     onBlur={() => useJournalStore.getState().flushAutoSave()}
                     readOnly={!canEdit}
@@ -410,19 +397,12 @@ export const AssignmentBox: React.FC<AssignmentBoxProps> = React.memo(({
                         transform: 'translateZ(0)',
                       }}
                     >
-                      <textarea
-                        ref={(el) => {
-                          if (el) {
-                            el.style.height = 'auto';
-                            el.style.height = `${Math.max(52, el.scrollHeight)}px`;
-                          }
-                        }}
+                      <AutoGrowTextarea
+                        minHeight={52}
                         placeholder="Type your reflection or answer here..."
                         value={q.answer}
                         onChange={(e) => {
                           updateDesQuestion(q.id, e.target.value);
-                          e.target.style.height = 'auto';
-                          e.target.style.height = `${e.target.scrollHeight}px`;
                         }}
                         onBlur={() => useJournalStore.getState().flushAutoSave()}
                         readOnly={!canEdit}

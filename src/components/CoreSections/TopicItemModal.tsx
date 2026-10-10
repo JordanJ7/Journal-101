@@ -18,6 +18,7 @@ import {
 } from '../../utils/mediaUtils';
 import { MediaInspectModal } from '../MediaInspectModal';
 import { VisibilityRestrictionPicker } from '../VisibilityRestrictionPicker';
+import { AutoGrowTextarea } from '../AutoGrowTextarea';
 
 interface TopicItemModalProps {
   item?: CoreTopicItem | null;
@@ -524,19 +525,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                 transform: 'translateZ(0)',
               }}
             >
-              <textarea
-                ref={(el) => {
-                  if (el) {
-                    el.style.height = 'auto';
-                    el.style.height = `${Math.max(56, el.scrollHeight)}px`;
-                  }
-                }}
+              <AutoGrowTextarea
+                minHeight={56}
                 placeholder="Her answers, therapist suggestions, or personal takeaways..."
                 value={answers}
                 onChange={(e) => {
                   setAnswers(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${e.target.scrollHeight}px`;
                 }}
                 rows={2}
                 className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs leading-relaxed resize-none overflow-hidden min-h-[56px]"
