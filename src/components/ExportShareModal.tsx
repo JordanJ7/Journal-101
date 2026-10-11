@@ -1,8 +1,8 @@
-import { Check, Copy, Download, FileDown, FileText, Printer, Share2, X } from 'lucide-react';
+import { Download, FileDown, FileText, Printer, Share2, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { CoreCategoryConfig, CoreTopicItem, WeeklyBlock } from '../types';
 import { exportCoreCategoryToPDF, exportWeekToPDF } from '../utils/pdfExport';
-import { createShareableLink, formatTimestamp, generateMarkdownExport } from '../utils/storage';
+import { generateMarkdownExport } from '../utils/storage';
 import { formatWeekDateRange } from '../utils/dateUtils';
 
 interface ExportShareModalProps {
@@ -18,35 +18,8 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
   coreCategories,
   onClose,
 }) => {
-  const [shareUrl, setShareUrl] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [selectedWeekId, setSelectedWeekId] = useState<string>(weeks[0]?.id || '');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(coreCategories[0]?.id || '');
-
-  const handleGenerateShareLink = async () => {
-    setIsGenerating(true);
-    try {
-      const link = await createShareableLink({
-        title: 'Personal Journal & Therapy Tracker - Shared View',
-        createdAt: formatTimestamp(),
-        weeks,
-        coreItems,
-      });
-      setShareUrl(link);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleCopyLink = () => {
-    if (!shareUrl) return;
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleDownloadMarkdown = () => {
     const md = generateMarkdownExport(weeks, coreItems);
@@ -189,41 +162,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
           </div>
         </div>
 
-        {/* Section 2: Generate Shareable Link */}
-        <div className="bg-stone-50 dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-2.5">
-          <h4 className="text-xs font-bold text-stone-800 dark:text-stone-200">
-            Shareable View-Only Link
-          </h4>
-
-          {shareUrl ? (
-            <div className="space-y-2 pt-1">
-              <input
-                type="text"
-                readOnly
-                value={shareUrl}
-                className="w-full p-2.5 text-xs font-mono bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 select-all"
-              />
-              <button
-                onClick={handleCopyLink}
-                className="w-full min-h-[44px] py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs"
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copied ? 'Link Copied to Clipboard!' : 'Copy Share Link'}
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleGenerateShareLink}
-              disabled={isGenerating}
-              className="w-full min-h-[44px] py-2.5 bg-stone-800 dark:bg-stone-700 hover:bg-stone-900 text-white font-medium text-xs rounded-xl flex items-center justify-center gap-1.5"
-            >
-              <Share2 className="w-4 h-4" />
-              {isGenerating ? 'Generating Link...' : 'Generate View-Only Link'}
-            </button>
-          )}
-        </div>
-
-        {/* Section 3: Download Markdown & JSON */}
+        {/* Section 2: Download Markdown & JSON */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-stone-800 dark:text-stone-200">
             Backup Files & Print

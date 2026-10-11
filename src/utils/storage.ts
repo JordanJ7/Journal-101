@@ -1,5 +1,5 @@
 import { CORE_CATEGORIES_CONFIG, INITIAL_COMMENTS, INITIAL_CORE_ITEMS, INITIAL_WEEKS } from '../data/initialData';
-import { AppState, CoreTopicItem, SharedSnapshotData, WeeklyBlock } from '../types';
+import { AppState, CoreTopicItem, WeeklyBlock } from '../types';
 import { formatWeekDateRange } from './dateUtils';
 
 const STORAGE_KEY = 'journal_therapy_tracker_v1';
@@ -407,31 +407,4 @@ export function generateMarkdownExport(weeks: WeeklyBlock[], coreItems: CoreTopi
   });
 
   return md;
-}
-
-export async function createShareableLink(data: SharedSnapshotData): Promise<string> {
-  try {
-    const res = await fetch('/api/share', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: data.title || 'Personal Journal & Therapy Tracker',
-        data,
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Server returned ${res.status}`);
-    }
-
-    const result = await res.json();
-    return result.shareUrl || `${window.location.origin}?shareId=${result.shareId}`;
-  } catch (err) {
-    console.warn('API share failed, falling back to URL payload encoding:', err);
-    // Fallback URL hash compression or stringification
-    const encoded = encodeURIComponent(JSON.stringify(data));
-    return `${window.location.origin}?data=${encoded.substring(0, 1500)}`;
-  }
 }

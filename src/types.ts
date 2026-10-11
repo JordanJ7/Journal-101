@@ -218,14 +218,6 @@ export interface AppState {
   sessionPrepNotes?: string;
 }
 
-export interface SharedSnapshotData {
-  title: string;
-  createdAt: string;
-  weeks: WeeklyBlock[];
-  coreItems: CoreTopicItem[];
-  comments?: CommentItem[];
-}
-
 export interface SharedMediaItem {
   id: string;
   title: string;

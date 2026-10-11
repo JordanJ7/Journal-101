@@ -68,9 +68,6 @@ const IntroQuotesModal = lazy(() =>
 const CommentsSidebar = lazy(() =>
   import('./components/CommentsSidebar').then((m) => ({ default: m.CommentsSidebar }))
 );
-const SharedView = lazy(() =>
-  import('./components/SharedView').then((m) => ({ default: m.SharedView }))
-);
 
 export default function App() {
   const [isPending, startTransition] = useTransition();
@@ -500,24 +497,6 @@ export default function App() {
       handleSetActiveCoreCategory(visibleCoreCategories[0].id);
     }
   }, [visibleCoreCategories, activeCoreCategory, handleSetActiveCoreCategory]);
-
-  // Check URL params for shareId
-  const urlParams = new URLSearchParams(window.location.search);
-  const shareId = urlParams.get('shareId');
-
-  if (shareId) {
-    return (
-      <Suspense fallback={<div className="p-8 text-center text-sm font-semibold text-neutral-500">Loading Shared Journal...</div>}>
-        <SharedView
-          shareId={shareId}
-          onExitSharedView={() => {
-            window.history.replaceState({}, '', window.location.pathname);
-            window.location.reload();
-          }}
-        />
-      </Suspense>
-    );
-  }
 
   // Security gate: unauthorized users cannot see any journal data without authenticating
   if (!currentUser?.isLoggedIn) {
