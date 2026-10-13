@@ -931,7 +931,9 @@ export function subscribeJournalData(
               ...existing,
               ...weekData,
               id: weekId,
-              bullets: existing.bullets || weekData.bullets || [],
+              // The server's bullets array is authoritative; a cached copy must never win,
+              // or stale entries get broadcast to the store and written back over newer data.
+              bullets: weekData.bullets || existing.bullets || [],
             };
             weeksMap.set(weekId, mergedWeek);
             refreshSingleWeekBullets(weekId);
