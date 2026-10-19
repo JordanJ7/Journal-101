@@ -235,44 +235,58 @@ const deletedCoreItemIds = new Set<string>();
 let isAppStateDirty = false;
 let hasPurgedThisSession = false;
 
+// Bumped on every mark* call. executeSave only clears an item's dirty flag if its
+// version is unchanged since the write began, so edits made mid-save are not lost.
+const dirtyVersions = new Map<string, number>();
+let appStateVersion = 0;
+const bumpVersion = (key: string) => dirtyVersions.set(key, (dirtyVersions.get(key) || 0) + 1);
+const versionOf = (key: string) => dirtyVersions.get(key) || 0;
+
 export function markWeekDirty(weekId: string) {
   if (!weekId) return;
+  bumpVersion('week:' + weekId);
   dirtyWeekIds.add(weekId);
   deletedWeekIds.delete(weekId);
 }
 
 export function markWeekDeleted(weekId: string) {
   if (!weekId) return;
+  bumpVersion('week:' + weekId);
   deletedWeekIds.add(weekId);
   dirtyWeekIds.delete(weekId);
 }
 
 export function markFolderDirty(folderId: string) {
   if (!folderId) return;
+  bumpVersion('folder:' + folderId);
   dirtyFolderIds.add(folderId);
   deletedFolderIds.delete(folderId);
 }
 
 export function markFolderDeleted(folderId: string) {
   if (!folderId) return;
+  bumpVersion('folder:' + folderId);
   deletedFolderIds.add(folderId);
   dirtyFolderIds.delete(folderId);
 }
 
 export function markCoreItemDirty(itemId: string) {
   if (!itemId) return;
+  bumpVersion('item:' + itemId);
   dirtyCoreItemIds.add(itemId);
   deletedCoreItemIds.delete(itemId);
 }
 
 export function markCoreItemDeleted(itemId: string) {
   if (!itemId) return;
+  bumpVersion('item:' + itemId);
   deletedCoreItemIds.add(itemId);
   dirtyCoreItemIds.delete(itemId);
 }
 
 export function markAppStateDirty() {
   isAppStateDirty = true;
+  appStateVersion++;
 }
 
 export function clearDirtyTracking() {
@@ -459,6 +473,16 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     const coreItemsToDelete = Array.from(deletedCoreItemIds);
     const shouldSaveAppState = isAppStateDirty;
 
+    // Versions as of the state snapshot `s`; anything edited after this stays dirty.
+    const startVersions = new Map<string, number>();
+    weeksToSave.concat(weeksToDelete).forEach((id) => startVersions.set('week:' + id, versionOf('week:' + id)));
+    foldersToSave.concat(foldersToDelete).forEach((id) => startVersions.set('folder:' + id, versionOf('folder:' + id)));
+    coreItemsToSave.concat(coreItemsToDelete).forEach((id) => startVersions.set('item:' + id, versionOf('item:' + id)));
+    const appStateVersionAtStart = appStateVersion;
+    const clearIfUnchanged = (set: Set<string>, kind: string, id: string) => {
+      if (versionOf(kind + ':' + id) === startVersions.get(kind + ':' + id)) set.delete(id);
+    };
+
     const savedSummaries: string[] = [];
 
     // Save only dirty weeks
@@ -467,10 +491,10 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
       if (week) {
         currentlyWaitingDoc = `week:${wId}`;
         await saveWeekDoc(week);
-        dirtyWeekIds.delete(wId);
+        clearIfUnchanged(dirtyWeekIds, 'week', wId);
         savedSummaries.push(`week:${wId}`);
       } else {
-        dirtyWeekIds.delete(wId);
+        clearIfUnchanged(dirtyWeekIds, 'week', wId);
       }
     }
 
@@ -478,7 +502,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     for (const wId of weeksToDelete) {
       currentlyWaitingDoc = `deleted-week:${wId}`;
       await deleteWeekDoc(wId);
-      deletedWeekIds.delete(wId);
+      clearIfUnchanged(deletedWeekIds, 'week', wId);
       savedSummaries.push(`deleted-week:${wId}`);
     }
 
@@ -488,10 +512,10 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
       if (folder) {
         currentlyWaitingDoc = `folder:${fId}`;
         await saveFolderDoc(folder);
-        dirtyFolderIds.delete(fId);
+        clearIfUnchanged(dirtyFolderIds, 'folder', fId);
         savedSummaries.push(`folder:${fId}`);
       } else {
-        dirtyFolderIds.delete(fId);
+        clearIfUnchanged(dirtyFolderIds, 'folder', fId);
       }
     }
 
@@ -499,7 +523,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     for (const fId of foldersToDelete) {
       currentlyWaitingDoc = `deleted-folder:${fId}`;
       await deleteFolderDoc(fId);
-      deletedFolderIds.delete(fId);
+      clearIfUnchanged(deletedFolderIds, 'folder', fId);
       savedSummaries.push(`deleted-folder:${fId}`);
     }
 
@@ -509,10 +533,10 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
       if (item) {
         currentlyWaitingDoc = `item:${itemId}`;
         await saveCoreTopicDoc(item);
-        dirtyCoreItemIds.delete(itemId);
+        clearIfUnchanged(dirtyCoreItemIds, 'item', itemId);
         savedSummaries.push(`item:${itemId}`);
       } else {
-        dirtyCoreItemIds.delete(itemId);
+        clearIfUnchanged(dirtyCoreItemIds, 'item', itemId);
       }
     }
 
@@ -520,7 +544,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
     for (const itemId of coreItemsToDelete) {
       currentlyWaitingDoc = `deleted-item:${itemId}`;
       await deleteCoreTopicDoc(itemId);
-      deletedCoreItemIds.delete(itemId);
+      clearIfUnchanged(deletedCoreItemIds, 'item', itemId);
       savedSummaries.push(`deleted-item:${itemId}`);
     }
 
@@ -533,7 +557,7 @@ const executeSave = async (get: () => JournalStoreState, targetId?: string, isIm
         nextSessionAt: s.nextSessionAt,
         sessionPrepNotes: s.sessionPrepNotes,
       });
-      isAppStateDirty = false;
+      if (appStateVersion === appStateVersionAtStart) isAppStateDirty = false;
       savedSummaries.push('app_state:journal');
     }
 
