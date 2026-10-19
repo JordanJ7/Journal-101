@@ -628,6 +628,18 @@ const schedulePersistence = (get: () => JournalStoreState, delayMs = AUTO_SAVE_D
   }, delayMs);
 };
 
+// Direct (fire-and-forget) writes used to swallow errors, leaving the badge on "saved".
+// Surface the failure, and where the item has dirty tracking, re-mark it so auto-save retries it.
+export const onDirectSaveError = (label: string, remark?: () => void) => (err: unknown) => {
+  console.error(`[Firestore CRITICAL ERROR] Failed to save ${label}:`, err);
+  if (remark) {
+    remark();
+    schedulePersistence(useJournalStore.getState, AUTO_SAVE_DEBOUNCE_MS);
+  }
+  useJournalStore.setState({ saveStatus: 'error' });
+  useJournalStore.getState().showToast(`Couldn't save ${label} to the cloud${remark ? ' — retrying' : ''}`);
+};
+
 // Global window lifecycle listener: flush pending debounced saves strictly on pagehide / visibilitychange to hidden / beforeunload
 if (typeof window !== 'undefined') {
   const handleImmediateFlushOnHidden = () => {
@@ -1314,7 +1326,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     }
     set({ weeks });
     for (const w of weeks) {
-      saveWeekDoc(w).catch(() => {});
+      saveWeekDoc(w).catch(onDirectSaveError('week', () => markWeekDirty(w.id)));
     }
     schedulePersistence(get);
   },
@@ -1348,9 +1360,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
           bullets: sortedBullets,
         };
         const nextWeeks = state.weeks.map((w) => (w.id === weekId ? updatedWeek : w));
-        saveWeekDoc(updatedWeek).catch((err) =>
-          console.error('[Firestore CRITICAL ERROR] Failed to save timestamp updated week:', err)
-        );
+        saveWeekDoc(updatedWeek).catch(onDirectSaveError('week', () => markWeekDirty(updatedWeek.id)));
         return { weeks: nextWeeks };
       }
 
@@ -1366,8 +1376,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
       const newSourceWeek = updatedWeeks.find((w) => w.id === weekId);
       const newTargetWeek = updatedWeeks.find((w) => w.id === targetWeekId);
-      if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(() => {});
-      if (newTargetWeek && newTargetWeek.id !== weekId) saveWeekDoc(newTargetWeek).catch(() => {});
+      if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(onDirectSaveError('week', () => markWeekDirty(newSourceWeek.id)));
+      if (newTargetWeek && newTargetWeek.id !== weekId) saveWeekDoc(newTargetWeek).catch(onDirectSaveError('week', () => markWeekDirty(newTargetWeek.id)));
 
       return {
         weeks: updatedWeeks,
@@ -1407,7 +1417,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
             updatedAt: new Date().toISOString(),
             timestamp: formattedTimestamp,
           };
-          saveCoreTopicDoc(updatedCore).catch(() => {});
+          saveCoreTopicDoc(updatedCore).catch(onDirectSaveError('topic note', () => markCoreItemDirty(updatedCore.id)));
           return {
             coreItems: state.coreItems.map((i) => (i.id === entryId ? updatedCore : i)),
           };
@@ -1437,7 +1447,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
           bullets: sortedBullets,
         };
         const nextWeeks = state.weeks.map((w) => (w.id === targetWeekId ? updatedWeek : w));
-        saveWeekDoc(updatedWeek).catch(() => {});
+        saveWeekDoc(updatedWeek).catch(onDirectSaveError('week', () => markWeekDirty(updatedWeek.id)));
         return { weeks: nextWeeks };
       }
 
@@ -1453,8 +1463,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
 
       const newSourceWeek = updatedWeeks.find((w) => w.id === targetWeekId);
       const newTargetWeek = updatedWeeks.find((w) => w.id === newWeekId);
-      if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(() => {});
-      if (newTargetWeek && newTargetWeek.id !== targetWeekId) saveWeekDoc(newTargetWeek).catch(() => {});
+      if (newSourceWeek) saveWeekDoc(newSourceWeek).catch(onDirectSaveError('week', () => markWeekDirty(newSourceWeek.id)));
+      if (newTargetWeek && newTargetWeek.id !== targetWeekId) saveWeekDoc(newTargetWeek).catch(onDirectSaveError('week', () => markWeekDirty(newTargetWeek.id)));
 
       return {
         weeks: updatedWeeks,
@@ -1493,7 +1503,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       const updatedWeeks = state.weeks.map((w) => (w.id === weekId ? updatedWeek : w));
       const sortedWeeks = sortWeeksChronologically(updatedWeeks, 'desc');
 
-      saveWeekDoc(updatedWeek).catch(() => {});
+      saveWeekDoc(updatedWeek).catch(onDirectSaveError('week', () => markWeekDirty(updatedWeek.id)));
 
       return {
         weeks: sortedWeeks,
@@ -1533,9 +1543,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     set((state) => ({
       coreItems: [item, ...state.coreItems],
     }));
-    saveCoreTopicDoc(item).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save core item:', err)
-    );
+    saveCoreTopicDoc(item).catch(onDirectSaveError('topic note', () => markCoreItemDirty(item.id)));
     schedulePersistence(get);
   },
 
@@ -1550,9 +1558,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
           : [item, ...state.coreItems],
       };
     });
-    saveCoreTopicDoc(item).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to update core item:', err)
-    );
+    saveCoreTopicDoc(item).catch(onDirectSaveError('topic note', () => markCoreItemDirty(item.id)));
     schedulePersistence(get);
   },
 
@@ -1579,9 +1585,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         i.id === item.id ? updated : i
       ),
     }));
-    saveCoreTopicDoc(updated).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to toggle complete core item:', err)
-    );
+    saveCoreTopicDoc(updated).catch(onDirectSaveError('topic note', () => markCoreItemDirty(updated.id)));
     schedulePersistence(get);
   },
 
@@ -1594,9 +1598,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         i.id === item.id ? updated : i
       ),
     }));
-    saveCoreTopicDoc(updated).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to update core item status:', err)
-    );
+    saveCoreTopicDoc(updated).catch(onDirectSaveError('topic note', () => markCoreItemDirty(updated.id)));
     schedulePersistence(get);
   },
 
@@ -1643,10 +1645,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         viewMode: 'core',
       };
     });
-    saveFolderDoc(catWithOrder).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save folder doc:', err)
-    );
-    saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+    saveFolderDoc(catWithOrder).catch(onDirectSaveError('folder', () => markFolderDirty(catWithOrder.id)));
+    saveCoreCategoriesDoc(get().coreCategories).catch(onDirectSaveError('folder order'));
     schedulePersistence(get);
   },
 
@@ -1665,10 +1665,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       return { coreCategories: nextCategories };
     });
     if (updatedCat) {
-      saveFolderDoc(updatedCat).catch((err) =>
-        console.error('[Firestore CRITICAL ERROR] Failed to update folder doc:', err)
-      );
-      saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+      saveFolderDoc(updatedCat).catch(onDirectSaveError('folder', () => markFolderDirty(updatedCat.id)));
+      saveCoreCategoriesDoc(get().coreCategories).catch(onDirectSaveError('folder order'));
     }
     schedulePersistence(get);
   },
@@ -1719,7 +1717,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     }
 
     set({ coreCategories: updatedCats });
-    saveCoreCategoriesDoc(updatedCats).catch(() => {});
+    saveCoreCategoriesDoc(updatedCats).catch(onDirectSaveError('folder order'));
     schedulePersistence(get);
   },
 
@@ -1743,9 +1741,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         comments: s.comments,
       });
     } catch {}
-    saveAppStateDoc({ pinnedCategoryIds: ids }).catch((err) => {
-      console.warn('[Firestore] Failed to save pinnedCategoryIds:', err);
-    });
+    saveAppStateDoc({ pinnedCategoryIds: ids }).catch(onDirectSaveError('pinned topics', markAppStateDirty));
   },
 
   togglePinCategory: (categoryId) => {
@@ -1775,9 +1771,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         comments: s.comments,
       });
     } catch {}
-    saveAppStateDoc({ pinnedCategoryIds: updated }).catch((err) => {
-      console.warn('[Firestore] Failed to save pinnedCategoryIds:', err);
-    });
+    saveAppStateDoc({ pinnedCategoryIds: updated }).catch(onDirectSaveError('pinned topics', markAppStateDirty));
   },
 
   reorderPinnedCategories: (ids) => {
@@ -1800,9 +1794,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         comments: s.comments,
       });
     } catch {}
-    saveAppStateDoc({ pinnedCategoryIds: ids }).catch((err) => {
-      console.warn('[Firestore] Failed to save pinnedCategoryIds:', err);
-    });
+    saveAppStateDoc({ pinnedCategoryIds: ids }).catch(onDirectSaveError('pinned topics', markAppStateDirty));
   },
 
   setIntroQuotes: async (quotes) => {
@@ -1907,8 +1899,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       return { coreCategories: updatedCats };
     });
     if (parentCat) {
-      saveFolderDoc(parentCat).catch(() => {});
-      saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+      saveFolderDoc(parentCat).catch(onDirectSaveError('folder', () => markFolderDirty(parentCat.id)));
+      saveCoreCategoriesDoc(get().coreCategories).catch(onDirectSaveError('folder order'));
     }
     schedulePersistence(get);
   },
@@ -1932,8 +1924,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       return { coreCategories: updatedCats };
     });
     if (parentCat) {
-      saveFolderDoc(parentCat).catch(() => {});
-      saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+      saveFolderDoc(parentCat).catch(onDirectSaveError('folder', () => markFolderDirty(parentCat.id)));
+      saveCoreCategoriesDoc(get().coreCategories).catch(onDirectSaveError('folder order'));
     }
     schedulePersistence(get);
   },
@@ -1966,8 +1958,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       };
     });
     if (parentCat) {
-      saveFolderDoc(parentCat).catch(() => {});
-      saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+      saveFolderDoc(parentCat).catch(onDirectSaveError('folder', () => markFolderDirty(parentCat.id)));
+      saveCoreCategoriesDoc(get().coreCategories).catch(onDirectSaveError('folder order'));
     }
     schedulePersistence(get);
   },
@@ -1987,8 +1979,8 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       return { coreCategories: updatedCats };
     });
     if (parentCat) {
-      saveFolderDoc(parentCat).catch(() => {});
-      saveCoreCategoriesDoc(get().coreCategories).catch(() => {});
+      saveFolderDoc(parentCat).catch(onDirectSaveError('folder', () => markFolderDirty(parentCat.id)));
+      saveCoreCategoriesDoc(get().coreCategories).catch(onDirectSaveError('folder order'));
     }
     schedulePersistence(get);
   },
@@ -2012,7 +2004,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       }),
     }));
     if (movedItem) {
-      saveCoreTopicDoc(movedItem).catch(() => {});
+      saveCoreTopicDoc(movedItem).catch(onDirectSaveError('topic note', () => markCoreItemDirty(movedItem.id)));
     }
     schedulePersistence(get);
   },
@@ -2081,9 +2073,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     set((state) => ({
       comments: [newComment, ...state.comments],
     }));
-    saveCommentDoc(newComment).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to save comment:', err)
-    );
+    saveCommentDoc(newComment).catch(onDirectSaveError('comment'));
     schedulePersistence(get);
   },
 
@@ -2100,7 +2090,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       }),
     }));
     if (resolvedItem) {
-      saveCommentDoc(resolvedItem).catch(() => {});
+      saveCommentDoc(resolvedItem).catch(onDirectSaveError('comment'));
     }
     schedulePersistence(get);
   },
@@ -2110,9 +2100,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     set((state) => ({
       comments: state.comments.filter((c) => c.id !== id),
     }));
-    deleteCommentDoc(id).catch((err) =>
-      console.error('[Firestore CRITICAL ERROR] Failed to delete comment:', err)
-    );
+    deleteCommentDoc(id).catch(onDirectSaveError('comment deletion'));
     schedulePersistence(get);
   },
 
@@ -2129,7 +2117,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       }),
     }));
     if (editedItem) {
-      saveCommentDoc(editedItem).catch(() => {});
+      saveCommentDoc(editedItem).catch(onDirectSaveError('comment'));
     }
     schedulePersistence(get);
   },
@@ -2156,7 +2144,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
       });
 
       if (targetWeek) {
-        saveWeekDoc(targetWeek).catch(() => {});
+        saveWeekDoc(targetWeek).catch(onDirectSaveError('week', () => markWeekDirty(targetWeek.id)));
       }
 
       let updatedCoreItems = [...state.coreItems];
@@ -2184,12 +2172,12 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
         } else {
           updatedCoreItems = [newItem, ...updatedCoreItems];
         }
-        saveCoreTopicDoc(newItem).catch(() => {});
+        saveCoreTopicDoc(newItem).catch(onDirectSaveError('topic note', () => markCoreItemDirty(newItem.id)));
       } else {
         const found = updatedCoreItems.find((item) => item.pinnedBulletId === bullet.id);
         if (found) {
           markCoreItemDeleted(found.id);
-          deleteCoreTopicDoc(found.id, found.categoryId).catch(() => {});
+          deleteCoreTopicDoc(found.id, found.categoryId).catch(onDirectSaveError('topic note deletion', () => markCoreItemDeleted(found.id)));
         }
         updatedCoreItems = updatedCoreItems.filter(
           (item) => item.pinnedBulletId !== bullet.id

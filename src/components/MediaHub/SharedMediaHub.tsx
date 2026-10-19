@@ -28,6 +28,7 @@ import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 import { usePermissions, canUserViewItem } from '../../hooks/usePermissions';
 import { VisibilityRestrictionPicker } from '../VisibilityRestrictionPicker';
 import { saveSharedMediaDoc, deleteSharedMediaDoc } from '../../lib/firebase';
+import { onDirectSaveError } from '../../store/useJournalStore';
 
 interface SharedMediaHubProps {
   weeks: WeeklyBlock[];
@@ -317,7 +318,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
         message: `Delete "${item.title}"?`,
         confirmText: 'Delete',
         onConfirm: () => {
-          deleteSharedMediaDoc(item.id).catch(() => {});
+          deleteSharedMediaDoc(item.id).catch(onDirectSaveError('shared media deletion'));
           const updatedWeeks = weeks.map((w) => {
             if (w.id === item.sourceId) {
               return {
