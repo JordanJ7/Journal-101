@@ -15,7 +15,6 @@ import {
   deleteDoc,
   getDocs,
   collection,
-  collectionGroup,
   query,
   onSnapshot,
   getDocFromServer,
@@ -764,7 +763,6 @@ export function subscribeJournalData(
 
   // In-memory accumulation maps for granular updates
   const weeksMap = new Map<string, WeeklyBlock>();
-  const entriesPerWeekMap = new Map<string, Map<string, BulletPoint>>();
   const coreItemsMap = new Map<string, CoreTopicItem>();
   const foldersMap = new Map<string, CoreCategoryConfig>();
   let coreCategoriesFallback: CoreCategoryConfig[] | null = null;
@@ -835,18 +833,10 @@ export function subscribeJournalData(
     const week = weeksMap.get(weekId);
     if (!week) return;
 
-    const weekEntriesMap = entriesPerWeekMap.get(weekId);
     const combinedMap = new Map<string, BulletPoint>();
     (week.bullets || []).forEach((b) => {
       if (b && b.id) combinedMap.set(b.id, b);
     });
-    if (weekEntriesMap) {
-      weekEntriesMap.forEach((b, id) => {
-        if (!combinedMap.has(id)) {
-          combinedMap.set(id, b);
-        }
-      });
-    }
 
     const bullets = Array.from(combinedMap.values());
     bullets.sort((a, b) => {
@@ -877,18 +867,10 @@ export function subscribeJournalData(
   const syncConsolidatedWeeks = () => {
     const nextWeeks: WeeklyBlock[] = [];
     weeksMap.forEach((week, weekId) => {
-      const weekEntriesMap = entriesPerWeekMap.get(weekId);
       const combinedMap = new Map<string, BulletPoint>();
       (week.bullets || []).forEach((b) => {
         if (b && b.id) combinedMap.set(b.id, b);
       });
-      if (weekEntriesMap) {
-        weekEntriesMap.forEach((b, id) => {
-          if (!combinedMap.has(id)) {
-            combinedMap.set(id, b);
-          }
-        });
-      }
 
       const bullets = Array.from(combinedMap.values());
       bullets.sort((a, b) => {
@@ -922,7 +904,6 @@ export function subscribeJournalData(
 
           if (change.type === 'removed') {
             weeksMap.delete(weekId);
-            entriesPerWeekMap.delete(weekId);
             cachedConsolidatedWeeks = cachedConsolidatedWeeks.filter((w) => w.id !== weekId);
             hasStructuralChanges = true;
           } else {
@@ -943,7 +924,6 @@ export function subscribeJournalData(
         syncConsolidatedWeeks();
       } else {
         weeksMap.clear();
-        entriesPerWeekMap.clear();
         cachedConsolidatedWeeks = [];
         hasStructuralChanges = true;
       }
@@ -958,47 +938,8 @@ export function subscribeJournalData(
   );
   activeUnsubscribes.push(weeksUnsub);
 
-  // 3. Real-Time CollectionGroup Query for all Entries across all Weeks (/weeks/{weekId}/entries/{entryId})
-  try {
-    const entriesGroupUnsub = onSnapshot(
-      collectionGroup(db, 'entries'),
-      (entriesSnap) => {
-        const affectedWeekIds = new Set<string>();
-
-        entriesSnap.docChanges().forEach((change) => {
-          const entry = { id: change.doc.id, ...change.doc.data() } as BulletPoint;
-          const parentWeekId = change.doc.ref.parent.parent?.id;
-
-          if (parentWeekId) {
-            if (!entriesPerWeekMap.has(parentWeekId)) {
-              entriesPerWeekMap.set(parentWeekId, new Map());
-            }
-            const weekEntries = entriesPerWeekMap.get(parentWeekId)!;
-
-            if (change.type === 'removed') {
-              weekEntries.delete(entry.id);
-            } else {
-              weekEntries.set(entry.id, entry);
-            }
-            affectedWeekIds.add(parentWeekId);
-          }
-        });
-
-        if (affectedWeekIds.size > 0) {
-          affectedWeekIds.forEach((wId) => {
-            refreshSingleWeekBullets(wId);
-          });
-          scheduleBroadcast();
-        }
-      },
-      (err) => {
-        console.warn('CollectionGroup entries query fallback to individual week listeners:', err.message);
-      }
-    );
-    activeUnsubscribes.push(entriesGroupUnsub);
-  } catch (cgErr) {
-    console.warn('CollectionGroup initialization note:', cgErr);
-  }
+  // Legacy /weeks/{weekId}/entries subcollection docs are intentionally not read: nothing writes
+  // them any more, and merging them back in resurrected entries that were moved or deleted.
 
   // 4. Real-Time Folders Collection Listener (/folders)
   const foldersUnsub = onSnapshot(
