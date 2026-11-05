@@ -194,7 +194,7 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] border border-black/5 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-black/5 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',
@@ -383,7 +383,7 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
                       <select
                         value={userPerm.role}
                         onChange={(e) => handleRoleChange(emailKey, e.target.value as UserRole)}
-                        className="py-1 px-2 bg-white dark:bg-[#1C1C1E] rounded-lg text-xs font-semibold text-stone-800 dark:text-stone-200"
+                        className="py-1 px-2 bg-white dark:bg-(--sf-raised-dk) rounded-lg text-xs font-semibold text-stone-800 dark:text-stone-200"
                       >
                         <option value="commenter">Commenter</option>
                         <option value="viewer">Viewer</option>

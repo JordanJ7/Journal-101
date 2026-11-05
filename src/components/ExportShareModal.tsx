@@ -73,7 +73,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 border border-stone-200 dark:border-white/10 shadow-2xl max-w-lg w-full space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
+        className="bg-white dark:bg-(--sf-panel-dk) rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 border border-stone-200 dark:border-white/10 shadow-2xl max-w-lg w-full space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',

@@ -288,7 +288,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
   return (
     <div
       id={`week-card-${week.id}`}
-      className={`bg-white dark:bg-[#18181b] rounded-[14px] border shadow-xs overflow-visible mb-6 transition-colors ${
+      className={`bg-white dark:bg-(--sf-card-dk) rounded-[14px] border shadow-xs overflow-visible mb-6 transition-colors ${
         isCurrent
           ? 'border-amber-500/50 ring-1 ring-amber-500/30'
           : 'border-stone-200/80 dark:border-white/10'
@@ -554,7 +554,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
               {week.therapistSection.externalLinks.map((link) => (
                 <div
                   key={link.id}
-                  className="flex items-center gap-1.5 bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 px-2.5 py-1 rounded-lg text-xs"
+                  className="flex items-center gap-1.5 bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 px-2.5 py-1 rounded-lg text-xs"
                 >
                   <LinkIcon className={`w-3 h-3 shrink-0 ${themeConfig.textPrimary}`} />
                   <a
@@ -601,14 +601,14 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   placeholder="Link Title"
                   value={newLinkTitle}
                   onChange={(e) => setNewLinkTitle(e.target.value)}
-                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
                 />
                 <input
                   type="text"
                   placeholder="URL (Apple Photos / Media)"
                   value={newLinkUrl}
                   onChange={(e) => setNewLinkUrl(e.target.value)}
-                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
                 />
                 <button
                   onClick={handleAddExternalLink}
@@ -629,7 +629,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   className={`p-2 rounded-xl text-xs flex items-center justify-between gap-2 ${
                     item.isHighlightedAnswer
                       ? themeConfig.tagBadge
-                      : 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100'
+                      : 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100'
                   }`}
                 >
                   <p className="truncate flex-1 font-medium">
@@ -669,7 +669,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   value={newShowItemText}
                   onChange={(e) => setNewShowItemText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddShowItem()}
-                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
                 />
                 <button
                   onClick={handleAddShowItem}
@@ -780,7 +780,7 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              className="w-full pl-3 pr-11 py-2.5 sm:py-2 text-base sm:text-xs min-h-[44px] sm:min-h-[38px] bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+              className="w-full pl-3 pr-11 py-2.5 sm:py-2 text-base sm:text-xs min-h-[44px] sm:min-h-[38px] bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
             />
 
             {/* Custom Date / Time Button */}

@@ -55,7 +55,7 @@ export const DaysYouWroteCard: React.FC<DaysYouWroteCardProps> = React.memo(({
 
   return (
     <div
-      className={`w-full bg-white dark:bg-[#18181b] rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs space-y-3 ${className}`}
+      className={`w-full bg-white dark:bg-(--sf-card-dk) rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs space-y-3 ${className}`}
     >
       {/* Seven small circles M–S */}
       <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-1">

@@ -70,7 +70,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#f8f9fa] dark:bg-[#0f0f11] text-stone-900 dark:text-stone-100 flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
+    <div className="min-h-screen w-full bg-(--sf-app-lt) dark:bg-(--sf-app-dk) text-stone-900 dark:text-stone-100 flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
       <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-3xl shadow-xl border border-stone-200/80 dark:border-stone-800 p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Brand & Security Header */}

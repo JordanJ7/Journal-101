@@ -154,7 +154,7 @@ export const IntroQuotesModal: React.FC<IntroQuotesModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="intro-quotes-modal-title"
-        className="bg-white dark:bg-[#141416] border border-black/5 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-black/5 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',

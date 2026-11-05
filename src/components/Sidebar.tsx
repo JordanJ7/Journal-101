@@ -388,7 +388,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
         key={week.id}
         className={`group shrink-0 flex items-center justify-between px-3 py-2 min-h-[44px] rounded-xl text-xs transition-all cursor-pointer select-none active:scale-[0.99] ${
           isSelected
-            ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
+            ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
             : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
         }`}
         onClick={() => handleSelectWeek(week.id)}
@@ -505,7 +505,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'home'
-              ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
+              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
               : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
@@ -518,7 +518,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'weekly'
-              ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
+              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
               : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
@@ -531,7 +531,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'core'
-              ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
+              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
               : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
@@ -544,7 +544,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'media'
-              ? 'bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs'
+              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
               : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
@@ -566,7 +566,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('weekly');
                 if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+              className="w-full text-left p-3 rounded-xl bg-white dark:bg-(--sf-raised-dk) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
@@ -585,7 +585,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('core');
                 if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+              className="w-full text-left p-3 rounded-xl bg-white dark:bg-(--sf-raised-dk) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
@@ -604,7 +604,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('media');
                 if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full text-left p-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+              className="w-full text-left p-3 rounded-xl bg-white dark:bg-(--sf-raised-dk) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
@@ -893,7 +893,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('media');
                 if (setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full shrink-0 text-left px-3 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-[#1C1C1E] text-stone-900 dark:text-stone-100 shadow-xs font-semibold flex items-center justify-between"
+              className="w-full shrink-0 text-left px-3 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs font-semibold flex items-center justify-between"
             >
               <div className="flex items-center gap-2">
                 <Film className={`w-4 h-4 ${currentAccent.textPrimary}`} />
@@ -939,7 +939,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {/* Desktop Sidebar (hidden on screens < 1280px / xl) with spacious width for 2-column grid */}
       <aside
         id="main-desktop-sidebar"
-        className={`hidden xl:flex border-r border-black/5 dark:border-white/10 bg-[#F2F2F7]/50 dark:bg-black/50 h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`hidden xl:flex border-r border-black/5 dark:border-white/10 bg-(--sf-grouped-lt)/50 dark:bg-black/50 h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
           isSidebarOpen
             ? 'w-80 lg:w-88 xl:w-96 p-3 opacity-100 translate-x-0'
             : 'w-0 p-0 opacity-0 -translate-x-full border-r-0 overflow-hidden pointer-events-none'
@@ -964,7 +964,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
           {/* Drawer Content with clean tablet & mobile width and safe area insets */}
           <div
-            className="relative w-full max-w-[340px] sm:max-w-[360px] bg-[#F2F2F7] dark:bg-[#1C1C1E] h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] z-10"
+            className="relative w-full max-w-[340px] sm:max-w-[360px] bg-(--sf-grouped-lt) dark:bg-(--sf-raised-dk) h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] z-10"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
@@ -988,7 +988,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           onClick={() => setShowAddWeekModal(false)}
         >
           <div
-            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
+            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
@@ -1063,7 +1063,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           onClick={() => setShowAddCategoryModal(false)}
         >
           <div
-            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
+            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
@@ -1123,7 +1123,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             }}
           />
           <div
-            className="fixed z-50 bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/15 rounded-2xl shadow-2xl p-1.5 w-48 animate-in fade-in zoom-in-95 duration-150 text-xs select-none"
+            className="fixed z-50 bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/15 rounded-2xl shadow-2xl p-1.5 w-48 animate-in fade-in zoom-in-95 duration-150 text-xs select-none"
             style={{
               top: Math.min(contextMenu.y, typeof window !== 'undefined' ? window.innerHeight - 100 : 400),
               left: Math.min(contextMenu.x, typeof window !== 'undefined' ? window.innerWidth - 200 : 200),

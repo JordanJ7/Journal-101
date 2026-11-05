@@ -335,7 +335,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                 <div
                   key={folder.id}
                   onClick={() => onNavigateToCoreCategory(folder.id as CoreCategoryId)}
-                  className={`w-full min-h-[58px] py-3 px-3.5 rounded-[14px] bg-white dark:bg-[#18181b] hover:bg-neutral-50 dark:hover:bg-white/[0.06] border border-neutral-200/80 dark:border-white/10 flex items-start justify-between gap-3 box-border transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative ${currentAccent.hoverBorder}`}
+                  className={`w-full min-h-[58px] py-3 px-3.5 rounded-[14px] bg-white dark:bg-(--sf-card-dk) hover:bg-neutral-50 dark:hover:bg-white/[0.06] border border-neutral-200/80 dark:border-white/10 flex items-start justify-between gap-3 box-border transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative ${currentAccent.hoverBorder}`}
                 >
                   {/* Left side: Matching icon + title with note count on its own line */}
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -383,7 +383,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
           </div>
         ) : (
           /* Empty state for pinned topics */
-          <div className="p-6 rounded-2xl border border-dashed border-neutral-300 dark:border-white/10 text-center space-y-3 bg-white dark:bg-[#18181b]">
+          <div className="p-6 rounded-2xl border border-dashed border-neutral-300 dark:border-white/10 text-center space-y-3 bg-white dark:bg-(--sf-card-dk)">
             <div className={`w-9 h-9 rounded-full mx-auto flex items-center justify-center ${currentAccent.iconBox}`}>
               <Pin className="w-4 h-4" />
             </div>
@@ -426,7 +426,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
         {latestWeeklyData ? (
           <div
             onClick={() => onNavigateToWeek(latestWeeklyData.week.id)}
-            className={`w-full rounded-[14px] bg-white dark:bg-[#18181b] border border-neutral-200 dark:border-white/10 p-5 sm:p-6 hover:bg-neutral-50/80 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4 ${currentAccent.hoverBorder}`}
+            className={`w-full rounded-[14px] bg-white dark:bg-(--sf-card-dk) border border-neutral-200 dark:border-white/10 p-5 sm:p-6 hover:bg-neutral-50/80 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4 ${currentAccent.hoverBorder}`}
           >
             {/* Header: Entry Title & Time */}
             <div className="flex items-start justify-between gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
@@ -491,7 +491,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
           </div>
         ) : (
           /* Empty placeholder */
-          <div className="w-full rounded-2xl bg-white dark:bg-[#18181b] border border-dashed border-neutral-300 dark:border-white/10 p-8 text-center space-y-3">
+          <div className="w-full rounded-2xl bg-white dark:bg-(--sf-card-dk) border border-dashed border-neutral-300 dark:border-white/10 p-8 text-center space-y-3">
             <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-white/5 mx-auto flex items-center justify-center text-neutral-400">
               <Calendar className="w-5 h-5" />
             </div>

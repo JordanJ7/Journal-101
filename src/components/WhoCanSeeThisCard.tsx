@@ -67,7 +67,7 @@ export const WhoCanSeeThisCard: React.FC<WhoCanSeeThisCardProps> = ({
   }, [permissions.users]);
 
   return (
-    <div className="bg-white dark:bg-[#18181b] rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs flex flex-col gap-3">
+    <div className="bg-white dark:bg-(--sf-card-dk) rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs flex flex-col gap-3">
       {/* Header */}
       <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-white/5">
         <div className="flex items-center gap-2">

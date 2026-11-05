@@ -638,7 +638,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           onClick={() => setShowAddModal(false)}
         >
           <div
-            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
+            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
@@ -789,7 +789,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           onClick={() => setEditingItem(null)}
         >
           <div
-            className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
+            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',

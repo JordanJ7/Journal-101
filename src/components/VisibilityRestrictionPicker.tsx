@@ -176,7 +176,7 @@ export const VisibilityRestrictionPicker: React.FC<VisibilityRestrictionPickerPr
           {/* Owner Entry (Always Included & Checked) */}
           <div className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-4 h-4 rounded bg-amber-500 text-white flex items-center justify-center shrink-0">
+              <div className="w-4 h-4 rounded bg-amber-500 text-[var(--on-accent,#fff)] flex items-center justify-center shrink-0">
                 <Check className="w-3 h-3 stroke-[3]" />
               </div>
               <div className="min-w-0">

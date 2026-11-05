@@ -69,7 +69,7 @@ export const ConfirmDeleteProvider: React.FC<{ children: React.ReactNode }> = ({
         >
           <div
             id="confirm-delete-modal-container"
-            className="w-full max-w-md bg-white dark:bg-[#141416] rounded-2xl shadow-2xl border border-stone-200 dark:border-white/10 p-6 space-y-5"
+            className="w-full max-w-md bg-white dark:bg-(--sf-panel-dk) rounded-2xl shadow-2xl border border-stone-200 dark:border-white/10 p-6 space-y-5"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',

@@ -452,6 +452,16 @@ export default function App() {
     }
   }, [theme]);
 
+  // Full palettes re-tint the whole app via html[data-palette] (see src/palettes.css)
+  useEffect(() => {
+    const root = document.documentElement;
+    if (ACCENT_THEMES[accentTheme]?.palette) {
+      root.dataset.palette = accentTheme;
+    } else {
+      delete root.dataset.palette;
+    }
+  }, [accentTheme]);
+
   // Modal open/close handlers
   const handleOpenExportModal = useCallback(() => setIsExportModalOpen(true), [setIsExportModalOpen]);
   const handleCloseExportModal = useCallback(() => setIsExportModalOpen(false), [setIsExportModalOpen]);
@@ -529,11 +539,11 @@ export default function App() {
     <ErrorBoundary>
       <ConfirmDeleteProvider>
         <div
-          className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#f8f9fa] dark:bg-[#0c0c0e] text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
+          className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-(--sf-app-lt) dark:bg-(--sf-sunken-dk) text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
         >
         {/* Preview Mode Sticky Banner (Read-only safe view) */}
         {previewGuest && (
-          <div className="shrink-0 z-50 w-full bg-amber-500 text-stone-950 px-4 py-2 sm:py-2.5 flex items-center justify-between shadow-md">
+          <div className="shrink-0 z-50 w-full bg-amber-500 text-[var(--on-accent,var(--color-stone-950))] px-4 py-2 sm:py-2.5 flex items-center justify-between shadow-md">
             <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
               <Eye className="w-4 h-4 shrink-0 text-stone-950" />
               <span>Previewing as {previewGuest.email} — read-only</span>
@@ -756,7 +766,7 @@ export default function App() {
           </main>
 
           {/* Right-Side Panel on Wide Screens (>= 1280px) */}
-          <aside className="hidden xl:flex flex-col w-80 2xl:w-84 h-full border-l border-stone-200/80 dark:border-white/10 bg-[#FAFAF9]/80 dark:bg-[#121214] backdrop-blur-md overflow-y-auto shrink-0 p-4 space-y-4">
+          <aside className="hidden xl:flex flex-col w-80 2xl:w-84 h-full border-l border-stone-200/80 dark:border-white/10 bg-(--sf-soft-lt)/80 dark:bg-(--sf-header-dk) backdrop-blur-md overflow-y-auto shrink-0 p-4 space-y-4">
             <NextSessionCard
               weeks={weeks}
               nextSessionAt={nextSessionAt}
@@ -790,7 +800,7 @@ export default function App() {
         {/* Authentic iOS Bottom Tab Bar (Only on mobile < md) */}
         <nav
           aria-label="Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#F2F2F7] dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
+          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-(--sf-grouped-lt) dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
         >
           <button
             onClick={() => handleSetViewMode('home')}

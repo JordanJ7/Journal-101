@@ -341,7 +341,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Header Bar */}
-      <div className="bg-white dark:bg-[#1C1C1E] p-4 sm:p-5 rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-(--sf-raised-dk) p-4 sm:p-5 rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Film className="w-4 h-4 text-purple-500" />
@@ -390,7 +390,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
 
       {/* Media Grid */}
       {filteredMedia.length === 0 ? (
-        <div className="text-center py-16 px-4 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-2">
+        <div className="text-center py-16 px-4 bg-white dark:bg-(--sf-raised-dk) rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-2">
           <Film className="w-8 h-8 text-stone-400 mx-auto" />
           <h3 className="text-sm font-semibold text-stone-800 dark:text-stone-200">
             No Media Found
@@ -415,7 +415,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
               return (
                 <div
                   key={item.id}
-                  className="bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between space-y-3 group hover:border-black/15 dark:hover:border-white/20 transition-all"
+                  className="bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between space-y-3 group hover:border-black/15 dark:hover:border-white/20 transition-all"
                 >
                   {/* Thumbnail if photo */}
                   {hasDirectImg && (
@@ -549,9 +549,9 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
       {showAddModal && (
         <div
           id="add-media-modal-overlay"
-          className="fixed inset-0 z-50 bg-[#0f0f11]/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-(--sf-app-dk)/90 flex items-center justify-center p-4"
         >
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-white dark:bg-(--sf-raised-dk) rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">Add Media</h3>
               <button onClick={() => setShowAddModal(false)} className="text-stone-400 hover:text-stone-600">

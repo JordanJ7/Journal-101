@@ -80,6 +80,24 @@ interface ThemeColorTokens {
   skipHoverLight: string;
 }
 
+// Palette themes: the amber scale and --accent / --on-accent are re-tinted by src/palettes.css.
+function paletteTokens(accentHex: string): ThemeColorTokens {
+  const n = parseInt(accentHex.slice(1), 16);
+  const rgb = `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+  return {
+    glowDark: `rgba(${rgb},0.10)`,
+    glowLight: `rgba(${rgb},0.16)`,
+    cursorDark: 'bg-(--accent)',
+    cursorLight: 'bg-(--accent)',
+    sparkleDark: 'text-amber-300 bg-amber-400/10 border-amber-400/25',
+    sparkleLight: 'text-amber-700 bg-amber-500/10 border-amber-500/25',
+    activePillDark: 'bg-amber-500/20 text-amber-300 border-amber-400/40 shadow-xs font-semibold',
+    activePillLight: 'bg-(--accent) text-(--on-accent) shadow-xs font-semibold',
+    skipHoverDark: 'hover:border-amber-400/40 hover:text-amber-300',
+    skipHoverLight: 'hover:border-amber-500/40 hover:text-amber-700',
+  };
+}
+
 const THEME_COLOR_MAP: Record<AccentTheme, ThemeColorTokens> = {
   amber: {
     glowDark: 'rgba(245,158,11,0.09)',
@@ -117,30 +135,11 @@ const THEME_COLOR_MAP: Record<AccentTheme, ThemeColorTokens> = {
     skipHoverDark: 'hover:border-emerald-400/40 hover:text-emerald-300',
     skipHoverLight: 'hover:border-emerald-500/40 hover:text-emerald-700',
   },
-  violet: {
-    glowDark: 'rgba(124,58,237,0.09)',
-    glowLight: 'rgba(124,58,237,0.12)',
-    cursorDark: 'bg-violet-400',
-    cursorLight: 'bg-violet-600',
-    sparkleDark: 'text-violet-400 bg-violet-400/10 border-violet-400/25',
-    sparkleLight: 'text-violet-600 bg-violet-500/10 border-violet-500/25',
-    activePillDark: 'bg-violet-500/20 text-violet-300 border-violet-400/40 shadow-xs font-semibold',
-    activePillLight: 'bg-violet-600 text-white shadow-xs font-semibold',
-    skipHoverDark: 'hover:border-violet-400/40 hover:text-violet-300',
-    skipHoverLight: 'hover:border-violet-500/40 hover:text-violet-700',
-  },
-  rose: {
-    glowDark: 'rgba(225,29,72,0.09)',
-    glowLight: 'rgba(225,29,72,0.12)',
-    cursorDark: 'bg-rose-400',
-    cursorLight: 'bg-rose-600',
-    sparkleDark: 'text-rose-400 bg-rose-400/10 border-rose-400/25',
-    sparkleLight: 'text-rose-600 bg-rose-500/10 border-rose-500/25',
-    activePillDark: 'bg-rose-500/20 text-rose-300 border-rose-400/40 shadow-xs font-semibold',
-    activePillLight: 'bg-rose-600 text-white shadow-xs font-semibold',
-    skipHoverDark: 'hover:border-rose-400/40 hover:text-rose-300',
-    skipHoverLight: 'hover:border-rose-500/40 hover:text-rose-700',
-  },
+  espresso: paletteTokens('#F4C9D6'),
+  nox: paletteTokens('#7E49B3'),
+  crimson: paletteTokens('#B5BEDD'),
+  lavender: paletteTokens('#F8769C'),
+  bloom: paletteTokens('#EA6B7E'),
 };
 
 export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
@@ -148,7 +147,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
   onDismiss,
 }) => {
   const theme = useTheme(); // 'dark' | 'light' (defaults to 'dark')
-  const accentTheme = useAccentTheme(); // 'amber' | 'blue' | 'emerald' | 'violet' | 'rose' (defaults to 'amber')
+  const accentTheme = useAccentTheme(); // palette or classic accent id (defaults to 'espresso')
   const introQuotes = useIntroQuotes();
 
   // Ref storing the latest intro quotes so replay handlers read the newest quotes without re-registering
@@ -171,7 +170,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const isDark = theme !== 'light';
-  const tokens = THEME_COLOR_MAP[accentTheme] || THEME_COLOR_MAP.amber;
+  const tokens = THEME_COLOR_MAP[accentTheme] || THEME_COLOR_MAP.espresso;
 
   // Show-on-mount logic: runs EXACTLY ONCE per page load / mount
   useEffect(() => {
@@ -332,8 +331,8 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
         isDismissing
           ? 'bg-transparent opacity-0 pointer-events-none'
           : isDark
-          ? 'bg-[#0f0f11]/90 opacity-100 text-neutral-100'
-          : 'bg-[#f8f9fa]/90 opacity-100 text-neutral-900'
+          ? 'bg-(--sf-app-dk)/90 opacity-100 text-neutral-100'
+          : 'bg-(--sf-app-lt)/90 opacity-100 text-neutral-900'
       }`}
     >
       {/* Ambient subtle dynamic vignette / radiant depth with 25% increased blur */}
@@ -413,7 +412,7 @@ export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({
       <footer className="absolute bottom-6 inset-x-0 z-10 flex flex-col items-center gap-2 px-4">
         <div
           className={`flex flex-wrap justify-center items-center gap-1 p-1 rounded-2xl sm:rounded-full border shadow-xs max-w-[95vw] transition-colors ${
-            isDark ? 'bg-[#18181b] border-white/10' : 'bg-stone-100 border-neutral-300/70'
+            isDark ? 'bg-(--sf-card-dk) border-white/10' : 'bg-stone-100 border-neutral-300/70'
           }`}
         >
           <button

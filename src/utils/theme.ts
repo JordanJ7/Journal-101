@@ -21,12 +21,48 @@ export interface ThemeColorDef {
   activeBorder: string;
   ring: string;
   colorHex: string;
-  darkAppBg: string;
-  darkCardBg: string;
   activeTabBg: string;
+  /** Full palettes re-tint the whole app (see src/palettes.css); classic themes only change the accent. */
+  palette?: { dark: string; accent: string; light: string };
 }
 
+// Palette themes reuse the amber utility classes: while html[data-palette] is set, src/palettes.css
+// re-tints the amber scale to the palette accent (text roles use 700 / 300 so contrast holds for
+// light accents too), and --accent / --on-accent give the exact palette color for filled controls.
+// Colors here must match scripts/generate-palettes.mjs.
+const paletteTheme = (id: AccentTheme, name: string, palette: { dark: string; accent: string; light: string }): ThemeColorDef => ({
+  id,
+  name,
+  bg500: 'bg-(--accent)',
+  bgHover: 'hover:brightness-95',
+  textPrimary: 'text-amber-700 dark:text-amber-300',
+  hoverText: 'hover:text-amber-700 dark:hover:text-amber-300',
+  groupHoverText: 'group-hover:text-amber-700 dark:group-hover:text-amber-300',
+  badgeBg: 'bg-amber-100 dark:bg-amber-950/70',
+  badgeText: 'text-amber-800 dark:text-amber-200',
+  tagBadge: 'bg-amber-500/10 dark:bg-amber-400/10 text-amber-700 dark:text-amber-300 border border-amber-500/25 dark:border-amber-400/20',
+  iconBox: 'bg-amber-500/10 dark:bg-amber-400/10 text-amber-700 dark:text-amber-300',
+  iconBoxHover: 'group-hover:bg-amber-500/20 group-hover:text-amber-800 dark:group-hover:text-amber-200',
+  iconBoxSelected: 'bg-amber-500/20 text-amber-700 dark:text-amber-300 shadow-2xs',
+  bulletDot: 'bg-(--accent)',
+  buttonPrimary: 'bg-(--accent) hover:brightness-105 active:brightness-95 text-(--on-accent) font-semibold shadow-xs',
+  border: 'border-amber-500/40 dark:border-amber-400/30',
+  hoverBorder: 'hover:border-amber-500/40 dark:hover:border-amber-400/30',
+  activeBorder: 'border-amber-500/60 ring-1 ring-amber-500/40',
+  ring: 'focus:ring-amber-500',
+  colorHex: palette.accent,
+  activeTabBg: 'bg-(--accent) text-(--on-accent) shadow-xs font-semibold',
+  palette,
+});
+
+export const DEFAULT_ACCENT_THEME: AccentTheme = 'espresso';
+
 export const ACCENT_THEMES: Record<AccentTheme, ThemeColorDef> = {
+  espresso: paletteTheme('espresso', 'Deep Espresso', { dark: '#3F2622', accent: '#F4C9D6', light: '#F5F0E6' }),
+  nox: paletteTheme('nox', 'Nox Noir', { dark: '#141414', accent: '#7E49B3', light: '#CFCFCF' }),
+  crimson: paletteTheme('crimson', 'Crimson Violet', { dark: '#470B24', accent: '#B5BEDD', light: '#FFEDD5' }),
+  lavender: paletteTheme('lavender', 'Lavender Steel', { dark: '#8E93CB', accent: '#F8769C', light: '#FFDBED' }),
+  bloom: paletteTheme('bloom', 'Obsidian Bloom', { dark: '#4C1413', accent: '#EA6B7E', light: '#FFDBED' }),
   amber: {
     id: 'amber',
     name: 'Warm Amber',
@@ -48,8 +84,6 @@ export const ACCENT_THEMES: Record<AccentTheme, ThemeColorDef> = {
     activeBorder: 'border-amber-500/60 ring-1 ring-amber-500/40',
     ring: 'focus:ring-amber-500',
     colorHex: '#F59E0B',
-    darkAppBg: 'dark:bg-[#0f0f11]',
-    darkCardBg: 'dark:bg-[#18181b] dark:border-white/5',
     activeTabBg: 'bg-amber-500 text-white shadow-xs font-semibold',
   },
   blue: {
@@ -73,8 +107,6 @@ export const ACCENT_THEMES: Record<AccentTheme, ThemeColorDef> = {
     activeBorder: 'border-blue-500/60 ring-1 ring-blue-500/40',
     ring: 'focus:ring-blue-500',
     colorHex: '#2563EB',
-    darkAppBg: 'dark:bg-[#0f0f11]',
-    darkCardBg: 'dark:bg-[#18181b] dark:border-white/5',
     activeTabBg: 'bg-blue-600 text-white shadow-xs font-semibold',
   },
   emerald: {
@@ -98,58 +130,11 @@ export const ACCENT_THEMES: Record<AccentTheme, ThemeColorDef> = {
     activeBorder: 'border-emerald-500/60 ring-1 ring-emerald-500/40',
     ring: 'focus:ring-emerald-500',
     colorHex: '#059669',
-    darkAppBg: 'dark:bg-[#0f0f11]',
-    darkCardBg: 'dark:bg-[#18181b] dark:border-white/5',
     activeTabBg: 'bg-emerald-600 text-white shadow-xs font-semibold',
   },
-  violet: {
-    id: 'violet',
-    name: 'Royal Violet',
-    bg500: 'bg-violet-600',
-    bgHover: 'hover:bg-violet-700',
-    textPrimary: 'text-violet-600 dark:text-violet-400',
-    hoverText: 'hover:text-violet-600 dark:hover:text-violet-400',
-    groupHoverText: 'group-hover:text-violet-600 dark:group-hover:text-violet-400',
-    badgeBg: 'bg-violet-100 dark:bg-violet-950/80',
-    badgeText: 'text-violet-800 dark:text-violet-200',
-    tagBadge: 'bg-violet-500/10 dark:bg-violet-400/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 dark:border-violet-400/20',
-    iconBox: 'bg-violet-500/10 dark:bg-violet-400/10 text-violet-600 dark:text-violet-400',
-    iconBoxHover: 'group-hover:bg-violet-500/20 group-hover:text-violet-700 dark:group-hover:text-violet-300',
-    iconBoxSelected: 'bg-violet-500/20 text-violet-600 dark:text-violet-400 shadow-2xs',
-    bulletDot: 'bg-violet-500 dark:bg-violet-400',
-    buttonPrimary: 'bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white shadow-xs',
-    border: 'border-violet-500/40 dark:border-violet-400/30',
-    hoverBorder: 'hover:border-violet-500/40 dark:hover:border-violet-400/30',
-    activeBorder: 'border-violet-500/60 ring-1 ring-violet-500/40',
-    ring: 'focus:ring-violet-500',
-    colorHex: '#7C3AED',
-    darkAppBg: 'dark:bg-[#0f0f11]',
-    darkCardBg: 'dark:bg-[#18181b] dark:border-white/5',
-    activeTabBg: 'bg-violet-600 text-white shadow-xs font-semibold',
-  },
-  rose: {
-    id: 'rose',
-    name: 'Rose Crimson',
-    bg500: 'bg-rose-600',
-    bgHover: 'hover:bg-rose-700',
-    textPrimary: 'text-rose-600 dark:text-rose-400',
-    hoverText: 'hover:text-rose-600 dark:hover:text-rose-400',
-    groupHoverText: 'group-hover:text-rose-600 dark:group-hover:text-rose-400',
-    badgeBg: 'bg-rose-100 dark:bg-rose-950/80',
-    badgeText: 'text-rose-800 dark:text-rose-200',
-    tagBadge: 'bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 dark:border-rose-400/20',
-    iconBox: 'bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400',
-    iconBoxHover: 'group-hover:bg-rose-500/20 group-hover:text-rose-700 dark:group-hover:text-rose-300',
-    iconBoxSelected: 'bg-rose-500/20 text-rose-600 dark:text-rose-400 shadow-2xs',
-    bulletDot: 'bg-rose-500 dark:bg-rose-400',
-    buttonPrimary: 'bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-xs',
-    border: 'border-rose-500/40 dark:border-rose-400/30',
-    hoverBorder: 'hover:border-rose-500/40 dark:hover:border-rose-400/30',
-    activeBorder: 'border-rose-500/60 ring-1 ring-rose-500/40',
-    ring: 'focus:ring-rose-500',
-    colorHex: '#E11D48',
-    darkAppBg: 'dark:bg-[#0f0f11]',
-    darkCardBg: 'dark:bg-[#18181b] dark:border-white/5',
-    activeTabBg: 'bg-rose-600 text-white shadow-xs font-semibold',
-  },
 };
+
+/** Maps a stored theme id (possibly one that was removed, like 'violet' or 'rose') to a valid one. */
+export function normalizeAccentTheme(value: unknown): AccentTheme {
+  return typeof value === 'string' && value in ACCENT_THEMES ? (value as AccentTheme) : DEFAULT_ACCENT_THEME;
+}

@@ -1,6 +1,24 @@
 import { CORE_CATEGORIES_CONFIG, INITIAL_COMMENTS, INITIAL_CORE_ITEMS, INITIAL_WEEKS } from '../data/initialData';
-import { AppState, CoreTopicItem, WeeklyBlock } from '../types';
+import { AccentTheme, AppState, CoreTopicItem, WeeklyBlock } from '../types';
 import { formatWeekDateRange } from './dateUtils';
+import { DEFAULT_ACCENT_THEME, normalizeAccentTheme } from './theme';
+
+const ACCENT_DEFAULT_MIGRATION_KEY = 'accent_default_espresso_v1';
+
+/**
+ * Warm Amber used to be the default, so a stored 'amber' almost always means "never picked one".
+ * Switch it to the new default once; any later choice (including amber again) is kept.
+ * Removed themes ('violet', 'rose') fall back to the default.
+ */
+function migrateAccentTheme(stored: unknown): AccentTheme {
+  try {
+    if (!localStorage.getItem(ACCENT_DEFAULT_MIGRATION_KEY)) {
+      localStorage.setItem(ACCENT_DEFAULT_MIGRATION_KEY, '1');
+      if (!stored || stored === 'amber') return DEFAULT_ACCENT_THEME;
+    }
+  } catch {}
+  return normalizeAccentTheme(stored);
+}
 
 const STORAGE_KEY = 'journal_therapy_tracker_v1';
 const BACKUP_KEY = 'journal_backup';
@@ -253,7 +271,7 @@ export function loadAppState(): AppState {
             activeCoreCategory: parsed.activeCoreCategory || 'questions-to-ask-her',
             activeCoreSubCategory: parsed.activeCoreSubCategory,
             theme: explicitTheme || parsed.theme || 'dark',
-            accentTheme: parsed.accentTheme || 'amber',
+            accentTheme: migrateAccentTheme(parsed.accentTheme),
             comments: Array.isArray(parsed.comments) ? parsed.comments : INITIAL_COMMENTS,
             coreCategories: mergedCategories,
             pinnedCategoryIds: Array.isArray(parsed.pinnedCategoryIds) && parsed.pinnedCategoryIds.length > 0
@@ -283,7 +301,7 @@ export function loadAppState(): AppState {
     coreItems: INITIAL_CORE_ITEMS,
     activeCoreCategory: 'questions-to-ask-her',
     theme: explicitTheme || 'dark',
-    accentTheme: 'amber',
+    accentTheme: DEFAULT_ACCENT_THEME,
     coreCategories: CORE_CATEGORIES_CONFIG,
     pinnedCategoryIds: ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
     introQuotes: [],

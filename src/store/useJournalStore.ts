@@ -25,6 +25,7 @@ import {
   setHasReceivedFirstFirestoreSnapshot as setGlobalFirestoreSnapshotReceived,
 } from '../utils/storage';
 import { sortFolders } from '../utils/folderSort';
+import { normalizeAccentTheme } from '../utils/theme';
 import {
   relocateBulletToMatchingWeek,
   sortBulletsByDate,
@@ -724,7 +725,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     : ['foods-to-try', 'my-hobbies', 'backstory-stuff', 'things-i-want-to-do'],
   introQuotes: Array.isArray(initialLoaded.introQuotes) ? initialLoaded.introQuotes : [],
   theme: initialLoaded.theme || 'dark',
-  accentTheme: initialLoaded.accentTheme || 'amber',
+  accentTheme: normalizeAccentTheme(initialLoaded.accentTheme),
   filters: initialLoaded.filters || {
     searchQuery: '',
     hasMediaOnly: false,
@@ -2027,7 +2028,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
   },
 
   setAccentTheme: (accentTheme) => {
-    set({ accentTheme });
+    set({ accentTheme: normalizeAccentTheme(accentTheme) });
     schedulePersistence(get);
   },
 

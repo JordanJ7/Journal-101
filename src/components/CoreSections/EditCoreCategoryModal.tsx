@@ -106,7 +106,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
     >
       <div
         id="edit-core-category-modal-card"
-        className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',

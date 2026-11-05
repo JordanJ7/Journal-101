@@ -421,7 +421,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   const userInitial = (currentUser.displayName || currentUser.email || 'U')[0].toUpperCase();
 
   return (
-    <header className="shrink-0 w-full relative z-30 border-b border-stone-200/80 dark:border-white/10 bg-white/95 dark:bg-[#121214]/95 backdrop-blur-md transition-colors pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
+    <header className="shrink-0 w-full relative z-30 border-b border-stone-200/80 dark:border-white/10 bg-white/95 dark:bg-(--sf-header-dk)/95 backdrop-blur-md transition-colors pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
       <div className="w-full px-2.5 sm:px-6 h-14 flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left: Desktop Toggle / Mobile Menu Trigger & App Title */}
         <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
@@ -494,7 +494,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   searchInputRef.current?.blur();
                 }
               }}
-              className="w-full pl-10 pr-14 sm:pr-16 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/5 hover:bg-black/[0.07] dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-[#18181b] border border-stone-200/80 dark:border-white/10 focus:border-amber-500/50 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-400 focus:outline-none transition-all min-h-[44px]"
+              className="w-full pl-10 pr-14 sm:pr-16 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/5 hover:bg-black/[0.07] dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-(--sf-card-dk) border border-stone-200/80 dark:border-white/10 focus:border-amber-500/50 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-400 focus:outline-none transition-all min-h-[44px]"
             />
 
             {/* In-Search Controls */}
@@ -538,7 +538,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
 
           {/* Quick Search Popover */}
           {isSearchDropdownOpen && searchInputValue.trim().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in duration-100 max-h-[70vh] flex flex-col p-2 space-y-1">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in duration-100 max-h-[70vh] flex flex-col p-2 space-y-1">
               <div className="px-2 py-1 text-[11px] font-semibold text-stone-400">
                 {searchResults.totalCount === 0
                   ? 'No results'
@@ -619,7 +619,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                     onClick={() => setIsGuestPickerOpen(false)}
                   />
                   <div
-                    className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-[#18181b] border border-stone-200/90 dark:border-white/10 rounded-[14px] shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2.5"
+                    className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-(--sf-card-dk) border border-stone-200/90 dark:border-white/10 rounded-[14px] shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2.5"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-white/10">
@@ -764,7 +764,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
               <>
                 <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsThemeMenuOpen(false)} />
                 <div
-                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-3 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-3 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-100"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center justify-between p-1 bg-neutral-200/50 dark:bg-white/5 rounded-xl">
@@ -783,7 +783,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       onClick={() => setTheme('dark')}
                       className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                         theme === 'dark'
-                          ? 'bg-[#18181b] text-neutral-100 shadow-xs border border-white/10'
+                          ? 'bg-(--sf-card-dk) text-neutral-100 shadow-xs border border-white/10'
                           : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                       }`}
                     >
@@ -793,30 +793,74 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   </div>
 
                   <div className="pt-2 border-t border-black/5 dark:border-white/5">
-                    <span className="block text-[11px] font-semibold text-stone-400 mb-2">
-                      Accent Color
+                    <span className="block text-[11px] font-semibold text-stone-400 mb-1.5">
+                      Color Palette
+                    </span>
+                    <div className="space-y-0.5 max-h-[45dvh] overflow-y-auto">
+                      {(Object.keys(ACCENT_THEMES) as AccentTheme[])
+                        .filter((key) => ACCENT_THEMES[key].palette)
+                        .map((key) => {
+                          const t = ACCENT_THEMES[key];
+                          const p = t.palette!;
+                          const isSelected = accentTheme === key;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => {
+                                setAccentTheme(key);
+                                setIsThemeMenuOpen(false);
+                              }}
+                              className={`w-full min-h-[40px] px-2 py-1.5 rounded-xl flex items-center gap-2.5 text-left text-xs font-medium transition-colors ${
+                                isSelected
+                                  ? 'bg-black/5 dark:bg-white/10 text-stone-900 dark:text-stone-100'
+                                  : 'text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10'
+                              }`}
+                            >
+                              <span className="flex -space-x-1.5 shrink-0" aria-hidden="true">
+                                {[p.dark, p.accent, p.light].map((c) => (
+                                  <span
+                                    key={c}
+                                    className="w-5 h-5 rounded-full border border-black/10 dark:border-white/20"
+                                    style={{ backgroundColor: c }}
+                                  />
+                                ))}
+                              </span>
+                              <span className="flex-1 truncate">{t.name}</span>
+                              {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                            </button>
+                          );
+                        })}
+                    </div>
+
+                    <span className="block text-[11px] font-semibold text-stone-400 mt-2.5 mb-1.5">
+                      Classic Accent
                     </span>
                     <div className="grid grid-cols-4 gap-1.5">
-                      {(Object.keys(ACCENT_THEMES) as AccentTheme[]).map((key) => {
-                        const t = ACCENT_THEMES[key];
-                        const isSelected = accentTheme === key;
-                        return (
-                          <button
-                            key={key}
-                            onClick={() => {
-                              setAccentTheme(key);
-                              setIsThemeMenuOpen(false);
-                            }}
-                            title={t.name}
-                            className={`w-9 h-9 rounded-full flex items-center justify-center mx-auto transition-transform ${
-                              isSelected ? 'ring-2 ring-offset-2 ring-black/20 dark:ring-white/30 scale-105' : 'hover:scale-105'
-                            }`}
-                            style={{ backgroundColor: t.colorHex }}
-                          >
-                            {isSelected && <span className="text-white text-xs font-bold">✓</span>}
-                          </button>
-                        );
-                      })}
+                      {(Object.keys(ACCENT_THEMES) as AccentTheme[])
+                        .filter((key) => !ACCENT_THEMES[key].palette)
+                        .map((key) => {
+                          const t = ACCENT_THEMES[key];
+                          const isSelected = accentTheme === key;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => {
+                                setAccentTheme(key);
+                                setIsThemeMenuOpen(false);
+                              }}
+                              title={t.name}
+                              aria-label={t.name}
+                              className={`w-9 h-9 rounded-full flex items-center justify-center mx-auto transition-transform ${
+                                isSelected ? 'ring-2 ring-offset-2 ring-black/20 dark:ring-white/30 scale-105' : 'hover:scale-105'
+                              }`}
+                              style={{ backgroundColor: t.colorHex }}
+                            >
+                              {isSelected && <span className="text-white text-xs font-bold">✓</span>}
+                            </button>
+                          );
+                        })}
                     </div>
                   </div>
 
@@ -918,7 +962,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
               />
 
               <div
-                className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#1C1C1E] border border-black/10 dark:border-white/15 rounded-2xl p-4 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 max-h-[calc(100dvh-4.5rem)] overflow-y-auto space-y-3"
+                className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/15 rounded-2xl p-4 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 max-h-[calc(100dvh-4.5rem)] overflow-y-auto space-y-3"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header with User and Close button */}
@@ -970,7 +1014,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       onClick={() => setTheme('dark')}
                       className={`flex-1 min-h-[36px] py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 ${
                         theme === 'dark'
-                          ? 'bg-[#18181b] text-neutral-100 shadow-xs border border-white/10'
+                          ? 'bg-(--sf-card-dk) text-neutral-100 shadow-xs border border-white/10'
                           : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                       }`}
                     >
@@ -1009,7 +1053,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                         setIsMobileMenuOpen(false);
                         onOpenQuotesModal();
                       }}
-                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-[#2C2C2E] flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
                         <Quote className="w-4 h-4 text-amber-500" />
@@ -1024,7 +1068,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       setIsMobileMenuOpen(false);
                       onOpenAccessManagement();
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-[#2C2C2E] flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <Shield className="w-4 h-4 text-blue-500" />
@@ -1038,7 +1082,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       setIsMobileMenuOpen(false);
                       onOpenExportModal();
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-[#2C2C2E] flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <Share2 className="w-4 h-4 text-purple-500" />

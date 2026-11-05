@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./palettes.css";
 
 @theme {
   --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
@@ -10,6 +11,22 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* Surface colors that used to be hard-coded hex values. These defaults keep the classic
+   accent themes unchanged; each palette in palettes.css overrides them. */
+:root {
+  --sf-app-lt: #f8f9fa;
+  --sf-grouped-lt: #F2F2F7;
+  --sf-soft-lt: #FAFAF9;
+  --sf-app-dk: #0f0f11;
+  --sf-sunken-dk: #0c0c0e;
+  --sf-header-dk: #121214;
+  --sf-panel-dk: #141416;
+  --sf-card-dk: #18181b;
+  --sf-raised-dk: #1C1C1E;
+  --sf-raised2-dk: #202022;
+  --sf-raised3-dk: #2C2C2E;
+}
 
 html {
   color-scheme: light dark;
@@ -24,7 +41,7 @@ html {
 }
 
 body {
-  @apply bg-[#f8f9fa] text-neutral-900;
+  @apply bg-(--sf-app-lt) text-neutral-900;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -39,13 +56,13 @@ body {
 }
 
 html.dark body {
-  @apply bg-[#0f0f11] text-neutral-100;
+  @apply bg-(--sf-app-dk) text-neutral-100;
 }
 
 /* Apple Journal styled form controls */
 html.dark select,
 html.dark option {
-  background-color: #18181b;
+  background-color: var(--sf-card-dk);
   color: #f4f4f5;
 }
 

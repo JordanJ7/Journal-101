@@ -98,7 +98,7 @@ export const WeeklyTimestampModal: React.FC<WeeklyTimestampModalProps> = ({
     >
       <div
         id="weekly-timestamp-modal-card"
-        className="w-full max-w-lg bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-lg bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',

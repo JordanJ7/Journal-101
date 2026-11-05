@@ -153,7 +153,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] border border-stone-200/80 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 max-h-[90vh] flex flex-col"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200/80 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 max-h-[90vh] flex flex-col"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',

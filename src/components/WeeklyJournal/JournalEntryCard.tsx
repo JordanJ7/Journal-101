@@ -820,7 +820,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     onClick={() => onTogglePinTakeaway(bullet)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${
                       bullet.pinnedToLearned
-                        ? 'bg-amber-500 text-white border-amber-600'
+                        ? 'bg-amber-500 text-[var(--on-accent,#fff)] border-amber-600'
                         : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20'
                     }`}
                   >

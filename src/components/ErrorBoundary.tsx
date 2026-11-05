@@ -44,8 +44,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen w-full bg-[#0c0c0e] text-stone-100 flex items-center justify-center p-4 sm:p-6 font-sans">
-          <div className="w-full max-w-md bg-[#18181b] rounded-[14px] border border-stone-800 p-6 sm:p-8 space-y-5 text-center shadow-2xl">
+        <div className="min-h-screen w-full bg-(--sf-sunken-dk) text-stone-100 flex items-center justify-center p-4 sm:p-6 font-sans">
+          <div className="w-full max-w-md bg-(--sf-card-dk) rounded-[14px] border border-stone-800 p-6 sm:p-8 space-y-5 text-center shadow-2xl">
             <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 mx-auto flex items-center justify-center border border-rose-500/20">
               <AlertCircle className="w-6 h-6" />
             </div>
@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <button
               type="button"
               onClick={this.handleReload}
-              className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs min-h-[44px]"
+              className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-400 text-[var(--on-accent,var(--color-stone-950))] font-semibold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs min-h-[44px]"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Reload</span>

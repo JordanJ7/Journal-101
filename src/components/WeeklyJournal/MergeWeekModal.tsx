@@ -43,7 +43,7 @@ export const MergeWeekModal: React.FC<MergeWeekModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden text-stone-900 dark:text-stone-100"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden text-stone-900 dark:text-stone-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 dark:border-white/10 shrink-0">
@@ -105,7 +105,7 @@ export const MergeWeekModal: React.FC<MergeWeekModalProps> = ({
                   <div
                     className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
                       isSelected
-                        ? 'border-amber-500 bg-amber-500 text-white'
+                        ? 'border-amber-500 bg-amber-500 text-[var(--on-accent,#fff)]'
                         : 'border-stone-300 dark:border-stone-600'
                     }`}
                   >
@@ -129,7 +129,7 @@ export const MergeWeekModal: React.FC<MergeWeekModalProps> = ({
             type="button"
             disabled={!selectedTargetId}
             onClick={handleMerge}
-            className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--on-accent,#fff)] transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
           >
             <GitMerge className="w-3.5 h-3.5" />
             <span>Merge Weeks</span>

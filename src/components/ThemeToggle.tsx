@@ -66,7 +66,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         onClick={() => setTheme('dark')}
         className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
           theme === 'dark'
-            ? 'bg-[#18181b] text-neutral-100 shadow-xs border border-white/10'
+            ? 'bg-(--sf-card-dk) text-neutral-100 shadow-xs border border-white/10'
             : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100'
         }`}
       >

@@ -78,7 +78,7 @@ export const AddCoreCategoryModal: React.FC<AddCoreCategoryModalProps> = ({ onSa
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] border border-black/10 dark:border-white/10 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-black/10 dark:border-white/10 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',

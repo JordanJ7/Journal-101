@@ -113,13 +113,13 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
   };
 
   return (
-    <div className="w-full bg-white dark:bg-[#18181b] rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs space-y-3.5">
+    <div className="w-full bg-white dark:bg-(--sf-card-dk) rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs space-y-3.5">
       {/* Header & Next Session Date */}
       <div>
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex items-center gap-1.5">
             <div
-              className={`w-6 h-6 rounded-lg flex items-center justify-center text-stone-950 bg-amber-500 font-bold`}
+              className={`w-6 h-6 rounded-lg flex items-center justify-center text-[var(--on-accent,var(--color-stone-950))] bg-amber-500 font-bold`}
             >
               <Calendar className="w-3.5 h-3.5" />
             </div>
@@ -173,7 +173,7 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
               <button
                 type="button"
                 onClick={handleSaveDateTime}
-                className="min-h-[44px] px-3.5 py-1 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 transition-colors shadow-xs cursor-pointer"
+                className="min-h-[44px] px-3.5 py-1 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-400 text-[var(--on-accent,var(--color-stone-950))] transition-colors shadow-xs cursor-pointer"
               >
                 Save
               </button>
@@ -267,7 +267,7 @@ export const NextSessionCard: React.FC<NextSessionCardProps> = ({
         <button
           type="button"
           onClick={onOpenSessionPrep}
-          className="w-full min-h-[44px] py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer bg-amber-500 hover:bg-amber-400 text-stone-950"
+          className="w-full min-h-[44px] py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer bg-amber-500 hover:bg-amber-400 text-[var(--on-accent,var(--color-stone-950))]"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>Open session prep</span>

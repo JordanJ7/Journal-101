@@ -84,7 +84,7 @@ export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
   return (
     <div
       ref={popoverRef}
-      className={`absolute z-[9999] mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 sm:p-4 bg-white dark:bg-[#202022] rounded-2xl border border-black/15 dark:border-white/20 shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
+      className={`absolute z-[9999] mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 sm:p-4 bg-white dark:bg-(--sf-raised2-dk) rounded-2xl border border-black/15 dark:border-white/20 shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
         align === 'right' ? 'right-0' : align === 'center' ? 'left-1/2 -translate-x-1/2' : 'left-0'
       }`}
       onClick={(e) => e.stopPropagation()}
@@ -112,7 +112,7 @@ export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
           onClick={() => handleApplyPreset('now')}
           className={`flex-1 min-h-[40px] py-2 px-2.5 rounded-xl text-xs font-semibold transition-colors border flex items-center justify-center ${
             activePreset === 'now'
-              ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+              ? 'bg-amber-500 text-[var(--on-accent,#fff)] border-amber-600 shadow-xs'
               : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-black/5 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-stone-700'
           }`}
         >
@@ -123,7 +123,7 @@ export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
           onClick={() => handleApplyPreset('yesterday')}
           className={`flex-1 min-h-[40px] py-2 px-2.5 rounded-xl text-xs font-semibold transition-colors border flex items-center justify-center ${
             activePreset === 'yesterday'
-              ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+              ? 'bg-amber-500 text-[var(--on-accent,#fff)] border-amber-600 shadow-xs'
               : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-black/5 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-stone-700'
           }`}
         >
@@ -174,7 +174,7 @@ export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
         <button
           type="button"
           onClick={handleConfirm}
-          className="min-h-[44px] px-4 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 active:scale-95 text-white rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5"
+          className="min-h-[44px] px-4 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 active:scale-95 text-[var(--on-accent,#fff)] rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5"
         >
           <Check className="w-4 h-4" />
           <span>Save Date</span>

@@ -51,7 +51,7 @@ export const AddSubFolderModal: React.FC<AddSubFolderModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] rounded-3xl p-6 border border-stone-200 dark:border-white/10 shadow-2xl max-w-md w-full space-y-4 relative"
+        className="bg-white dark:bg-(--sf-panel-dk) rounded-3xl p-6 border border-stone-200 dark:border-white/10 shadow-2xl max-w-md w-full space-y-4 relative"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',

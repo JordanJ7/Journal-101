@@ -98,7 +98,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden text-stone-900 dark:text-stone-100"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden text-stone-900 dark:text-stone-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -410,7 +410,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
             onClick={() => setConfirmDeleteTarget(null)}
           >
             <div
-              className="bg-white dark:bg-[#1C1C1E] border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 text-stone-900 dark:text-stone-100"
+              className="bg-white dark:bg-(--sf-raised-dk) border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 text-stone-900 dark:text-stone-100"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">

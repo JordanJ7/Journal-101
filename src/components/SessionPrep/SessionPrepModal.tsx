@@ -136,7 +136,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-[#1C1C1E] rounded-2xl sm:rounded-3xl shadow-2xl border border-stone-200 dark:border-white/10 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 z-10">
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-(--sf-raised-dk) rounded-2xl sm:rounded-3xl shadow-2xl border border-stone-200 dark:border-white/10 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 z-10">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-200/80 dark:border-white/10 shrink-0">
           <div className="flex items-center gap-2.5">

@@ -36,7 +36,7 @@ export const MoveEntryModal: React.FC<MoveEntryModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] flex flex-col overflow-hidden text-stone-900 dark:text-stone-100"
+        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] flex flex-col overflow-hidden text-stone-900 dark:text-stone-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 dark:border-white/10 shrink-0">

@@ -117,7 +117,7 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
   // Clean empty state
   if (!currentWeek || filteredWeeks.length === 0) {
     return (
-      <div className="text-center py-16 px-4 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-2 max-w-lg mx-auto">
+      <div className="text-center py-16 px-4 bg-white dark:bg-(--sf-raised-dk) rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-2 max-w-lg mx-auto">
         <Calendar className="w-8 h-8 text-stone-400 mx-auto" />
         <h3 className="text-sm font-semibold text-stone-800 dark:text-stone-200">
           {filters.searchQuery ? `No results for "${filters.searchQuery}"` : 'No Entries'}
@@ -142,7 +142,7 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Top Single-Week Navigation Bar */}
-      <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#18181b] px-3 sm:px-4 py-2.5 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs">
+      <div className="flex items-center justify-between gap-2 bg-white dark:bg-(--sf-card-dk) px-3 sm:px-4 py-2.5 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs">
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={handlePrevWeek}

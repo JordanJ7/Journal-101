@@ -114,7 +114,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
           ? 'bg-sky-50/70 dark:bg-sky-950/60 border-sky-300 dark:border-sky-700 ring-2 ring-sky-400/50 shadow-md'
           : item.isHighlightedAnswer
           ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-xs`
-          : 'bg-white dark:bg-[#18181b] border-stone-200/80 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20'
+          : 'bg-white dark:bg-(--sf-card-dk) border-stone-200/80 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20'
       }`}
     >
       {/* Pinned From Weekly Journal Header Badge */}

@@ -373,7 +373,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* 1. Top Folder Navigation Bar */}
-      <div className="bg-white dark:bg-[#18181b] p-3.5 sm:p-4 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-(--sf-card-dk) p-3.5 sm:p-4 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           {/* Active Folder Switcher */}
           <div className="relative flex-1 min-w-[200px]">
@@ -404,7 +404,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                   className="fixed inset-0 z-30 bg-transparent"
                   onClick={() => setIsFolderDropdownOpen(false)}
                 />
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-1.5 z-40 max-h-72 overflow-y-auto space-y-0.5 animate-in fade-in duration-100">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-1.5 z-40 max-h-72 overflow-y-auto space-y-0.5 animate-in fade-in duration-100">
                   {sortedCategories.map((cat) => {
                     const isSelected = activeCategory === cat.id;
                     const catCount = items.filter((i) => i.categoryId === cat.id).length;
@@ -591,7 +591,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
       </div>
 
       {/* 2. Prominent Topic Title & Integrated Bulleted Topic Notes Canvas */}
-      <div className="bg-white dark:bg-[#18181b] p-5 sm:p-6 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-(--sf-card-dk) p-5 sm:p-6 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-4">
         {/* Topic Title and Description */}
         <div className="border-b border-black/5 dark:border-white/5 pb-3">
           <div className="flex items-center gap-2.5">
