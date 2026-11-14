@@ -55,6 +55,7 @@ import {
 import { canUserViewItem } from './hooks/usePermissions';
 import { useKeepCaretAboveKeyboard } from './hooks/useKeepCaretAboveKeyboard';
 import { useReminderSync } from './hooks/useReminderSync';
+import { MainTabs } from './components/MainTabs';
 import { applySchemeTokens } from './utils/schemes';
 import { sortFolders } from './utils/folderSort';
 
@@ -815,53 +816,7 @@ export default function App() {
           aria-label="Mobile Navigation"
           className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-(--j-glass) backdrop-blur-xl backdrop-saturate-150 border-t border-(--j-line) text-(--j-ink2) pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
         >
-          <button
-            onClick={() => handleSetViewMode('home')}
-            className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'home' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
-            }`}
-          >
-            <Home className="w-5 h-5 mb-0.5" />
-            <span className="text-[11px] tracking-tight">Home</span>
-          </button>
-
-          <button
-            onClick={() => handleSetViewMode('weekly')}
-            className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'weekly' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
-            }`}
-          >
-            <Calendar className="w-5 h-5 mb-0.5" />
-            <span className="text-[11px] tracking-tight">Weekly</span>
-          </button>
-
-          <button
-            onClick={() => handleSetViewMode('core')}
-            className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'core' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
-            }`}
-          >
-            <FolderOpen className="w-5 h-5 mb-0.5" />
-            <span className="text-[11px] tracking-tight">Topics</span>
-          </button>
-
-          <button
-            onClick={() => handleSetViewMode('media')}
-            className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'media' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
-            }`}
-          >
-            <Film className="w-5 h-5 mb-0.5" />
-            <span className="text-[11px] tracking-tight">Media</span>
-          </button>
-
-          <button
-            onClick={() => setIsOpenMobile(true)}
-            className="flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-all"
-          >
-            <Menu className="w-5 h-5 mb-0.5" />
-            <span className="text-[11px] tracking-tight">Folders</span>
-          </button>
+          <MainTabs variant="bottom" viewMode={viewMode} onSelect={handleSetViewMode} />
         </nav>
 
         {/* Google Docs Style Comments & Feedback Sidebar (Suspense Loaded) */}

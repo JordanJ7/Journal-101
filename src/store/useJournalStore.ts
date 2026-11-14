@@ -734,7 +734,7 @@ export const useJournalStore = create<JournalStoreState>((set, get) => ({
     sortOrder: 'newest',
   },
   comments: Array.isArray(initialLoaded.comments) ? initialLoaded.comments : INITIAL_COMMENTS,
-  viewMode: 'home',
+  viewMode: 'weekly', // the week is the core screen; Home (overview) stays one tap away in the drawer
 
   saveStatus: (typeof navigator !== 'undefined' && !navigator.onLine) ? 'offline' : 'saved_local',
   lastCloudSavedAt: null,

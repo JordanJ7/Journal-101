@@ -1,4 +1,5 @@
 import {
+  Home,
   Calendar,
   Check,
   ChevronDown,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertsButton } from './ReminderControls';
+import { MainTabs } from './MainTabs';
 import { CurrentUserProfile, PermissionsDoc, UserPermission, UserRole } from '../lib/firebase';
 import { useJournalStore, hasDirtyItems } from '../store/useJournalStore';
 import {
@@ -422,7 +424,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
   const userInitial = (currentUser.displayName || currentUser.email || 'U')[0].toUpperCase();
 
   return (
-    <header className="shrink-0 w-full relative z-30 border-b border-stone-200/80 dark:border-white/10 bg-white/95 dark:bg-(--sf-header-dk)/95 backdrop-blur-md transition-colors pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
+    <header className="shrink-0 w-full relative z-30 border-b border-(--j-line) bg-(--j-ground)/90 backdrop-blur-md text-(--j-ink) transition-colors pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
       <div className="w-full px-2.5 sm:px-6 h-14 flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left: Desktop Toggle / Mobile Menu Trigger & App Title */}
         <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
@@ -456,20 +458,26 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity focus:outline-none"
             title="Go to Home Overview"
           >
-            <div
-              className="w-7 h-7 rounded-lg text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0"
-              style={{ backgroundColor: currentAccent.colorHex }}
-            >
-              J
-            </div>
-            <span className="hidden sm:inline text-sm font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+            <svg viewBox="0 0 100 100" className="w-7 h-7 rounded-[8px] shrink-0" aria-hidden="true">
+              <rect width="100" height="100" fill="var(--j-ground)" />
+              <rect width="100" height="100" fill="var(--j-ink)" opacity=".08" />
+              <path d="M30 18 V70 a12 12 0 0 0 12 12 H80" fill="none" stroke="var(--j-bar)" strokeWidth="8" strokeLinecap="round" />
+              <circle cx="30" cy="34" r="9" fill="var(--j-ink)" />
+              <circle cx="74" cy="82" r="11" fill="var(--j-sig)" />
+            </svg>
+            <span className="hidden sm:inline j-display text-[15px] tracking-tight text-(--j-ink)">
               Journal
             </span>
           </button>
         </div>
 
-        {/* Center: Wide Search Bar */}
-        <div className="relative flex-1 max-w-lg md:max-w-xl lg:max-w-2xl mx-1 sm:mx-3" ref={searchContainerRef}>
+        {/* Main places, floating in the bar on iPad and desktop */}
+        <div className="hidden md:flex">
+          <MainTabs variant="top" viewMode={viewMode || 'weekly'} onSelect={(m) => setViewMode?.(m)} />
+        </div>
+
+        {/* Center: Search */}
+        <div className="relative flex-1 max-w-lg md:max-w-[240px] lg:max-w-xs xl:max-w-sm mx-1 sm:mx-3" ref={searchContainerRef}>
           <div className="relative flex items-center">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-400 pointer-events-none" />
             <input
@@ -716,41 +724,6 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             </div>
           )}
 
-          {/* Session Prep Quick Button */}
-          {onOpenSessionPrep && (
-            <button
-              onClick={onOpenSessionPrep}
-              title="Session Prep"
-              aria-label="Session Prep"
-              className="min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-200 dark:border-violet-800/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
-              <span className="hidden lg:inline">Session Prep</span>
-            </button>
-          )}
-
-          {/* Access / Permissions Button */}
-          <button
-            onClick={onOpenAccessManagement}
-            title="Access & Sharing"
-            aria-label="Access & Sharing"
-            className="min-h-[44px] min-w-[44px] p-2 rounded-xl text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
-          >
-            <Shield className="w-4 h-4" />
-          </button>
-
-          {/* Intro Screen Quotes Management Button */}
-          {onOpenQuotesModal && (
-            <button
-              onClick={onOpenQuotesModal}
-              title="Customize Intro Quotes"
-              aria-label="Customize Intro Quotes"
-              className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
-            >
-              <Quote className="w-4 h-4 text-amber-500" />
-            </button>
-          )}
-
           {/* Theme & Palette Button */}
           <div className="relative" ref={themeMenuRef}>
             <button
@@ -896,51 +869,10 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             )}
           </div>
 
-          {/* Full-Screen Toggle */}
-          {onToggleFullScreen && (
-            <button
-              onClick={onToggleFullScreen}
-              title={isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
-              className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
-            >
-              {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-          )}
-
-          {/* Export & Share */}
-          <button
-            onClick={onOpenExportModal}
-            title="Export & Share"
-            className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
-
-          {/* Streamlined User Avatar */}
-          <button
-            onClick={onOpenAccessManagement}
-            title={`Signed in as ${currentUser.email} (${currentUser.role})`}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center"
-          >
-            <div className="w-8 h-8 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-stone-200 flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-black/10 dark:hover:ring-white/20 transition-all">
-              {userInitial}
-            </div>
-          </button>
-
-          {/* Sign Out (if provided) */}
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              title="Sign Out"
-              className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center justify-center"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          )}
         </div>
 
         {/* Right Mobile Condensed Menu Trigger (md:hidden) */}
-        <div className="relative flex md:hidden items-center shrink-0">
+        <div className="relative flex items-center shrink-0">
           <button
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             className={`min-h-[44px] min-w-[44px] p-2 rounded-full flex items-center justify-center transition-colors ${
@@ -1054,6 +986,36 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
 
                 {/* Navigation & Action Links */}
                 <div className="space-y-1.5 pt-2 border-t border-black/5 dark:border-white/10">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setViewMode?.('home');
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Home className="w-4 h-4 text-amber-500" />
+                      <span>Overview</span>
+                    </div>
+                    <span className="text-stone-400 text-xs">›</span>
+                  </button>
+                  {onToggleFullScreen && (
+                    <div className="hidden md:block">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      onToggleFullScreen();
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {isFullScreen ? <Minimize2 className="w-4 h-4 text-amber-500" /> : <Maximize2 className="w-4 h-4 text-amber-500" />}
+                      <span>{isFullScreen ? 'Exit full screen' : 'Full screen'}</span>
+                    </div>
+                    <span className="text-stone-400 text-xs">›</span>
+                  </button>
+                    </div>
+                  )}
                   {onOpenQuotesModal && (
                     <button
                       onClick={() => {

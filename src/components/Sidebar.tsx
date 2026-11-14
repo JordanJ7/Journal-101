@@ -497,7 +497,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       )}
 
       {/* Apple-style Segmented Control */}
-      <div className="flex bg-black/5 dark:bg-white/10 p-0.5 rounded-xl mb-3 shrink-0">
+      <div className={`${isMobileView ? 'flex' : 'hidden'} bg-black/5 dark:bg-white/10 p-0.5 rounded-xl mb-3 shrink-0`}>
         <button
           onClick={() => {
             setViewMode('home');
@@ -939,7 +939,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {/* Desktop Sidebar (hidden on screens < 1280px / xl) with spacious width for 2-column grid */}
       <aside
         id="main-desktop-sidebar"
-        className={`hidden xl:flex border-r border-black/5 dark:border-white/10 bg-(--sf-grouped-lt)/50 dark:bg-black/50 h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`hidden xl:flex border-r border-(--j-line) bg-(--j-side) text-(--j-ink) h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
           isSidebarOpen
             ? 'w-80 lg:w-88 xl:w-96 p-3 opacity-100 translate-x-0'
             : 'w-0 p-0 opacity-0 -translate-x-full border-r-0 overflow-hidden pointer-events-none'
