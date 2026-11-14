@@ -53,6 +53,7 @@ import {
   UserRole,
 } from './lib/firebase';
 import { canUserViewItem } from './hooks/usePermissions';
+import { useKeepCaretAboveKeyboard } from './hooks/useKeepCaretAboveKeyboard';
 import { sortFolders } from './utils/folderSort';
 
 // Lazy-loaded heavy modals and slide-overs for minimal initial bundle & fast TTI
@@ -95,6 +96,8 @@ export default function App() {
   const [presenceMap, setPresenceMap] = useState<Record<string, { lastViewedAt: string }>>({});
 
   // Real-time presence listener for the owner only
+  useKeepCaretAboveKeyboard();
+
   useEffect(() => {
     if (!currentUser?.isLoggedIn || currentUser?.role !== 'owner') {
       return;
@@ -600,8 +603,10 @@ export default function App() {
 
         {/* Dynamic Edge-to-Edge Workspace Layout */}
         <div
-          className={`flex-1 w-full flex items-start overflow-hidden transition-all duration-300 ease-in-out ${
-            isCommentsSidebarOpen ? 'lg:pr-96 xl:pr-96' : ''
+          // The safe-area padding keeps content out from under iPhone Duo's vertical status
+          // column (right edge) and any landscape notch; it is 0 elsewhere.
+          className={`flex-1 w-full flex items-start overflow-hidden transition-all duration-300 ease-in-out pl-[env(safe-area-inset-left,0px)] ${
+            isCommentsSidebarOpen ? 'pr-[env(safe-area-inset-right,0px)] lg:pr-96 xl:pr-96' : 'pr-[env(safe-area-inset-right,0px)]'
           }`}
         >
           {/* Collapsible Sidebar / Mobile Drawer Navigation */}

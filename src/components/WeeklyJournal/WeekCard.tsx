@@ -137,6 +137,51 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
     [onUpdateWeek, week]
   );
 
+  // Drag reminders (or any text) from another app in Split View onto the entries list to add
+  // them. Each line becomes its own entry. Drops into a text field are left to the browser, which
+  // inserts the text there as usual.
+  const [isDropTarget, setIsDropTarget] = useState(false);
+  const isEditableTarget = (target: EventTarget | null) =>
+    target instanceof HTMLElement && !!target.closest('textarea, input, [contenteditable="true"]');
+  const hasDroppableText = (e: React.DragEvent) =>
+    canEdit && !isEditableTarget(e.target) && Array.from(e.dataTransfer.types).includes('text/plain');
+
+  const handleEntriesDragOver = useCallback((e: React.DragEvent) => {
+    if (!hasDroppableText(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setIsDropTarget(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canEdit]);
+
+  const handleEntriesDragLeave = useCallback((e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setIsDropTarget(false);
+  }, []);
+
+  const handleEntriesDrop = useCallback((e: React.DragEvent) => {
+    setIsDropTarget(false);
+    if (!hasDroppableText(e)) return;
+    e.preventDefault();
+    const lines = parseDroppedLines(e.dataTransfer.getData('text/plain'));
+    if (lines.length === 0) return;
+    const now = Date.now();
+    const timestamp = formatTimestamp();
+    const added: BulletPoint[] = lines.map((text, i) => ({
+      id: `b-${now}-${i}`,
+      text,
+      indent: 0,
+      bulletStyle: 'disc',
+      timestamp,
+      isCustomDate: false,
+      forSession: false,
+    }));
+    onUpdateWeek({ ...week, updatedAt: new Date().toISOString(), bullets: [...week.bullets, ...added] });
+    setIsJournalOpen(true);
+    useJournalStore.getState().showToast(`Added ${added.length} ${added.length === 1 ? 'entry' : 'entries'}`);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canEdit, onUpdateWeek, week]);
+
   const { confirmDelete } = useConfirmDelete();
 
   const handleUpdateBullet = useCallback((updated: BulletPoint) => {
@@ -444,8 +489,13 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
         {/* Section 1: Journal Entries */}
         <div
           id="section-journal-bullets"
+          onDragOver={handleEntriesDragOver}
+          onDragLeave={handleEntriesDragLeave}
+          onDrop={handleEntriesDrop}
           className={`space-y-3 rounded-xl p-3.5 border transition-all ${
-            isJournalHighlighted
+            isDropTarget
+              ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-500 border-dashed'
+              : isJournalHighlighted
               ? 'bg-blue-50/40 dark:bg-blue-950/20 border-blue-400 dark:border-blue-600'
               : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5'
           }`}
@@ -844,3 +894,15 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
     );
   }
 );
+
+/** Splits dropped text into entry lines, removing list markers such as "- [ ]", "•" or "1.". */
+function parseDroppedLines(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/^\s*(?:[-*•◦○☐☑✓]|\d+[.)](?=\s))?\s*(?:\[[ xX]?\])?\s*/, '')
+        .trim()
+    )
+    .filter((line) => line.length > 0);
+}

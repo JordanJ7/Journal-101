@@ -185,7 +185,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
       {/* Expanded Comments Sidebar Panel */}
       <aside
         id="comments-sidebar-panel"
-        className={`fixed top-16 right-0 bottom-0 z-40 w-full max-w-sm sm:w-96 bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed top-16 right-0 bottom-0 z-40 w-full max-w-sm sm:w-96 pr-[env(safe-area-inset-right,0px)] pb-[env(safe-area-inset-bottom,0px)] bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

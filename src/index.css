@@ -194,3 +194,12 @@ img {
   transition: all 0.2s ease-in-out;
 }
 
+
+/* While typing on a touch screen, give the page room to scroll the entry being typed above a
+   split or floating keyboard (see src/hooks/useKeepCaretAboveKeyboard.ts). */
+@media (pointer: coarse) {
+  main:has(textarea:focus, input:focus) {
+    padding-bottom: 50dvh !important;
+    transition-property: opacity !important; /* add the room at once, not animated */
+  }
+}
