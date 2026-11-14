@@ -251,18 +251,18 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-white dark:bg-stone-900 p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+      <div className="bg-(--j-field) p-6 rounded-3xl border border-(--j-line) shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50">
                 <MessageCircle className="w-5 h-5" />
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900 dark:text-stone-100">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-(--j-ink)">
                 Questions To Ask Her — Dual-Pane Reflection
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-medium">
+            <p className="text-xs sm:text-sm text-(--j-ink2) font-medium">
               Side-by-side card layout pairing deep questions with your prepared answers, organized in collapsible subtopic accordions.
             </p>
           </div>
@@ -270,13 +270,13 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={expandAll}
-              className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-xl text-xs font-semibold transition-colors"
+              className="px-3 py-1.5 bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-stone-700 text-(--j-ink2) rounded-xl text-xs font-semibold transition-colors"
             >
               Expand All
             </button>
             <button
               onClick={collapseAll}
-              className="px-3 py-1.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-xl text-xs font-semibold transition-colors"
+              className="px-3 py-1.5 bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-stone-700 text-(--j-ink2) rounded-xl text-xs font-semibold transition-colors"
             >
               Collapse All
             </button>
@@ -294,13 +294,13 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100 dark:border-stone-800/80">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-(--j-line)">
           <button
             onClick={() => setFilterMode('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
               filterMode === 'all'
                 ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-2xs'
-                : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                : 'bg-(--j-soft) text-(--j-ink2)'
             }`}
           >
             All Questions ({items.length})
@@ -321,7 +321,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
             onClick={() => setFilterMode('unanswered')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
               filterMode === 'unanswered'
-                ? 'bg-amber-600 text-white shadow-2xs'
+                ? 'bg-amber-600 text-[var(--on-accent,#fff)] shadow-2xs'
                 : 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
             }`}
           >
@@ -342,18 +342,18 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-(--j-ink2) absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search deep questions, prompts, and your reflections..."
             value={searchQuery}
             onChange={(e) => setLocalSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-2xl text-xs sm:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-(--j-soft) border border-(--j-line) rounded-2xl text-xs sm:text-sm text-(--j-ink) focus:outline-none focus:ring-2 focus:ring-purple-500/40"
           />
           {searchQuery && (
             <button
               onClick={() => setLocalSearchQuery('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-(--j-ink2) hover:text-stone-600 dark:hover:text-stone-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -369,12 +369,12 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           return (
             <div
               key={group.id}
-              className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-2xs overflow-hidden transition-all duration-200"
+              className="bg-(--j-field) rounded-3xl border border-(--j-line) shadow-2xs overflow-hidden transition-all duration-200"
             >
               {/* Accordion Subtopic Header */}
               <button
                 onClick={() => toggleGroup(group.id)}
-                className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-stone-50/70 dark:hover:bg-stone-800/50 transition-colors border-b border-stone-100 dark:border-stone-800/80"
+                className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-stone-50/70 dark:hover:bg-stone-800/50 transition-colors border-b border-(--j-line)"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-1.5 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
@@ -386,20 +386,20 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100">
+                      <h2 className="text-base sm:text-lg font-extrabold text-(--j-ink)">
                         <HighlightText text={group.name} highlight={searchQuery} />
                       </h2>
                       <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                         {group.items.length} {group.items.length === 1 ? 'question' : 'questions'}
                       </span>
                     </div>
-                    <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5 line-clamp-1">
+                    <p className="text-xs text-(--j-ink2) mt-0.5 line-clamp-1">
                       <HighlightText text={group.description} highlight={searchQuery} />
                     </p>
                   </div>
                 </div>
 
-                <span className="text-xs text-stone-400 font-semibold hidden sm:inline-block">
+                <span className="text-xs text-(--j-ink2) font-semibold hidden sm:inline-block">
                   {isCollapsed ? 'Click to expand' : 'Click to collapse'}
                 </span>
               </button>
@@ -408,7 +408,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
               {!isCollapsed && (
                 <div className="p-4 sm:p-5 space-y-4">
                   {group.items.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-stone-400 bg-stone-50 dark:bg-stone-800/40 rounded-2xl border border-dashed border-stone-200 dark:border-stone-700">
+                    <div className="p-6 text-center text-xs text-(--j-ink2) bg-(--j-soft) rounded-2xl border border-dashed border-(--j-line)">
                       No questions in this subtopic matching your filter.
                     </div>
                   ) : (
@@ -421,13 +421,13 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                         className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-2xs ${
                           item.isHighlightedAnswer
                             ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/80 ring-1 ring-blue-300/40'
-                            : 'bg-stone-50/50 dark:bg-stone-900/60 border-stone-200 dark:border-stone-800'
+                            : 'bg-(--j-soft) border-(--j-line)'
                         }`}
                       >
                         {/* Question & Answer Card Header */}
-                        <div className="p-3 sm:px-4 bg-white dark:bg-stone-900 border-b border-stone-200/80 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2">
+                        <div className="p-3 sm:px-4 bg-(--j-field) border-b border-(--j-line) flex flex-wrap items-center justify-between gap-2">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-bold text-stone-900 dark:text-stone-100">
+                            <span className="text-xs font-bold text-(--j-ink)">
                               <HighlightText text={item.title} highlight={searchQuery} />
                             </span>
 
@@ -444,7 +444,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                             <button
                               onClick={() => handleCopyQuestion(item.content, item.id)}
                               title="Copy question text to clipboard"
-                              className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
+                              className="px-2 py-1 bg-(--j-soft) border border-(--j-line) text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
                             >
                               {copiedId === item.id ? (
                                 <>
@@ -464,9 +464,9 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                               <button
                                 onClick={() => onOpenCommentSection(`Deep Question: "${item.title.slice(0, 25)}"`, item.id, 'core', 'questions-to-ask-her')}
                                 title="Add comment"
-                                className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 rounded-md text-xs font-semibold flex items-center gap-1"
+                                className="px-2 py-1 bg-(--j-soft) border border-(--j-line) text-stone-700 dark:text-stone-200 hover:bg-stone-200 rounded-md text-xs font-semibold flex items-center gap-1"
                               >
-                                <MessageSquare className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+                                <MessageSquare className="w-3.5 h-3.5 text-(--j-ink2)" />
                                 <span className="text-[10px]">Comment</span>
                               </button>
                             )}
@@ -479,7 +479,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                                 className={`px-2 py-1 border rounded-md text-xs font-semibold flex items-center gap-1 transition-colors ${
                                   item.isHighlightedAnswer
                                     ? 'bg-blue-600 text-white border-blue-700'
-                                    : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:bg-stone-200'
+                                    : 'bg-(--j-soft) text-stone-700 dark:text-stone-200 border-(--j-line) hover:bg-stone-200'
                                 }`}
                               >
                                 <Sparkles className="w-3.5 h-3.5" />
@@ -492,7 +492,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                               <button
                                 onClick={() => setEditingItem(item)}
                                 title="Edit Question & Answer"
-                                className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 rounded-md text-xs font-semibold flex items-center gap-1"
+                                className="px-2 py-1 bg-(--j-soft) border border-(--j-line) text-stone-700 dark:text-stone-200 hover:bg-stone-200 rounded-md text-xs font-semibold flex items-center gap-1"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                                 <span className="text-[10px]">Edit</span>
@@ -514,19 +514,19 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                         </div>
 
                         {/* Side-by-Side Dual-Pane Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-stone-200 dark:divide-stone-800 p-4 sm:p-5 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-(--j-line) p-4 sm:p-5 gap-4 md:gap-6">
                           {/* LEFT PANE: The Deep Question */}
                           <div className="space-y-2">
-                            <div className="flex items-center gap-1.5 text-xs font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                            <div className="flex items-center gap-1.5 text-xs font-extrabold text-blue-700 dark:text-blue-300 ">
                               <HelpCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                               <span>The Deep Question / Prompt</span>
                             </div>
 
-                            <p className="text-xs sm:text-sm text-stone-800 dark:text-stone-200 leading-relaxed whitespace-pre-wrap font-medium">
+                            <p className="text-xs sm:text-sm text-(--j-ink) leading-relaxed whitespace-pre-wrap font-medium">
                               <HighlightText text={item.content} highlight={searchQuery} />
                             </p>
 
-                            <div className="text-[10px] text-stone-400 dark:text-stone-500 font-mono pt-1">
+                            <div className="text-[10px] text-(--j-ink2) tabular-nums pt-1">
                               Recorded: {item.timestamp}
                             </div>
                           </div>
@@ -534,7 +534,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                           {/* RIGHT PANE: My Answer & Personal Reflection */}
                           <div className="space-y-2 pt-3 md:pt-0">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1.5 text-xs font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                              <div className="flex items-center gap-1.5 text-xs font-extrabold text-blue-700 dark:text-blue-300 ">
                                 <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 <span>My Answer / Personal Reflection</span>
                               </div>
@@ -571,7 +571,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                                       setEditingAnswerText(e.target.value);
                                     }}
                                     placeholder="Write your honest, grounded reflection or planned response..."
-                                    className="w-full p-2.5 text-xs sm:text-sm bg-white dark:bg-stone-900 border border-blue-300 dark:border-blue-700 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none overflow-hidden min-h-[68px]"
+                                    className="w-full p-2.5 text-xs sm:text-sm bg-(--j-field) border border-blue-300 dark:border-blue-700 rounded-xl text-(--j-ink) focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none overflow-hidden min-h-[68px]"
                                     autoFocus
                                   />
                                 </div>
@@ -591,8 +591,8 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                                 </div>
                               </div>
                             ) : item.answers ? (
-                              <div className="p-3 bg-white dark:bg-stone-900/90 rounded-xl border border-blue-100 dark:border-blue-900/50 shadow-2xs">
-                                <p className="text-xs sm:text-sm text-stone-800 dark:text-stone-200 leading-relaxed whitespace-pre-wrap">
+                              <div className="p-3 bg-(--j-field) rounded-xl border border-blue-100 dark:border-blue-900/50 shadow-2xs">
+                                <p className="text-xs sm:text-sm text-(--j-ink) leading-relaxed whitespace-pre-wrap">
                                   <HighlightText text={item.answers} highlight={searchQuery} />
                                 </p>
                               </div>
@@ -604,11 +604,11 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                                     setEditingAnswerText('');
                                   }
                                 }}
-                                className={`p-4 rounded-xl border border-dashed border-stone-300 dark:border-stone-700 text-center ${
-                                  canEdit ? 'cursor-pointer hover:border-blue-400 bg-white/50 dark:bg-stone-900/50' : ''
+                                className={`p-4 rounded-xl border border-dashed border-(--j-line) text-center ${
+                                  canEdit ? 'cursor-pointer hover:border-blue-400 bg-(--j-field)' : ''
                                 }`}
                               >
-                                <p className="text-xs text-stone-400 italic">
+                                <p className="text-xs text-(--j-ink2) italic">
                                   {canEdit ? 'No answer entered yet. Click to write your reflection.' : 'No answer entered.'}
                                 </p>
                               </div>
@@ -638,23 +638,23 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           onClick={() => setShowAddModal(false)}
         >
           <div
-            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
+            className="bg-(--j-field) border border-(--j-line) rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+            <div className="flex items-center justify-between border-b border-(--j-line) pb-3">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-base font-bold text-(--j-ink)">
                   Add Deep Question & My Answer
                 </h3>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                className="text-(--j-ink2) hover:text-stone-600 dark:hover:text-stone-200"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -662,13 +662,13 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
 
             <form onSubmit={handleCreateQuestionSubmit} className="space-y-4 text-xs sm:text-sm">
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   Subtopic Category:
                 </label>
                 <select
                   value={newSubCategory}
                   onChange={(e) => setNewSubCategory(e.target.value)}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs font-bold"
+                  className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-xs font-bold"
                 >
                   {DEFAULT_SUBTOPICS.map((sub) => (
                     <option key={sub.id} value={sub.id}>
@@ -679,7 +679,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   Question Title / Topic:
                 </label>
                 <input
@@ -688,12 +688,12 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   placeholder="e.g., Conflict Reset Rituals & Pausing Safely"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                  className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   The Deep Question (Left Card Pane):
                 </label>
                 <div
@@ -713,13 +713,13 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                     onChange={(e) => {
                       setNewQuestionText(e.target.value);
                     }}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
+                    className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   My Answer / Prepared Reflection (Right Card Pane):
                 </label>
                 <div
@@ -738,7 +738,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                     onChange={(e) => {
                       setNewAnswerText(e.target.value);
                     }}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
+                    className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>
@@ -751,16 +751,16 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   onChange={(e) => setNewIsHighlighted(e.target.checked)}
                   className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor="newIsHighlighted" className="text-xs text-stone-700 dark:text-stone-300 font-semibold cursor-pointer">
+                <label htmlFor="newIsHighlighted" className="text-xs text-(--j-ink2) font-semibold cursor-pointer">
                   Highlight as Therapist Approved Answer (Blue Frame)
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-(--j-line)">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-stone-600 dark:text-stone-400 hover:text-stone-900 font-semibold"
+                  className="px-4 py-2 text-(--j-ink2) hover:text-stone-900 font-semibold"
                 >
                   Cancel
                 </button>
@@ -789,23 +789,23 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
           onClick={() => setEditingItem(null)}
         >
           <div
-            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
+            className="bg-(--j-field) border border-(--j-line) rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+            <div className="flex items-center justify-between border-b border-(--j-line) pb-3">
               <div className="flex items-center gap-2">
                 <Pencil className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-base font-bold text-(--j-ink)">
                   Edit Question & Answer Pair
                 </h3>
               </div>
               <button
                 onClick={() => setEditingItem(null)}
-                className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                className="text-(--j-ink2) hover:text-stone-600 dark:hover:text-stone-200"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -813,13 +813,13 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
 
             <form onSubmit={handleEditModalSubmit} className="space-y-4 text-xs sm:text-sm">
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   Subtopic Category:
                 </label>
                 <select
                   value={editingItem.subCategoryId || 'deep-questions'}
                   onChange={(e) => setEditingItem({ ...editingItem, subCategoryId: e.target.value })}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-xs font-bold"
+                  className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-xs font-bold"
                 >
                   {DEFAULT_SUBTOPICS.map((sub) => (
                     <option key={sub.id} value={sub.id}>
@@ -830,7 +830,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   Title:
                 </label>
                 <input
@@ -838,12 +838,12 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   required
                   value={editingItem.title}
                   onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                  className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100"
+                  className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   The Deep Question (Left Card Pane):
                 </label>
                 <div
@@ -862,13 +862,13 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                     onChange={(e) => {
                       setEditingItem({ ...editingItem, content: e.target.value });
                     }}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
+                    className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block text-xs font-bold text-(--j-ink2) mb-1">
                   My Answer (Right Card Pane):
                 </label>
                 <div
@@ -886,7 +886,7 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                     onChange={(e) => {
                       setEditingItem({ ...editingItem, answers: e.target.value });
                     }}
-                    className="w-full p-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 resize-none overflow-hidden min-h-[68px]"
+                    className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) resize-none overflow-hidden min-h-[68px]"
                   />
                 </div>
               </div>
@@ -901,16 +901,16 @@ export const DeepQuestionsView: React.FC<DeepQuestionsViewProps> = ({
                   }
                   className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor="editIsHighlighted" className="text-xs text-stone-700 dark:text-stone-300 font-semibold cursor-pointer">
+                <label htmlFor="editIsHighlighted" className="text-xs text-(--j-ink2) font-semibold cursor-pointer">
                   Therapist Approved Highlight
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-(--j-line)">
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 text-stone-600 dark:text-stone-400 hover:text-stone-900 font-semibold"
+                  className="px-4 py-2 text-(--j-ink2) hover:text-stone-900 font-semibold"
                 >
                   Cancel
                 </button>

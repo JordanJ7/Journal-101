@@ -73,7 +73,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-(--sf-panel-dk) rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 border border-stone-200 dark:border-white/10 shadow-2xl max-w-lg w-full space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
+        className="bg-(--j-field) rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 border border-(--j-line) shadow-2xl max-w-lg w-full space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',
@@ -81,14 +81,14 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2 shrink-0" />
-        <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
-          <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <div className="flex items-center justify-between border-b border-(--j-line) pb-3">
+          <h3 className="text-base font-bold text-(--j-ink) flex items-center gap-2">
             <Share2 className="w-4 h-4 text-amber-600" />
             <span>Export & Share Journal</span>
           </h3>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -112,7 +112,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
                   <select
                     value={selectedWeekId}
                     onChange={(e) => setSelectedWeekId(e.target.value)}
-                    className="w-full min-w-0 truncate p-2.5 text-base sm:text-xs bg-white dark:bg-stone-900 border border-blue-300 dark:border-blue-700 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full min-w-0 truncate p-2.5 text-base sm:text-xs bg-(--j-field) border border-blue-300 dark:border-blue-700 rounded-xl text-(--j-ink) focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     {weeks.map((w) => (
                       <option key={w.id} value={w.id}>
@@ -141,7 +141,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
                   <select
                     value={selectedCategoryId}
                     onChange={(e) => setSelectedCategoryId(e.target.value)}
-                    className="w-full min-w-0 truncate p-2.5 text-base sm:text-xs bg-white dark:bg-stone-900 border border-blue-300 dark:border-blue-700 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full min-w-0 truncate p-2.5 text-base sm:text-xs bg-(--j-field) border border-blue-300 dark:border-blue-700 rounded-xl text-(--j-ink) focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     {coreCategories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -164,14 +164,14 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
 
         {/* Section 2: Download Markdown & JSON */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-stone-800 dark:text-stone-200">
+          <h4 className="text-xs font-bold text-(--j-ink)">
             Backup Files & Print
           </h4>
 
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleDownloadMarkdown}
-              className="min-h-[48px] p-3 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-semibold rounded-2xl border border-stone-200 dark:border-stone-700 flex flex-col items-center gap-1.5 transition-colors"
+              className="min-h-[48px] p-3 bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-stone-700 text-(--j-ink) text-xs font-semibold rounded-2xl border border-(--j-line) flex flex-col items-center gap-1.5 transition-colors"
             >
               <FileText className="w-4 h-4 text-amber-600" />
               <span>Markdown (.md)</span>
@@ -179,7 +179,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
 
             <button
               onClick={handleDownloadJSON}
-              className="min-h-[48px] p-3 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-semibold rounded-2xl border border-stone-200 dark:border-stone-700 flex flex-col items-center gap-1.5 transition-colors"
+              className="min-h-[48px] p-3 bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-stone-700 text-(--j-ink) text-xs font-semibold rounded-2xl border border-(--j-line) flex flex-col items-center gap-1.5 transition-colors"
             >
               <Download className="w-4 h-4 text-indigo-600" />
               <span>JSON Backup (.json)</span>
@@ -188,7 +188,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
 
           <button
             onClick={handlePrint}
-            className="w-full min-h-[44px] py-2.5 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-semibold rounded-2xl border border-stone-200 dark:border-stone-700 flex items-center justify-center gap-2 transition-colors mt-2"
+            className="w-full min-h-[44px] py-2.5 bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-stone-700 text-(--j-ink) text-xs font-semibold rounded-2xl border border-(--j-line) flex items-center justify-center gap-2 transition-colors mt-2"
           >
             <Printer className="w-4 h-4 text-emerald-600" />
             <span>Print Entire Journal</span>
@@ -198,7 +198,7 @@ export const ExportShareModal: React.FC<ExportShareModalProps> = ({
         <div className="pt-2 text-center">
           <button
             onClick={onClose}
-            className="min-h-[44px] px-4 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:underline"
+            className="min-h-[44px] px-4 text-xs font-semibold text-(--j-ink2) hover:underline"
           >
             Close
           </button>

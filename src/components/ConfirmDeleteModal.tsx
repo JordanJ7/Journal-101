@@ -69,7 +69,7 @@ export const ConfirmDeleteProvider: React.FC<{ children: React.ReactNode }> = ({
         >
           <div
             id="confirm-delete-modal-container"
-            className="w-full max-w-md bg-white dark:bg-(--sf-panel-dk) rounded-2xl shadow-2xl border border-stone-200 dark:border-white/10 p-6 space-y-5"
+            className="w-full max-w-md bg-(--j-field) rounded-2xl shadow-2xl border border-(--j-line) p-6 space-y-5"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
@@ -82,16 +82,16 @@ export const ConfirmDeleteProvider: React.FC<{ children: React.ReactNode }> = ({
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 leading-tight">
+                <h3 className="text-base sm:text-lg font-bold text-(--j-ink) leading-tight">
                   {modalState.title}
                 </h3>
-                <p className="mt-1.5 text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+                <p className="mt-1.5 text-xs sm:text-sm text-(--j-ink2) leading-relaxed">
                   {modalState.message}
                 </p>
               </div>
               <button
                 onClick={handleClose}
-                className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1 rounded-lg transition-colors"
+                className="text-(--j-ink2) hover:text-stone-600 dark:hover:text-stone-200 p-1 rounded-lg transition-colors"
                 title="Cancel"
               >
                 <X className="w-5 h-5" />
@@ -99,12 +99,12 @@ export const ConfirmDeleteProvider: React.FC<{ children: React.ReactNode }> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-stone-100 dark:border-stone-800">
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-(--j-line)">
               <button
                 id="cancel-delete-btn"
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 font-semibold text-xs sm:text-sm transition-colors"
+                className="px-4 py-2.5 rounded-xl border border-(--j-line) bg-(--j-field) text-(--j-ink2) hover:bg-stone-100 dark:hover:bg-stone-700 font-semibold text-xs sm:text-sm transition-colors"
               >
                 {modalState.cancelText}
               </button>

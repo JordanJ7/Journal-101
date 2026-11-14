@@ -194,7 +194,7 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-(--sf-panel-dk) border border-black/5 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
+        className="bg-(--j-field) border border-(--j-line) rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto relative pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',
@@ -203,16 +203,16 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
       >
         <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2 shrink-0" />
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
+        <div className="flex items-center justify-between border-b border-(--j-line) pb-3">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-blue-500" />
-            <h2 className="text-base sm:text-sm font-bold text-stone-900 dark:text-stone-100">
+            <h2 className="text-base sm:text-sm font-bold text-(--j-ink)">
               Access & Sharing
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200"
           >
             <X className="w-5 h-5 sm:w-4 sm:h-4" />
           </button>
@@ -234,12 +234,12 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
         )}
 
         {/* Current Account Row */}
-        <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 flex items-center justify-between text-xs">
+        <div className="bg-(--j-soft) rounded-xl p-3 flex items-center justify-between text-xs">
           <div className="min-w-0">
-            <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
+            <p className="font-semibold text-(--j-ink) truncate">
               {currentUser.displayName || currentUser.email}
             </p>
-            <p className="text-[11px] text-stone-400 truncate">
+            <p className="text-[11px] text-(--j-ink2) truncate">
               Role: {currentUser.role}
             </p>
           </div>
@@ -274,10 +274,10 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
         </div>
 
         {/* Global Share Mode */}
-        <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 flex items-center justify-between text-xs">
+        <div className="bg-(--j-soft) rounded-xl p-3 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <Lock className="w-3.5 h-3.5 text-stone-500" />
-            <span className="font-semibold text-stone-900 dark:text-stone-100">
+            <span className="font-semibold text-(--j-ink)">
               Share Mode
             </span>
           </div>
@@ -288,13 +288,13 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
               className={`min-h-[36px] px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                 permissions.globalShareEnabled
                   ? 'bg-emerald-500 text-white'
-                  : 'bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300'
+                  : 'bg-stone-300 dark:bg-stone-700 text-(--j-ink2)'
               }`}
             >
               {permissions.globalShareEnabled ? 'On' : 'Off'}
             </button>
           ) : (
-            <span className="text-stone-400 font-semibold">
+            <span className="text-(--j-ink2) font-semibold">
               {permissions.globalShareEnabled ? 'Active' : 'Disabled'}
             </span>
           )}
@@ -303,7 +303,7 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
         {/* Invite User */}
         {isOwner && (
           <form onSubmit={handleInviteUser} className="space-y-2 pt-1">
-            <span className="text-xs font-semibold text-stone-400 px-1">Invite</span>
+            <span className="text-xs font-semibold text-(--j-ink2) px-1">Invite</span>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="email"
@@ -311,12 +311,12 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
                 placeholder="Email address"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
-                className="flex-1 px-3 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/5 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                className="flex-1 px-3 py-2 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
               />
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as UserRole)}
-                className="px-3 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/5 rounded-xl text-stone-900 dark:text-stone-100 font-semibold focus:outline-none"
+                className="px-3 py-2 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink) font-semibold focus:outline-none"
               >
                 <option value="commenter">Commenter</option>
                 <option value="viewer">Viewer</option>
@@ -334,13 +334,13 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
 
         {/* Authorized Accounts List */}
         <div className="space-y-2 pt-1">
-          <span className="text-xs font-semibold text-stone-400 px-1">Members</span>
+          <span className="text-xs font-semibold text-(--j-ink2) px-1">Members</span>
           <div className="space-y-1.5 max-h-48 overflow-y-auto pr-0.5 text-xs">
-            <div className="flex items-center justify-between p-2.5 bg-black/5 dark:bg-white/5 rounded-xl">
-              <span className="font-semibold text-stone-900 dark:text-stone-100 truncate">
+            <div className="flex items-center justify-between p-2.5 bg-(--j-soft) rounded-xl">
+              <span className="font-semibold text-(--j-ink) truncate">
                 {permissions.ownerEmail}
               </span>
-              <span className="text-[10px] text-stone-400 font-semibold uppercase">
+              <span className="text-[10px] text-(--j-ink2) font-semibold ">
                 Owner
               </span>
             </div>
@@ -353,13 +353,13 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
               return (
                 <div
                   key={emailKey}
-                  className="flex items-center justify-between p-2.5 bg-black/5 dark:bg-white/5 rounded-xl gap-2"
+                  className="flex items-center justify-between p-2.5 bg-(--j-soft) rounded-xl gap-2"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-stone-900 dark:text-stone-100 truncate">
+                    <p className="font-semibold text-(--j-ink) truncate">
                       {userPerm.email}
                     </p>
-                    <p className="text-[11px] text-stone-400">
+                    <p className="text-[11px] text-(--j-ink2)">
                       {presenceText}
                     </p>
                   </div>
@@ -383,14 +383,14 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
                       <select
                         value={userPerm.role}
                         onChange={(e) => handleRoleChange(emailKey, e.target.value as UserRole)}
-                        className="py-1 px-2 bg-white dark:bg-(--sf-raised-dk) rounded-lg text-xs font-semibold text-stone-800 dark:text-stone-200"
+                        className="py-1 px-2 bg-(--j-field) rounded-lg text-xs font-semibold text-(--j-ink)"
                       >
                         <option value="commenter">Commenter</option>
                         <option value="viewer">Viewer</option>
                         <option value="editor">Editor</option>
                       </select>
                     ) : (
-                      <span className="text-[10px] text-stone-400 font-semibold uppercase">
+                      <span className="text-[10px] text-(--j-ink2) font-semibold ">
                         {userPerm.role}
                       </span>
                     )}
@@ -398,7 +398,7 @@ export const AccessManagementModal: React.FC<AccessManagementModalProps> = ({
                     {isOwner && (
                       <button
                         onClick={() => handleRevokeUser(emailKey)}
-                        className="min-h-[36px] min-w-[36px] p-2 flex items-center justify-center text-stone-400 hover:text-rose-500 transition-colors"
+                        className="min-h-[36px] min-w-[36px] p-2 flex items-center justify-center text-(--j-ink2) hover:text-rose-500 transition-colors"
                         title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />

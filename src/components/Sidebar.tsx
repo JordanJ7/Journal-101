@@ -388,8 +388,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
         key={week.id}
         className={`group shrink-0 flex items-center justify-between px-3 py-2 min-h-[44px] rounded-xl text-xs transition-all cursor-pointer select-none active:scale-[0.99] ${
           isSelected
-            ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
-            : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
+            ? 'bg-(--j-field) text-(--j-ink) shadow-xs font-semibold'
+            : 'text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/5 hover:text-stone-900 dark:hover:text-stone-200'
         }`}
         onClick={() => handleSelectWeek(week.id)}
       >
@@ -400,7 +400,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             )}
             <p className="truncate text-xs sm:text-xs font-medium">{week.weekTitle}</p>
           </div>
-          <p className="text-[10px] text-stone-400 dark:text-stone-400 font-mono truncate mt-0.5">
+          <p className="text-[10px] text-(--j-ink2) tabular-nums truncate mt-0.5">
             <span>{subtitle}</span>
             {isCurrent && (
               <span className="text-amber-600 dark:text-amber-400 font-semibold"> · this week</span>
@@ -413,7 +413,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             <button
               type="button"
               onClick={() => setOpenWeekMenuId(openWeekMenuId === week.id ? null : week.id)}
-              className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
+              className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity"
               title="Week options"
             >
               <MoreVertical className="w-3.5 h-3.5" />
@@ -421,7 +421,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             {openWeekMenuId === week.id && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setOpenWeekMenuId(null)} />
-                <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[150px] text-xs font-normal">
+                <div className="absolute right-0 top-full mt-1 z-40 bg-(--j-field) rounded-xl shadow-xl border border-(--j-line) p-1 min-w-[150px] text-xs font-normal">
                   <button
                     type="button"
                     onClick={() => {
@@ -475,7 +475,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
     <>
       {/* Mobile Drawer Header */}
       {isMobileView && (
-        <div className="flex items-center justify-between pb-3 mb-2 border-b border-black/5 dark:border-white/10 shrink-0">
+        <div className="flex items-center justify-between pb-3 mb-2 border-b border-(--j-line) shrink-0">
           <div className="flex items-center gap-2">
             <div
               className="w-7 h-7 rounded-lg text-white flex items-center justify-center font-bold text-xs shadow-xs"
@@ -483,13 +483,13 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             >
               J
             </div>
-            <span className="text-sm font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+            <span className="text-sm font-semibold tracking-tight text-(--j-ink)">
               Navigation
             </span>
           </div>
           <button
             onClick={() => setIsOpenMobile?.(false)}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -497,7 +497,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       )}
 
       {/* Apple-style Segmented Control */}
-      <div className={`${isMobileView ? 'flex' : 'hidden'} bg-black/5 dark:bg-white/10 p-0.5 rounded-xl mb-3 shrink-0`}>
+      <div className={`${isMobileView ? 'flex' : 'hidden'} bg-(--j-soft) p-0.5 rounded-xl mb-3 shrink-0`}>
         <button
           onClick={() => {
             setViewMode('home');
@@ -505,8 +505,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'home'
-              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
-              : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+              ? 'bg-(--j-field) text-(--j-ink) shadow-xs'
+              : 'text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
           <Home className="w-3.5 h-3.5" />
@@ -518,8 +518,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'weekly'
-              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
-              : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+              ? 'bg-(--j-field) text-(--j-ink) shadow-xs'
+              : 'text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
           <Calendar className="w-3.5 h-3.5" />
@@ -531,8 +531,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'core'
-              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
-              : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+              ? 'bg-(--j-field) text-(--j-ink) shadow-xs'
+              : 'text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
           <FolderOpen className="w-3.5 h-3.5" />
@@ -544,8 +544,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           }}
           className={`flex-1 min-h-[38px] py-1.5 px-1.5 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1 transition-all ${
             viewMode === 'media'
-              ? 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs'
-              : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
+              ? 'bg-(--j-field) text-(--j-ink) shadow-xs'
+              : 'text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
           <Film className="w-3.5 h-3.5" />
@@ -557,7 +557,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {viewMode === 'home' && (
         <div className="flex-1 flex flex-col min-h-0 space-y-3 text-xs">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-semibold text-stone-400">Quick Navigation</span>
+            <span className="text-xs font-semibold text-(--j-ink2)">Quick Navigation</span>
           </div>
 
           <div className="space-y-1.5 overflow-y-auto pr-0.5 flex-1">
@@ -566,18 +566,18 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('weekly');
                 if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full text-left p-3 rounded-xl bg-white dark:bg-(--sf-raised-dk) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+              className="w-full text-left p-3 rounded-xl bg-(--j-field) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-(--j-line) transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-xs">Weekly Journal</p>
-                  <p className="text-[11px] text-stone-400">{weeks.length} total entries</p>
+                  <p className="font-semibold text-(--j-ink) text-xs">Weekly Journal</p>
+                  <p className="text-[11px] text-(--j-ink2)">{weeks.length} total entries</p>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-(--j-ink2) group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             <button
@@ -585,18 +585,18 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('core');
                 if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full text-left p-3 rounded-xl bg-white dark:bg-(--sf-raised-dk) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+              className="w-full text-left p-3 rounded-xl bg-(--j-field) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-(--j-line) transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                   <FolderOpen className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-xs">Topic Folders</p>
-                  <p className="text-[11px] text-stone-400">{coreCategories.length} categories</p>
+                  <p className="font-semibold text-(--j-ink) text-xs">Topic Folders</p>
+                  <p className="text-[11px] text-(--j-ink2)">{coreCategories.length} categories</p>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-(--j-ink2) group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             <button
@@ -604,18 +604,18 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 setViewMode('media');
                 if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full text-left p-3 rounded-xl bg-white dark:bg-(--sf-raised-dk) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-stone-200/80 dark:border-white/5 transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
+              className="w-full text-left p-3 rounded-xl bg-(--j-field) hover:bg-stone-100/90 dark:hover:bg-white/[0.07] border border-(--j-line) transition-all text-stone-700 dark:text-stone-200 flex items-center justify-between group shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${currentAccent.iconBox} ${currentAccent.iconBoxHover}`}>
                   <Film className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-xs">Media Hub</p>
-                  <p className="text-[11px] text-stone-400">Photos & Attachments</p>
+                  <p className="font-semibold text-(--j-ink) text-xs">Media Hub</p>
+                  <p className="text-[11px] text-(--j-ink2)">Photos & Attachments</p>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-(--j-ink2) group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>
@@ -625,7 +625,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {viewMode === 'weekly' && (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex items-center justify-between px-1 mb-2 shrink-0">
-            <span className="text-xs font-semibold text-stone-400">Entries</span>
+            <span className="text-xs font-semibold text-(--j-ink2)">Entries</span>
             {canEdit && (
               <div className="flex items-center gap-1.5">
                 <button
@@ -654,13 +654,13 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           {/* Quick Filter */}
           {weeks.length > 5 && (
             <div className="relative mb-2 shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-(--j-ink2) pointer-events-none" />
               <input
                 type="text"
                 placeholder="Filter..."
                 value={weekSearchQuery}
                 onChange={(e) => setWeekSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                className="w-full pl-8 pr-3 py-2 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
               />
             </div>
           )}
@@ -668,16 +668,16 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           {/* Weekly Items List */}
           <div className="space-y-1 overflow-y-auto pr-0.5 flex-1">
             {filteredWeeks.length === 0 ? (
-              <p className="text-xs text-stone-400 p-4 text-center">No entries</p>
+              <p className="text-xs text-(--j-ink2) p-4 text-center">No entries</p>
             ) : (
               <>
                 {/* 1. Pinned Section at the Top */}
                 {pinnedWeeks.length > 0 && (
                   <div className="space-y-1 mb-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-stone-400 dark:text-stone-500 select-none">
+                    <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wider  text-(--j-ink2) select-none">
                       <Pin className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
                       <span>PINNED</span>
-                      <span className="text-[10px] text-stone-400 font-mono">({pinnedWeeks.length})</span>
+                      <span className="text-[10px] text-(--j-ink2) tabular-nums">({pinnedWeeks.length})</span>
                     </div>
                     <div className="space-y-1">
                       {pinnedWeeks.map((week) => renderWeekRow(week))}
@@ -706,16 +706,16 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
                           {isMonthExpanded ? (
-                            <ChevronDown className="w-3.5 h-3.5 text-stone-400 shrink-0 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+                            <ChevronDown className="w-3.5 h-3.5 text-(--j-ink2) shrink-0 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
                           ) : (
-                            <ChevronRight className="w-3.5 h-3.5 text-stone-400 shrink-0 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
+                            <ChevronRight className="w-3.5 h-3.5 text-(--j-ink2) shrink-0 group-hover:text-stone-600 dark:group-hover:text-stone-300" />
                           )}
-                          <span className="text-[11px] font-semibold tracking-wider uppercase text-stone-500 dark:text-stone-400 group-hover:text-stone-800 dark:group-hover:text-stone-200 truncate font-mono">
+                          <span className="text-[11px] font-semibold tracking-wider  text-(--j-ink2) group-hover:text-stone-800 dark:group-hover:text-stone-200 truncate tabular-nums">
                             {isMonthExpanded ? group.monthTitle : `${group.monthTitle} · ${countLabel}`}
                           </span>
                         </div>
                         {isMonthExpanded && (
-                          <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono shrink-0 ml-1">
+                          <span className="text-[10px] text-(--j-ink2) tabular-nums shrink-0 ml-1">
                             ({weekCount})
                           </span>
                         )}
@@ -740,15 +740,15 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex items-center justify-between px-1 mb-2.5 shrink-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-stone-400">Folders</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-stone-500 dark:text-stone-400 font-medium">
+              <span className="text-xs font-semibold text-(--j-ink2)">Folders</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-(--j-soft) text-(--j-ink2) font-medium">
                 {filteredCategories.length}
               </span>
             </div>
             {isOwner && (
               <button
                 onClick={() => setShowAddCategoryModal(true)}
-                className={`w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-600 dark:text-stone-300 transition-colors shadow-2xs ${currentAccent.hoverText}`}
+                className={`w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-(--j-ink2) transition-colors shadow-2xs ${currentAccent.hoverText}`}
                 title="New Folder (+)"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -759,13 +759,13 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           {/* Quick Filter */}
           {coreCategories.length > 6 && (
             <div className="relative mb-2.5 shrink-0 px-0.5">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-(--j-ink2) pointer-events-none" />
               <input
                 type="text"
                 placeholder="Filter folders..."
                 value={categorySearchQuery}
                 onChange={(e) => setCategorySearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-base sm:text-xs bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                className="w-full pl-8 pr-3 py-1.5 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
               />
             </div>
           )}
@@ -775,7 +775,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             {filteredCategories.length === 0 ? (
               <div className="py-8 text-center w-full">
                 <Folder className="w-8 h-8 mx-auto text-stone-300 dark:text-stone-600 mb-2 stroke-[1.5]" />
-                <p className="text-xs text-stone-400">No topic folders</p>
+                <p className="text-xs text-(--j-ink2)">No topic folders</p>
               </div>
             ) : (
               filteredCategories.map((config, index) => {
@@ -815,8 +815,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                     onClick={() => handleSelectCategory(config.id)}
                     className={`group relative w-full shrink-0 h-auto min-h-[52px] py-2.5 px-3.5 rounded-xl transition-all duration-150 ease-out cursor-pointer select-none text-left border flex items-center justify-between gap-3 box-border ${
                       isSelected
-                        ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} shadow-2xs text-stone-900 dark:text-stone-100`
-                        : 'bg-stone-100/80 hover:bg-stone-200/80 active:bg-stone-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:active:bg-white/[0.12] border-stone-200/80 dark:border-white/5 text-stone-700 dark:text-stone-300'
+                        ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} shadow-2xs text-(--j-ink)`
+                        : 'bg-stone-100/80 hover:bg-stone-200/80 active:bg-stone-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:active:bg-white/[0.12] border-(--j-line) text-(--j-ink2)'
                     } ${isDragged ? 'opacity-30' : ''} ${dragOverCatIndex === index ? `ring-2 ${currentAccent.ring}` : ''}`}
                   >
                     {/* Left Section: Icon + Title & Note Count */}
@@ -835,7 +835,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                         <span
                           className={`text-sm font-medium text-left leading-snug break-words whitespace-normal block ${
                             isSelected
-                              ? 'text-stone-900 dark:text-stone-100 font-semibold'
+                              ? 'text-(--j-ink) font-semibold'
                               : 'text-stone-700 dark:text-neutral-200 group-hover:text-stone-900 dark:group-hover:text-stone-100'
                           }`}
                           title={config.title}
@@ -843,7 +843,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                           {config.title}
                         </span>
                         {itemCount > 0 && (
-                          <span className="text-[11px] font-mono text-stone-500 dark:text-neutral-400 leading-none mt-1 block">
+                          <span className="text-[11px] tabular-nums text-(--j-ink2) leading-none mt-1 block">
                             {itemCount} {itemCount === 1 ? 'note' : 'notes'}
                           </span>
                         )}
@@ -866,14 +866,14 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                               y: rect.bottom,
                             });
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity shrink-0"
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity shrink-0"
                           title="Folder options"
                         >
                           <MoreVertical className="w-3.5 h-3.5" />
                         </button>
                       )}
 
-                      <ChevronRight className="w-4 h-4 text-stone-400 dark:text-neutral-500 shrink-0 ml-2 transition-transform group-hover:translate-x-0.5" />
+                      <ChevronRight className="w-4 h-4 text-(--j-ink2) shrink-0 ml-2 transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </div>
                 );
@@ -886,27 +886,27 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
       {/* View Mode 3: Media Quick Links */}
       {viewMode === 'media' && (
         <div className="flex-1 flex flex-col min-h-0 space-y-2 text-xs">
-          <span className="text-xs font-semibold text-stone-400 px-1">Shared Media</span>
+          <span className="text-xs font-semibold text-(--j-ink2) px-1">Shared Media</span>
           <div className="space-y-1">
             <button
               onClick={() => {
                 setViewMode('media');
                 if (setIsOpenMobile) setIsOpenMobile(false);
               }}
-              className="w-full shrink-0 text-left px-3 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100 shadow-xs font-semibold flex items-center justify-between"
+              className="w-full shrink-0 text-left px-3 py-2.5 min-h-[44px] rounded-xl bg-(--j-field) text-(--j-ink) shadow-xs font-semibold flex items-center justify-between"
             >
               <div className="flex items-center gap-2">
                 <Film className={`w-4 h-4 ${currentAccent.textPrimary}`} />
                 <span>All Media</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-stone-400" />
+              <ChevronRight className="w-4 h-4 text-(--j-ink2)" />
             </button>
           </div>
         </div>
       )}
 
       {/* Bottom Footer: Recently Deleted & Backup status */}
-      <div className="mt-auto pt-3 border-t border-black/5 dark:border-white/10 shrink-0 space-y-1">
+      <div className="mt-auto pt-3 border-t border-(--j-line) shrink-0 space-y-1">
         {canEdit && (
           <button
             type="button"
@@ -914,20 +914,20 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
               setIsRecentlyDeletedOpen(true);
               if (isMobileView && setIsOpenMobile) setIsOpenMobile(false);
             }}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
           >
             <div className="flex items-center gap-2">
-              <Trash2 className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-200 transition-colors" />
+              <Trash2 className="w-3.5 h-3.5 text-(--j-ink2) group-hover:text-stone-600 dark:group-hover:text-stone-200 transition-colors" />
               <span>Recently deleted</span>
             </div>
             {recentlyDeletedCount > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-stone-200 dark:bg-stone-800 text-(--j-ink2)">
                 {recentlyDeletedCount}
               </span>
             )}
           </button>
         )}
-        <div className="px-3 pb-1 text-[10px] text-stone-400 dark:text-stone-500 font-medium select-none">
+        <div className="px-3 pb-1 text-[10px] text-(--j-ink2) font-medium select-none">
           Daily backup
         </div>
       </div>
@@ -988,7 +988,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           onClick={() => setShowAddWeekModal(false)}
         >
           <div
-            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
+            className="bg-(--j-field) border border-(--j-line) rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
@@ -997,10 +997,10 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           >
             <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2" />
             <div className="flex items-center justify-between">
-              <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">New Week</h3>
+              <h3 className="text-sm sm:text-base font-bold text-(--j-ink)">New Week</h3>
               <button
                 onClick={() => setShowAddWeekModal(false)}
-                className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-stone-400 hover:text-stone-600"
+                className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-(--j-ink2) hover:text-stone-600"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1013,20 +1013,20 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 placeholder="Title (e.g. Week 12)"
                 value={newWeekTitle}
                 onChange={(e) => setNewWeekTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
               />
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="date"
                   value={newWeekStartDate}
                   onChange={(e) => setNewWeekStartDate(e.target.value)}
-                  className="w-full px-3 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink)"
                 />
                 <input
                   type="date"
                   value={newWeekEndDate}
                   onChange={(e) => setNewWeekEndDate(e.target.value)}
-                  className="w-full px-3 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink)"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
@@ -1063,7 +1063,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           onClick={() => setShowAddCategoryModal(false)}
         >
           <div
-            className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
+            className="bg-(--j-field) border border-(--j-line) rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-5"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',
@@ -1072,10 +1072,10 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
           >
             <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2" />
             <div className="flex items-center justify-between">
-              <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">New Folder</h3>
+              <h3 className="text-sm sm:text-base font-bold text-(--j-ink)">New Folder</h3>
               <button
                 onClick={() => setShowAddCategoryModal(false)}
-                className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-stone-400 hover:text-stone-600"
+                className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-(--j-ink2) hover:text-stone-600"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1088,7 +1088,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 placeholder="Folder Name"
                 value={newCatTitle}
                 onChange={(e) => setNewCatTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-(--j-soft) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
               />
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -1123,14 +1123,14 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
             }}
           />
           <div
-            className="fixed z-50 bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/15 rounded-2xl shadow-2xl p-1.5 w-48 animate-in fade-in zoom-in-95 duration-150 text-xs select-none"
+            className="fixed z-50 bg-(--j-field) border border-(--j-line) rounded-2xl shadow-2xl p-1.5 w-48 animate-in fade-in zoom-in-95 duration-150 text-xs select-none"
             style={{
               top: Math.min(contextMenu.y, typeof window !== 'undefined' ? window.innerHeight - 100 : 400),
               left: Math.min(contextMenu.x, typeof window !== 'undefined' ? window.innerWidth - 200 : 200),
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-3 py-1.5 font-semibold text-stone-500 dark:text-stone-400 text-[11px] truncate border-b border-black/5 dark:border-white/10 mb-1">
+            <div className="px-3 py-1.5 font-semibold text-(--j-ink2) text-[11px] truncate border-b border-(--j-line) mb-1">
               {contextMenu.title}
             </div>
 
@@ -1141,7 +1141,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                   setContextMenu(null);
                   onTogglePinCategory(target.catId);
                 }}
-                className="w-full px-3 py-2 text-left rounded-xl text-stone-700 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 font-medium transition-colors"
+                className="w-full px-3 py-2 text-left rounded-xl text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 font-medium transition-colors"
               >
                 {pinnedCategoryIds.includes(contextMenu.catId) ? (
                   <>
@@ -1167,7 +1167,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                     setEditingCategory(foundCat);
                   }
                 }}
-                className="w-full px-3 py-2 text-left rounded-xl text-stone-700 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 font-medium transition-colors"
+                className="w-full px-3 py-2 text-left rounded-xl text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 font-medium transition-colors"
               >
                 <Pencil className={`w-4 h-4 ${currentAccent.textPrimary}`} />
                 <span>Rename / Edit</span>

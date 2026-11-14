@@ -126,7 +126,7 @@ export const MediaLightboxModal: React.FC<MediaLightboxModalProps> = ({ media, o
                 {media.title || (isPdf ? 'PDF Document' : 'Media Viewer')}
               </h3>
               {(media.sourceTitle || media.categoryLabel) && (
-                <p className="text-[11px] text-stone-400 truncate">
+                <p className="text-[11px] text-(--j-ink2) truncate">
                   {media.categoryLabel || 'Shared Media'}
                   {media.sourceTitle ? ` • ${media.sourceTitle}` : ''}
                   {media.timestamp ? ` • ${media.timestamp}` : ''}

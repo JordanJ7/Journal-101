@@ -373,25 +373,25 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* 1. Top Folder Navigation Bar */}
-      <div className="bg-white dark:bg-(--sf-card-dk) p-3.5 sm:p-4 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-3">
+      <div className="bg-(--j-field) p-3.5 sm:p-4 rounded-[14px] border border-(--j-line) shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           {/* Active Folder Switcher */}
           <div className="relative flex-1 min-w-[200px]">
             <button
               onClick={() => setIsFolderDropdownOpen(!isFolderDropdownOpen)}
-              className="w-full text-left px-3 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/[0.07] dark:hover:bg-white/10 rounded-xl flex items-center justify-between gap-2 transition-colors"
+              className="w-full text-left px-3 py-2 bg-(--j-soft) hover:bg-black/[0.07] dark:hover:bg-white/10 rounded-xl flex items-center justify-between gap-2 transition-colors"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <CurrentTopicIcon className={`w-4 h-4 shrink-0 ${currentAccent.textPrimary}`} />
-                <span className="text-sm font-bold text-stone-900 dark:text-stone-100 truncate">
+                <span className="text-sm font-bold text-(--j-ink) truncate">
                   {activeCategoryConfig?.title}
                 </span>
-                <span className="text-[11px] text-stone-400 font-mono shrink-0">
+                <span className="text-[11px] text-(--j-ink2) tabular-nums shrink-0">
                   ({activeFolderItems.length})
                 </span>
               </div>
               <ChevronDown
-                className={`w-3.5 h-3.5 text-stone-400 shrink-0 transition-transform ${
+                className={`w-3.5 h-3.5 text-(--j-ink2) shrink-0 transition-transform ${
                   isFolderDropdownOpen ? 'rotate-180' : ''
                 }`}
               />
@@ -404,7 +404,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                   className="fixed inset-0 z-30 bg-transparent"
                   onClick={() => setIsFolderDropdownOpen(false)}
                 />
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-1.5 z-40 max-h-72 overflow-y-auto space-y-0.5 animate-in fade-in duration-100">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-(--j-field) border border-(--j-line) rounded-2xl shadow-xl p-1.5 z-40 max-h-72 overflow-y-auto space-y-0.5 animate-in fade-in duration-100">
                   {sortedCategories.map((cat) => {
                     const isSelected = activeCategory === cat.id;
                     const catCount = items.filter((i) => i.categoryId === cat.id).length;
@@ -418,15 +418,15 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                         }}
                         className={`w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors ${
                           isSelected
-                            ? 'bg-black/5 dark:bg-white/10 text-stone-900 dark:text-stone-100'
-                            : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/5'
+                            ? 'bg-(--j-soft) text-(--j-ink)'
+                            : 'text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/5'
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <CatIcon className={`w-3.5 h-3.5 shrink-0 ${currentAccent.textPrimary}`} />
                           <span className="truncate">{cat.title}</span>
                         </div>
-                        <span className="text-[10px] text-stone-400 font-mono ml-2">
+                        <span className="text-[10px] text-(--j-ink2) tabular-nums ml-2">
                           {catCount}
                         </span>
                       </button>
@@ -479,7 +479,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               <button
                 onClick={() => setShowAddCategoryModal(true)}
                 title="Create New Folder (+)"
-                className={`w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-600 dark:text-stone-300 transition-colors shadow-2xs ${currentAccent.hoverText}`}
+                className={`w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-(--j-ink2) transition-colors shadow-2xs ${currentAccent.hoverText}`}
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
@@ -493,7 +493,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                 className={`p-1.5 rounded-lg transition-colors ${
                   pinnedCategoryIds.includes(activeCategory)
                     ? currentAccent.tagBadge
-                    : `text-stone-400 ${currentAccent.hoverText} hover:bg-black/5 dark:hover:bg-white/10`
+                    : `text-(--j-ink2) ${currentAccent.hoverText} hover:bg-black/5 dark:hover:bg-white/10`
                 }`}
               >
                 {pinnedCategoryIds.includes(activeCategory) ? (
@@ -518,7 +518,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
             {canEdit && (
               <button
                 onClick={handleOpenAddEntryModal}
-                className={`ml-1 px-3 py-1.5 text-white font-semibold text-xs rounded-xl flex items-center gap-1 shadow-xs transition-colors ${currentAccent.buttonPrimary}`}
+                className={`ml-1 px-3 py-1.5  font-semibold text-xs rounded-xl flex items-center gap-1 shadow-xs transition-colors ${currentAccent.buttonPrimary}`}
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Entry</span>
@@ -529,7 +529,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               <button
                 onClick={handleDeleteActiveCategory}
                 title="Delete Folder"
-                className="p-1.5 text-stone-400 hover:text-rose-500 transition-colors ml-0.5"
+                className="p-1.5 text-(--j-ink2) hover:text-rose-500 transition-colors ml-0.5"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -538,10 +538,10 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
             {/* Read-Only Indicator for Commenters and Viewers */}
             {!canEdit && (
               <div
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-stone-800/80 border border-stone-200/80 dark:border-stone-700/60 text-xs font-semibold text-stone-600 dark:text-stone-300 select-none shadow-2xs"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-(--j-soft) border border-(--j-line) text-xs font-semibold text-(--j-ink2) select-none shadow-2xs"
                 title={isCommenter ? 'You have commenting access only' : 'You have view-only access'}
               >
-                <Eye className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 shrink-0" />
+                <Eye className="w-3.5 h-3.5 text-(--j-ink2) shrink-0" />
                 <span>{readOnlyBadgeText}</span>
               </div>
             )}
@@ -549,7 +549,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
         </div>
 
         {/* Watchlist Filter Pills & Sort Control */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-(--j-line)">
           {isWatchlistCategory ? (
             <div className="flex flex-wrap items-center gap-1.5">
               {(['All', 'To Watch/Read', 'Done Alone', 'Done Together'] as const).map((st) => (
@@ -558,7 +558,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                   onClick={() => setWatchlistStatusFilter(st)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
                     watchlistStatusFilter === st
-                      ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100'
+                      ? 'bg-(--j-soft) text-(--j-ink)'
                       : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100'
                   }`}
                 >
@@ -567,7 +567,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
               ))}
             </div>
           ) : (
-            <div className="text-xs text-stone-400 dark:text-stone-500 font-medium flex items-center gap-1.5">
+            <div className="text-xs text-(--j-ink2) font-medium flex items-center gap-1.5">
               <span>Folder Entries</span>
             </div>
           )}
@@ -580,10 +580,10 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                 const nextOrder = (filters.sortOrder || 'newest') === 'newest' ? 'oldest' : 'newest';
                 updateFilters((prev) => ({ ...prev, sortOrder: nextOrder }));
               }}
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 dark:text-stone-300 flex items-center gap-1.5 transition-colors border border-black/5 dark:border-white/10 cursor-pointer"
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-(--j-ink2) flex items-center gap-1.5 transition-colors border border-(--j-line) cursor-pointer"
               title={`Sort entries by date tag (currently ${filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}). Click to toggle.`}
             >
-              <ArrowUpDown className="w-3.5 h-3.5 text-stone-400 dark:text-stone-400" />
+              <ArrowUpDown className="w-3.5 h-3.5 text-(--j-ink2)" />
               <span>{filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}</span>
             </button>
           </div>
@@ -591,30 +591,30 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
       </div>
 
       {/* 2. Prominent Topic Title & Integrated Bulleted Topic Notes Canvas */}
-      <div className="bg-white dark:bg-(--sf-card-dk) p-5 sm:p-6 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs space-y-4">
+      <div className="bg-(--j-field) p-5 sm:p-6 rounded-[14px] border border-(--j-line) shadow-xs space-y-4">
         {/* Topic Title and Description */}
-        <div className="border-b border-black/5 dark:border-white/5 pb-3">
+        <div className="border-b border-(--j-line) pb-3">
           <div className="flex items-center gap-2.5">
             <div className={`p-2 rounded-xl shrink-0 ${currentAccent.iconBox}`}>
               <CurrentTopicIcon className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-(--j-ink)">
                   <HighlightText text={activeCategoryConfig?.title} highlight={filters.searchQuery} />
                 </h2>
                 {canEdit && (
                   <button
                     onClick={() => setShowEditCategoryModal(true)}
                     title="Rename Folder"
-                    className={`p-1 rounded-lg text-stone-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${currentAccent.hoverText}`}
+                    className={`p-1 rounded-lg text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${currentAccent.hoverText}`}
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
               {activeCategoryConfig?.description && (
-                <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                <p className="text-xs text-(--j-ink2) mt-0.5">
                   <HighlightText text={activeCategoryConfig.description} highlight={filters.searchQuery} />
                 </p>
               )}
@@ -625,14 +625,14 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
         {/* Bulleted Topic Notes Stream (Apple Minimalist Aesthetic) */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 flex items-center gap-1.5">
+            <span className="text-xs font-semibold  text-(--j-ink2) flex items-center gap-1.5">
               <FileText className="w-3.5 h-3.5" />
               <span>Bulleted Notes & Thoughts</span>
             </span>
 
             {!canEdit && (
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
-                <Eye className="w-3 h-3 text-stone-400" />
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-(--j-soft) text-(--j-ink2) border border-(--j-line) flex items-center gap-1">
+                <Eye className="w-3 h-3 text-(--j-ink2)" />
                 <span>{readOnlyBadgeText}</span>
               </span>
             )}
@@ -651,7 +651,7 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
       <div className="space-y-3 animate-in fade-in duration-150">
         {activeFolderItems.length > 0 && (
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+            <span className="text-xs font-semibold  text-(--j-ink2)">
               Folder Entries ({activeFolderItems.length})
             </span>
             <button
@@ -660,10 +660,10 @@ export const CoreTopicsView: React.FC<CoreTopicsViewProps> = React.memo(({
                 const nextOrder = (filters.sortOrder || 'newest') === 'newest' ? 'oldest' : 'newest';
                 updateFilters((prev) => ({ ...prev, sortOrder: nextOrder }));
               }}
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 dark:text-stone-300 flex items-center gap-1.5 transition-colors border border-black/5 dark:border-white/10 cursor-pointer"
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-(--j-ink2) flex items-center gap-1.5 transition-colors border border-(--j-line) cursor-pointer"
               title={`Sort entries by date tag (currently ${filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}). Click to toggle.`}
             >
-              <ArrowUpDown className="w-3.5 h-3.5 text-stone-400 dark:text-stone-400" />
+              <ArrowUpDown className="w-3.5 h-3.5 text-(--j-ink2)" />
               <span>{filters.sortOrder === 'oldest' ? 'Oldest first' : 'Newest first'}</span>
             </button>
           </div>

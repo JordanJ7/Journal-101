@@ -7,21 +7,24 @@
  *
  * Roles: ground (page), ink (text), ink2 (secondary text, ≥4.5:1 on ground), line (hairlines),
  * bar (week-strip bars), sig/onsig (the one accent fill and its text), tag (accent as text),
- * today (today's strip bar), field/fieldline (the composer), glass (floating bars), side (sidebar).
+ * today (today's strip bar), field/fieldline (the composer), glass (floating bars), side (sidebar),
+ * chip (accent-tinted tag), soft (a quiet panel surface).
  */
 import type { AccentTheme } from '../types';
 
 export interface SchemeTokens {
   ground: string; ink: string; ink2: string; line: string; bar: string; sig: string; onsig: string;
-  tag: string; today: string; field: string; fieldline: string; glass: string; side: string; chip: string;
+  tag: string; today: string; field: string; fieldline: string; glass: string; side: string; chip: string; soft: string;
 }
 
 type Pair = { dark: SchemeTokens; light: SchemeTokens };
 
-const t = (o: Omit<SchemeTokens, 'today' | 'chip'> & { today?: string; chip?: string }): SchemeTokens => ({
+const t = (o: Omit<SchemeTokens, 'today' | 'chip' | 'soft'> & { today?: string; chip?: string }): SchemeTokens => ({
   ...o,
   today: o.today ?? o.sig,
   chip: o.chip ?? `color-mix(in srgb, ${o.tag} 16%, transparent)`,
+  // A quiet panel surface for older screens: the ground, nudged toward the text colour.
+  soft: `color-mix(in srgb, ${o.ink} 7%, ${o.ground})`,
 });
 
 export const SCHEMES: Record<AccentTheme, Pair> = {

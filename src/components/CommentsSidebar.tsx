@@ -148,7 +148,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
         );
       default:
         return (
-          <span className="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold bg-(--j-soft) text-(--j-ink2) px-2 py-0.5 rounded-full">
             Viewer
           </span>
         );
@@ -170,7 +170,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
               <MessageSquare className="w-3.5 h-3.5" />
             </div>
             {unresolvedCount > 0 && (
-              <span className={`absolute -top-1 -right-1.5 min-w-[16px] h-4 px-1 ${currentAccent.bg500} text-white text-[9px] font-mono rounded-full flex items-center justify-center font-bold shadow-2xs`}>
+              <span className={`absolute -top-1 -right-1.5 min-w-[16px] h-4 px-1 ${currentAccent.bg500} text-white text-[9px] tabular-nums rounded-full flex items-center justify-center font-bold shadow-2xs`}>
                 {unresolvedCount}
               </span>
             )}
@@ -178,33 +178,33 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
           <span className="hidden sm:inline font-medium text-slate-700 dark:text-stone-200">
             Comments ({scopeComments.length})
           </span>
-          <ChevronLeft className="w-4 h-4 text-slate-400 dark:text-stone-500 group-hover:-translate-x-0.5 transition-transform" />
+          <ChevronLeft className="w-4 h-4 text-(--j-ink2) group-hover:-translate-x-0.5 transition-transform" />
         </button>
       )}
 
       {/* Expanded Comments Sidebar Panel */}
       <aside
         id="comments-sidebar-panel"
-        className={`fixed top-16 right-0 bottom-0 z-40 w-full max-w-sm sm:w-96 pr-[env(safe-area-inset-right,0px)] pb-[env(safe-area-inset-bottom,0px)] bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed top-16 right-0 bottom-0 z-40 w-full max-w-sm sm:w-96 pr-[env(safe-area-inset-right,0px)] pb-[env(safe-area-inset-bottom,0px)] bg-(--j-field) border-l border-(--j-line) shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Sidebar Header with Collapsible Arrow */}
-        <div className="p-4 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between bg-stone-50/80 dark:bg-stone-950/50">
+        <div className="p-4 border-b border-(--j-line) flex items-center justify-between bg-(--j-soft)">
           <div className="flex items-center gap-2">
             <div className={`p-1.5 ${currentAccent.iconBox} rounded-lg`}>
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-xs sm:text-sm font-bold text-(--j-ink)">
                   Comments & Feedback
                 </h3>
-                <span className={`text-[10px] font-mono ${currentAccent.iconBox} font-bold px-1.5 py-0.5 rounded-full`}>
+                <span className={`text-[10px] tabular-nums ${currentAccent.iconBox} font-bold px-1.5 py-0.5 rounded-full`}>
                   {scopeComments.length}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate max-w-[200px]">
+              <p className="text-[11px] text-(--j-ink2) truncate max-w-[200px]">
                 {targetTitle}
               </p>
             </div>
@@ -222,14 +222,14 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
         </div>
 
         {/* View Scope & Filter Bar */}
-        <div className="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 space-y-2 text-xs">
+        <div className="px-4 py-2.5 border-b border-(--j-line) bg-(--j-field) space-y-2 text-xs">
           <div className="flex items-center justify-between gap-1">
-            <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-0.5 rounded-lg text-[11px] font-semibold">
+            <div className="flex items-center gap-1 bg-(--j-soft) p-0.5 rounded-lg text-[11px] font-semibold">
               <button
                 onClick={() => setViewScope('current')}
                 className={`px-2 py-1 rounded-md transition-colors ${
                   viewScope === 'current'
-                    ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
+                    ? 'bg-white dark:bg-stone-700 text-(--j-ink) shadow-2xs font-bold'
                     : 'text-stone-500 hover:text-stone-800 dark:text-stone-400'
                 }`}
               >
@@ -239,7 +239,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 onClick={() => setViewScope('all-entries')}
                 className={`px-2 py-1 rounded-md transition-colors ${
                   viewScope === 'all-entries'
-                    ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-2xs font-bold'
+                    ? 'bg-white dark:bg-stone-700 text-(--j-ink) shadow-2xs font-bold'
                     : 'text-stone-500 hover:text-stone-800 dark:text-stone-400'
                 }`}
               >
@@ -289,14 +289,14 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
               <div className={`w-10 h-10 mx-auto rounded-full ${currentAccent.iconBox} flex items-center justify-center`}>
                 <MessageSquarePlus className="w-5 h-5" />
               </div>
-              <p className="text-xs font-bold text-stone-700 dark:text-stone-300">
+              <p className="text-xs font-bold text-(--j-ink2)">
                 {filterMode === 'resolved'
                   ? 'No resolved comments yet'
                   : filterMode === 'unresolved'
                   ? 'No open comments'
                   : 'No comments yet for this entry'}
               </p>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed max-w-xs mx-auto">
+              <p className="text-[11px] text-(--j-ink2) leading-relaxed max-w-xs mx-auto">
                 {canComment
                   ? 'Leave therapist feedback, ask reflection questions, or leave notes on specific sections below.'
                   : 'Log in or switch to a Commenter or Editor role to add notes and answers.'}
@@ -319,7 +319,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                     ? `ring-2 ${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-sm`
                     : comment.resolved
                     ? 'bg-slate-50/70 dark:bg-stone-900/40 border-slate-200 dark:border-stone-800 opacity-75'
-                    : 'bg-white dark:bg-stone-900 border-slate-200/90 dark:border-stone-800 shadow-2xs hover:border-slate-300 dark:hover:border-stone-700'
+                    : 'bg-(--j-field) border-slate-200/90 dark:border-stone-800 shadow-2xs hover:border-slate-300 dark:hover:border-stone-700'
                 }`}
               >
                 {/* Author Info & Role Header */}
@@ -329,7 +329,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       {comment.authorName ? comment.authorName.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+                      <p className="text-xs font-bold text-(--j-ink) truncate">
                         {comment.authorName}
                       </p>
                       <div className="flex flex-wrap items-center gap-1.5">
@@ -346,7 +346,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                         className={`p-1 rounded-lg transition-colors ${
                           comment.resolved
                             ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950 hover:bg-emerald-100'
-                            : 'text-stone-400 hover:text-emerald-600 hover:bg-stone-100 dark:hover:bg-stone-800'
+                            : 'text-(--j-ink2) hover:text-emerald-600 hover:bg-stone-100 dark:hover:bg-stone-800'
                         }`}
                         title={comment.resolved ? 'Reopen Comment' : 'Mark Resolved'}
                       >
@@ -360,7 +360,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                           setEditingCommentId(comment.id);
                           setEditingCommentText(comment.content);
                         }}
-                        className="p-1 text-stone-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
+                        className="p-1 text-(--j-ink2) hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
                         title="Edit Comment"
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -377,7 +377,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                             onConfirm: () => onDeleteComment(comment.id),
                           });
                         }}
-                        className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                        className="p-1 text-(--j-ink2) hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                         title="Delete Comment"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -388,8 +388,8 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
 
                 {/* Section Tag Badge */}
                 {comment.sectionKey && (
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 rounded-md text-[10px] font-semibold">
-                    <Tag className="w-2.5 h-2.5 text-stone-400" />
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--j-soft) text-(--j-ink2) rounded-md text-[10px] font-semibold">
+                    <Tag className="w-2.5 h-2.5 text-(--j-ink2)" />
                     <span>{comment.sectionKey}</span>
                   </div>
                 )}
@@ -412,7 +412,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                         onChange={(e) => {
                           setEditingCommentText(e.target.value);
                         }}
-                        className={`w-full p-2 text-xs bg-white dark:bg-stone-900 border ${currentAccent.border} rounded-lg text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 ${currentAccent.ring} resize-none overflow-hidden min-h-[56px]`}
+                        className={`w-full p-2 text-xs bg-(--j-field) border ${currentAccent.border} rounded-lg text-(--j-ink) focus:outline-none focus:ring-1 ${currentAccent.ring} resize-none overflow-hidden min-h-[56px]`}
                         autoFocus
                       />
                     </div>
@@ -437,15 +437,15 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-stone-800 dark:text-stone-200 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-xs text-(--j-ink) leading-relaxed whitespace-pre-wrap">
                     {comment.content}
                   </p>
                 )}
 
                 {/* Prominent Timestamp & Status */}
-                <div className="flex items-center justify-between text-[10px] text-stone-400 font-mono pt-1 border-t border-stone-100 dark:border-stone-800">
+                <div className="flex items-center justify-between text-[10px] text-(--j-ink2) tabular-nums pt-1 border-t border-(--j-line)">
                   <span className="flex items-center gap-1 font-medium">
-                    <Clock className="w-3 h-3 text-stone-400 shrink-0" />
+                    <Clock className="w-3 h-3 text-(--j-ink2) shrink-0" />
                     <span>{comment.timestamp}</span>
                   </span>
 
@@ -461,11 +461,11 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
         </div>
 
         {/* Add Comment Input Form */}
-        <div className="p-4 border-t border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-950/80">
+        <div className="p-4 border-t border-(--j-line) bg-(--j-soft)">
           {canComment ? (
             <form onSubmit={handlePost} className="space-y-2.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400 uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-(--j-ink2) ">
                   Leave Comment / Feedback
                 </span>
                 <select
@@ -474,7 +474,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                     setSelectedSection(e.target.value);
                     onSelectActiveSectionTag?.(e.target.value);
                   }}
-                  className="text-[11px] py-1 px-2 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-stone-800 dark:text-stone-200 font-medium"
+                  className="text-[11px] py-1 px-2 bg-(--j-field) border border-(--j-line) rounded-lg text-(--j-ink) font-medium"
                 >
                   <option value="General">Section: General</option>
                   <option value="Journal Bullets">Section: Journal Bullets</option>
@@ -495,7 +495,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                     <button
                       type="button"
                       onClick={onClearActiveSectionTag}
-                      className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 ml-1 p-0.5"
+                      className="text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 ml-1 p-0.5"
                       title="Clear targeted item selection"
                     >
                       <X className="w-3 h-3" />
@@ -529,12 +529,12 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                       handlePost(e);
                     }
                   }}
-                  className={`w-full p-2.5 text-xs bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 ${currentAccent.ring} resize-none overflow-hidden min-h-[52px] font-medium`}
+                  className={`w-full p-2.5 text-xs bg-(--j-field) border border-(--j-line) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none focus:ring-2 ${currentAccent.ring} resize-none overflow-hidden min-h-[52px] font-medium`}
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-stone-400">Press ⌘+Enter to submit</span>
+                <span className="text-[10px] text-(--j-ink2)">Press ⌘+Enter to submit</span>
                 <button
                   type="submit"
                   disabled={!commentText.trim()}
@@ -546,7 +546,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
               </div>
             </form>
           ) : (
-            <div className="text-center p-2 text-xs text-stone-500 dark:text-stone-400">
+            <div className="text-center p-2 text-xs text-(--j-ink2)">
               🔒 Read-only mode. Use Access Management to switch to Commenter / Therapist role to add comments.
             </div>
           )}

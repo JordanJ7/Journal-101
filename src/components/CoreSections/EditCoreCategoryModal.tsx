@@ -106,23 +106,23 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
     >
       <div
         id="edit-core-category-modal-card"
-        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative"
+        className="bg-(--j-field) border border-(--j-line) rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 relative"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-2 border-b border-black/5 dark:border-white/10">
+        <div className="flex items-center justify-between pb-2 border-b border-(--j-line)">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
               <Pencil className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+              <h3 className="text-sm font-bold text-(--j-ink)">
                 Rename & Edit Folder
               </h3>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400">
+              <p className="text-[11px] text-(--j-ink2)">
                 Update topic directory settings
               </p>
             </div>
@@ -131,7 +131,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -139,7 +139,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+            <label className="block text-xs font-semibold text-(--j-ink2) mb-1.5">
               Folder Name <span className="text-blue-600 dark:text-blue-400">*</span>
             </label>
             <input
@@ -149,12 +149,12 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
               placeholder="e.g. Life Vision, Book Assignment..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2.5 bg-stone-50 dark:bg-black/40 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-semibold placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
+              className="w-full min-h-[44px] px-3.5 py-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) font-semibold placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+            <label className="block text-xs font-semibold text-(--j-ink2) mb-1.5">
               Description (optional)
             </label>
             <input
@@ -162,15 +162,15 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
               placeholder="Brief summary or context..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2.5 bg-stone-50 dark:bg-black/40 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm sm:text-xs"
+              className="w-full min-h-[44px] px-3.5 py-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm sm:text-xs"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1.5">
+            <label className="block text-xs font-semibold text-(--j-ink2) mb-1.5">
               Folder Icon
             </label>
-            <div className="grid grid-cols-5 gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-stone-50 dark:bg-black/30 rounded-xl border border-stone-200 dark:border-white/5">
+            <div className="grid grid-cols-5 gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-(--j-soft) rounded-xl border border-(--j-line)">
               {AVAILABLE_ICONS.map((item) => {
                 const IconComp = item.icon;
                 const isSelected = selectedIcon === item.name;
@@ -183,7 +183,7 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
                     className={`min-h-[40px] p-2 rounded-xl flex items-center justify-center transition-all ${
                       isSelected
                         ? 'bg-blue-600 text-white shadow-xs font-semibold scale-105'
-                        : 'text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/10'
+                        : 'text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   >
                     <IconComp className="w-4 h-4" />
@@ -201,11 +201,11 @@ export const EditCoreCategoryModal: React.FC<EditCoreCategoryModalProps> = ({
             helperText="Default: Visible to all invited people. Restricting locks this folder so only the owner and selected emails can view it."
           />
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-black/5 dark:border-white/10">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-(--j-line)">
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] px-4 py-2 text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl font-medium transition-colors"
+              className="min-h-[44px] px-4 py-2 text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 rounded-xl font-medium transition-colors"
             >
               Cancel
             </button>

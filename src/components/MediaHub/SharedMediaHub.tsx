@@ -341,14 +341,14 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Header Bar */}
-      <div className="bg-white dark:bg-(--sf-raised-dk) p-4 sm:p-5 rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-3">
+      <div className="bg-(--j-field) p-4 sm:p-5 rounded-2xl border border-(--j-line) shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Film className="w-4 h-4 text-purple-500" />
-            <h1 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100">
+            <h1 className="text-base sm:text-lg font-bold text-(--j-ink)">
               Shared Media
             </h1>
-            <span className="text-xs text-stone-400 font-mono">
+            <span className="text-xs text-(--j-ink2) tabular-nums">
               ({counts.all})
             </span>
           </div>
@@ -378,7 +378,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
               onClick={() => handleFilterChange(f.key as MediaFilterType)}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
                 selectedFilter === f.key
-                  ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100'
+                  ? 'bg-(--j-soft) text-(--j-ink)'
                   : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100'
               }`}
             >
@@ -390,9 +390,9 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
 
       {/* Media Grid */}
       {filteredMedia.length === 0 ? (
-        <div className="text-center py-16 px-4 bg-white dark:bg-(--sf-raised-dk) rounded-2xl border border-black/5 dark:border-white/10 shadow-xs space-y-2">
-          <Film className="w-8 h-8 text-stone-400 mx-auto" />
-          <h3 className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+        <div className="text-center py-16 px-4 bg-(--j-field) rounded-2xl border border-(--j-line) shadow-xs space-y-2">
+          <Film className="w-8 h-8 text-(--j-ink2) mx-auto" />
+          <h3 className="text-sm font-semibold text-(--j-ink)">
             No Media Found
           </h3>
           {canEdit && (
@@ -415,7 +415,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
               return (
                 <div
                   key={item.id}
-                  className="bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between space-y-3 group hover:border-black/15 dark:hover:border-white/20 transition-all"
+                  className="bg-(--j-field) border border-(--j-line) rounded-2xl p-3.5 shadow-xs flex flex-col justify-between space-y-3 group hover:border-black/15 dark:hover:border-white/20 transition-all"
                 >
                   {/* Thumbnail if photo */}
                   {hasDirectImg && (
@@ -429,7 +429,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                           caption: item.caption,
                         })
                       }
-                      className="relative aspect-video rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 cursor-pointer"
+                      className="relative aspect-video rounded-xl overflow-hidden bg-(--j-soft) cursor-pointer"
                     >
                       <img
                         src={item.mediaUrl}
@@ -445,33 +445,33 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                   )}
 
                   <div className="space-y-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1 text-[10px] text-stone-400 font-mono">
-                      <span className="font-semibold uppercase">{item.categoryLabel}</span>
+                    <div className="flex items-center justify-between gap-1 text-[10px] text-(--j-ink2) tabular-nums">
+                      <span className="font-semibold ">{item.categoryLabel}</span>
                       <span>{item.timestamp}</span>
                     </div>
 
-                    <h3 className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
+                    <h3 className="text-xs font-bold text-(--j-ink) truncate">
                       {item.title}
                     </h3>
 
                     {item.notes && (
-                      <p className="text-[11px] text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] text-(--j-ink2) line-clamp-2 leading-relaxed">
                         {item.notes}
                       </p>
                     )}
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5 text-xs">
+                  <div className="flex items-center justify-between pt-2 border-t border-(--j-line) text-xs">
                     {item.sourceType === 'weekly' && onNavigateToWeek ? (
                       <button
                         onClick={() => onNavigateToWeek(item.sourceId)}
-                        className="text-[11px] text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 font-medium truncate max-w-[120px]"
+                        className="text-[11px] text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 font-medium truncate max-w-[120px]"
                       >
                         {item.sourceTitle}
                       </button>
                     ) : (
-                      <span className="text-[11px] text-stone-400 truncate max-w-[120px]">
+                      <span className="text-[11px] text-(--j-ink2) truncate max-w-[120px]">
                         {item.sourceTitle}
                       </span>
                     )}
@@ -482,7 +482,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                           <button
                             onClick={() => copyUrl(item.id, item.url)}
                             title="Copy Link"
-                            className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                            className="p-1 text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200"
                           >
                             {copiedId === item.id ? (
                               <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -495,7 +495,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                             target="_blank"
                             rel="noreferrer"
                             title="Open Link"
-                            className={`p-1 text-stone-400 hover:${currentAccent.textPrimary}`}
+                            className={`p-1 text-(--j-ink2) hover:${currentAccent.textPrimary}`}
                           >
                             <LinkIcon className="w-3.5 h-3.5" />
                           </a>
@@ -505,7 +505,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                       {canDelete && item.sourceType === 'weekly' && (
                         <button
                           onClick={() => handleDeleteMedia(item)}
-                          className="p-1 text-stone-400 hover:text-rose-500"
+                          className="p-1 text-(--j-ink2) hover:text-rose-500"
                           title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -520,9 +520,9 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
 
           {/* Pagination / Load More Bar */}
           {filteredMedia.length > visibleCount && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-black/5 dark:border-white/5 text-xs text-stone-500 dark:text-stone-400">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-(--j-line) text-xs text-(--j-ink2)">
               <span>
-                Showing <strong className="text-stone-800 dark:text-stone-200">{Math.min(visibleCount, filteredMedia.length)}</strong> of <strong className="text-stone-800 dark:text-stone-200">{filteredMedia.length}</strong> media items
+                Showing <strong className="text-(--j-ink)">{Math.min(visibleCount, filteredMedia.length)}</strong> of <strong className="text-(--j-ink)">{filteredMedia.length}</strong> media items
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -535,7 +535,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                 <button
                   type="button"
                   onClick={() => setVisibleCount(filteredMedia.length)}
-                  className="px-3 py-1.5 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-stone-700 dark:text-stone-300 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+                  className="px-3 py-1.5 bg-(--j-soft) hover:bg-black/10 dark:hover:bg-white/15 text-(--j-ink2) font-semibold text-xs rounded-xl transition-colors cursor-pointer"
                 >
                   Show All ({filteredMedia.length})
                 </button>
@@ -551,10 +551,10 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
           id="add-media-modal-overlay"
           className="fixed inset-0 z-50 bg-(--sf-app-dk)/90 flex items-center justify-center p-4"
         >
-          <div className="bg-white dark:bg-(--sf-raised-dk) rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-(--j-field) rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">Add Media</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-stone-400 hover:text-stone-600">
+              <h3 className="text-sm font-bold text-(--j-ink)">Add Media</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-(--j-ink2) hover:text-stone-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -566,7 +566,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                 placeholder="Title"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                className="w-full px-3 py-2 bg-(--j-soft) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
               />
 
               <input
@@ -575,13 +575,13 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                 placeholder="URL (Apple Photos / Video / Article)"
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
-                className="w-full px-3 py-2 bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                className="w-full px-3 py-2 bg-(--j-soft) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
               />
 
               <select
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as any)}
-                className="w-full px-3 py-2 bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 font-semibold focus:outline-none"
+                className="w-full px-3 py-2 bg-(--j-soft) rounded-xl text-(--j-ink) font-semibold focus:outline-none"
               >
                 <option value="apple-photos">Apple Photos</option>
                 <option value="tiktok">Video (TikTok / YouTube)</option>
@@ -592,7 +592,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
               <select
                 value={targetWeekId}
                 onChange={(e) => setTargetWeekId(e.target.value)}
-                className="w-full px-3 py-2 bg-black/5 dark:bg-white/10 rounded-xl text-stone-900 dark:text-stone-100 font-semibold focus:outline-none"
+                className="w-full px-3 py-2 bg-(--j-soft) rounded-xl text-(--j-ink) font-semibold focus:outline-none"
               >
                 {weeks.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -619,7 +619,7 @@ export const SharedMediaHub: React.FC<SharedMediaHubProps> = React.memo(({
                 </button>
                 <button
                   type="submit"
-                  className={`px-3.5 py-1.5 text-xs font-semibold text-white ${currentAccent.buttonPrimary} rounded-xl shadow-xs`}
+                  className={`px-3.5 py-1.5 text-xs font-semibold  ${currentAccent.buttonPrimary} rounded-xl shadow-xs`}
                 >
                   Add
                 </button>

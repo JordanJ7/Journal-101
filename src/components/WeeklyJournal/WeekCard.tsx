@@ -358,7 +358,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                 className={`min-h-[44px] min-w-[44px] p-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 text-xs ${
                   week.isPinned
                     ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
-                    : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
+                    : 'text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
                 }`}
               >
                 <Pin className={`w-4 h-4 ${week.isPinned ? 'fill-current' : ''}`} />
@@ -375,7 +375,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                 className="min-h-[44px] min-w-[44px] p-2 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center gap-1 text-xs"
               >
                 <MessageSquare className="w-4 h-4" />
-                {commentsCount > 0 && <span className="font-mono">{commentsCount}</span>}
+                {commentsCount > 0 && <span className="tabular-nums">{commentsCount}</span>}
               </button>
             )}
   
@@ -392,7 +392,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                 <button
                   type="button"
                   onClick={() => setShowMoreMenu((prev) => !prev)}
-                  className="min-h-[44px] min-w-[44px] p-2 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                  className="min-h-[44px] min-w-[44px] p-2 text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
                   title="More week options"
                 >
                   <MoreVertical className="w-4 h-4" />
@@ -400,7 +400,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                 {showMoreMenu && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setShowMoreMenu(false)} />
-                    <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[160px] text-xs">
+                    <div className="absolute right-0 top-full mt-1 z-40 bg-(--j-field) rounded-xl shadow-xl border border-(--j-line) p-1 min-w-[160px] text-xs">
                       <button
                         type="button"
                         onClick={() => {
@@ -529,11 +529,11 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
           className={`rounded-xl p-3.5 border space-y-3 transition-all ${
             isTherapistHighlighted
               ? `${themeConfig.iconBoxSelected} ${themeConfig.activeBorder}`
-              : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5'
+              : 'bg-(--j-soft) border-(--j-line)'
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xs font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold text-(--j-ink) flex items-center gap-1.5">
               <Sparkles className={`w-3.5 h-3.5 ${themeConfig.textPrimary}`} />
               <span>{week.therapistSection.title || 'Session Notes'}</span>
             </h3>
@@ -542,7 +542,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
               <button
                 type="button"
                 onClick={() => onOpenCommentSection('Therapist Notes', undefined, 'weekly', week.id)}
-                className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                className="p-1 text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200"
                 title="Comment"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -556,14 +556,14 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
               {week.therapistSection.externalLinks.map((link) => (
                 <div
                   key={link.id}
-                  className="flex items-center gap-1.5 bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 px-2.5 py-1 rounded-lg text-xs"
+                  className="flex items-center gap-1.5 bg-(--j-field) border border-(--j-line) px-2.5 py-1 rounded-lg text-xs"
                 >
                   <LinkIcon className={`w-3 h-3 shrink-0 ${themeConfig.textPrimary}`} />
                   <a
                     href={sanitizeUrl(link.url)}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-stone-800 dark:text-stone-200 hover:underline truncate max-w-[140px]"
+                    className="font-semibold text-(--j-ink) hover:underline truncate max-w-[140px]"
                   >
                     <HighlightText text={link.title} highlight={searchQuery} />
                   </a>
@@ -579,7 +579,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                         externalUrl: link.url,
                       })
                     }
-                    className="p-0.5 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                    className="p-0.5 text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200"
                   >
                     <Maximize2 className="w-3 h-3" />
                   </button>
@@ -587,7 +587,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   {canDelete && (
                     <button
                       onClick={() => handleDeleteExternalLink(link.id)}
-                      className="text-stone-400 hover:text-rose-500 font-bold px-0.5"
+                      className="text-(--j-ink2) hover:text-rose-500 font-bold px-0.5"
                     >
                       ×
                     </button>
@@ -603,18 +603,18 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   placeholder="Link Title"
                   value={newLinkTitle}
                   onChange={(e) => setNewLinkTitle(e.target.value)}
-                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-(--j-field) border border-(--j-line) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
                 />
                 <input
                   type="text"
                   placeholder="URL (Apple Photos / Media)"
                   value={newLinkUrl}
                   onChange={(e) => setNewLinkUrl(e.target.value)}
-                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-(--j-field) border border-(--j-line) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
                 />
                 <button
                   onClick={handleAddExternalLink}
-                  className="min-h-[40px] px-3.5 py-2 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-stone-800 dark:text-stone-200 font-semibold text-xs rounded-xl transition-colors flex items-center justify-center"
+                  className="min-h-[40px] px-3.5 py-2 bg-(--j-soft) hover:bg-black/10 dark:hover:bg-white/15 text-(--j-ink) font-semibold text-xs rounded-xl transition-colors flex items-center justify-center"
                 >
                   + Add
                 </button>
@@ -623,7 +623,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
           </div>
 
           {/* Items to show */}
-          <div className="space-y-1.5 pt-2 border-t border-black/5 dark:border-white/5">
+          <div className="space-y-1.5 pt-2 border-t border-(--j-line)">
             <div className="space-y-1">
               {week.therapistSection.itemsToShow.map((item) => (
                 <div
@@ -631,7 +631,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   className={`p-2 rounded-xl text-xs flex items-center justify-between gap-2 ${
                     item.isHighlightedAnswer
                       ? themeConfig.tagBadge
-                      : 'bg-white dark:bg-(--sf-raised-dk) text-stone-900 dark:text-stone-100'
+                      : 'bg-(--j-field) text-(--j-ink)'
                   }`}
                 >
                   <p className="truncate flex-1 font-medium">
@@ -644,7 +644,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                         className={`text-[10px] px-2 py-1 rounded-lg font-semibold ${
                           item.isHighlightedAnswer
                             ? `${themeConfig.bg500} text-white`
-                            : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                            : 'text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200'
                         }`}
                       >
                         Highlight
@@ -653,7 +653,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                     {canDelete && (
                       <button
                         onClick={() => handleDeleteShowItem(item.id)}
-                        className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center text-stone-400 hover:text-rose-500"
+                        className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center text-(--j-ink2) hover:text-rose-500"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -671,11 +671,11 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                   value={newShowItemText}
                   onChange={(e) => setNewShowItemText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddShowItem()}
-                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none"
+                  className="flex-1 px-3 py-2 text-base sm:text-xs bg-(--j-field) border border-(--j-line) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none"
                 />
                 <button
                   onClick={handleAddShowItem}
-                  className="min-h-[40px] px-3.5 py-2 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-stone-800 dark:text-stone-200 font-semibold text-xs rounded-xl transition-colors flex items-center justify-center"
+                  className="min-h-[40px] px-3.5 py-2 bg-(--j-soft) hover:bg-black/10 dark:hover:bg-white/15 text-(--j-ink) font-semibold text-xs rounded-xl transition-colors flex items-center justify-center"
                 >
                   + Add
                 </button>

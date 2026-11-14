@@ -378,7 +378,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
     if (readOnly) {
       if (!localValue.trim()) {
         return (
-          <div className="py-6 px-4 text-center text-stone-400 dark:text-stone-500 text-xs italic">
+          <div className="py-6 px-4 text-center text-(--j-ink2) text-xs italic">
             No notes or bullet entries recorded for this topic.
           </div>
         );
@@ -386,7 +386,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
 
       return (
         <div
-          className="space-y-1.5 py-1 text-stone-800 dark:text-stone-200 text-sm leading-relaxed select-text font-normal min-w-0 max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word]"
+          className="space-y-1.5 py-1 text-(--j-ink) text-sm leading-relaxed select-text font-normal min-w-0 max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word]"
           style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
         >
           {localValue.split('\n').map((line, idx) => {
@@ -413,10 +413,10 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
               indentLevel === 0
                 ? 'pl-0'
                 : indentLevel === 1
-                ? 'pl-5 sm:pl-6 border-l-2 border-black/5 dark:border-white/5 ml-1'
+                ? 'pl-5 sm:pl-6 border-l-2 border-(--j-line) ml-1'
                 : indentLevel === 2
-                ? 'pl-10 sm:pl-12 border-l-2 border-black/5 dark:border-white/5 ml-1'
-                : 'pl-14 sm:pl-16 border-l-2 border-black/5 dark:border-white/5 ml-1';
+                ? 'pl-10 sm:pl-12 border-l-2 border-(--j-line) ml-1'
+                : 'pl-14 sm:pl-16 border-l-2 border-(--j-line) ml-1';
 
             return (
               <div
@@ -439,7 +439,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
                       indentLevel === 0
                         ? 'text-blue-600 dark:text-blue-400 font-bold text-base leading-none mt-1'
                         : indentLevel === 1
-                        ? 'text-stone-400 dark:text-stone-500 text-sm leading-none mt-1'
+                        ? 'text-(--j-ink2) text-sm leading-none mt-1'
                         : 'text-stone-300 dark:text-stone-600 text-xs leading-none mt-1.5'
                     }`}
                   >
@@ -449,7 +449,7 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
 
                 <div
                   className={`flex-1 min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word] ${
-                    isChecked ? 'line-through text-stone-400 dark:text-stone-500' : ''
+                    isChecked ? 'line-through text-(--j-ink2)' : ''
                   }`}
                   style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
                 >
@@ -465,12 +465,12 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
     return (
       <div className="relative group w-full flex flex-col rounded-2xl transition-all">
         {/* Subtle Apple-style Formatting Bar (Visible on focus or hover) */}
-        <div className="flex items-center justify-between gap-2 pb-2 mb-1 border-b border-black/5 dark:border-white/5 text-xs">
+        <div className="flex items-center justify-between gap-2 pb-2 mb-1 border-b border-(--j-line) text-xs">
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={handleInsertBullet}
-              className="px-2 py-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-medium transition-colors"
+              className="px-2 py-1 rounded-lg text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-medium transition-colors"
               title="Insert bullet point"
             >
               <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
@@ -480,17 +480,17 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             <button
               type="button"
               onClick={handleInsertCheckbox}
-              className="px-2 py-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-medium transition-colors"
+              className="px-2 py-1 rounded-lg text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-medium transition-colors"
               title="Insert checklist item"
             >
-              <CheckSquare className="w-3 h-3 text-stone-400" />
+              <CheckSquare className="w-3 h-3 text-(--j-ink2)" />
               <span className="text-[11px]">Todo</span>
             </button>
 
             <button
               type="button"
               onClick={handleToggleBold}
-              className="px-2 py-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-bold transition-colors"
+              className="px-2 py-1 rounded-lg text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-bold transition-colors"
               title="Bold selection (⌘B)"
             >
               <Bold className="w-3 h-3" />
@@ -500,10 +500,10 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             <button
               type="button"
               onClick={handleInsertTimestamp}
-              className="px-2 py-1 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-medium transition-colors"
+              className="px-2 py-1 rounded-lg text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-medium transition-colors"
               title="Insert current date & time"
             >
-              <Clock className="w-3 h-3 text-stone-400" />
+              <Clock className="w-3 h-3 text-(--j-ink2)" />
               <span className="text-[11px] hidden sm:inline">Timestamp</span>
             </button>
           </div>
@@ -538,14 +538,14 @@ export const BulletedNoteEditor = React.forwardRef<BulletedNoteEditorRef, Bullet
             placeholder={placeholder}
             rows={minRows}
             autoFocus={autoFocus}
-            className="w-full h-auto min-h-[350px] resize-none overflow-hidden bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-stone-900 dark:text-neutral-100 placeholder:text-neutral-500 font-normal selection:bg-blue-500/20 py-2 px-1 break-words [overflow-wrap:anywhere] [word-break:break-word]"
+            className="w-full h-auto min-h-[350px] resize-none overflow-hidden bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-(--j-ink) placeholder:text-neutral-500 font-normal selection:bg-blue-500/20 py-2 px-1 break-words [overflow-wrap:anywhere] [word-break:break-word]"
             style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
           />
         </div>
 
         {/* Keyboard Tip Footer */}
-        <div className="flex items-center justify-between text-[10px] text-stone-400 dark:text-stone-500 pt-1 border-t border-black/5 dark:border-white/5">
-          <span>Type <code className="font-mono bg-black/5 dark:bg-white/10 px-1 py-0.5 rounded">-</code> or <code className="font-mono bg-black/5 dark:bg-white/10 px-1 py-0.5 rounded">•</code> + <kbd className="font-sans">Space</kbd> for bullets</span>
+        <div className="flex items-center justify-between text-[10px] text-(--j-ink2) pt-1 border-t border-(--j-line)">
+          <span>Type <code className="tabular-nums bg-(--j-soft) px-1 py-0.5 rounded">-</code> or <code className="tabular-nums bg-(--j-soft) px-1 py-0.5 rounded">•</code> + <kbd className="font-sans">Space</kbd> for bullets</span>
           <span><kbd className="font-sans">Tab</kbd> to indent • <kbd className="font-sans">Enter</kbd> to continue</span>
         </div>
       </div>
@@ -572,7 +572,7 @@ const FormattedLineText: React.FC<{ text: string; searchQuery?: string }> = Reac
             return (
               <strong
                 key={i}
-                className="font-bold text-stone-900 dark:text-stone-100 min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]"
+                className="font-bold text-(--j-ink) min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]"
                 style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
               >
                 <HighlightText text={boldContent} highlight={searchQuery} />

@@ -118,36 +118,36 @@ const NavbarSaveIndicator = React.memo(() => {
       }}
     >
       {effectiveStatus === 'saving' && (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25 text-xs font-mono">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25 text-xs tabular-nums">
           <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
           <span>Saving…</span>
         </span>
       )}
       {effectiveStatus === 'unsaved' && (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-mono font-medium shadow-2xs">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs tabular-nums font-medium shadow-2xs">
           <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
           <span>Unsaved changes</span>
         </span>
       )}
       {effectiveStatus === 'saved_cloud' && (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs font-mono font-medium shadow-2xs">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs tabular-nums font-medium shadow-2xs">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <span>Saved to cloud</span>
           {relativeTime && (
-            <span className="text-[11px] text-emerald-700/90 dark:text-emerald-400 font-mono">
+            <span className="text-[11px] text-emerald-700/90 dark:text-emerald-400 tabular-nums">
               · {relativeTime}
             </span>
           )}
         </span>
       )}
       {effectiveStatus === 'saved_local' && (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-500/10 text-stone-700 dark:text-stone-300 border border-stone-500/20 text-xs font-mono">
-          <HardDrive className="w-3 h-3 text-stone-400 shrink-0" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-500/10 text-(--j-ink2) border border-stone-500/20 text-xs tabular-nums">
+          <HardDrive className="w-3 h-3 text-(--j-ink2) shrink-0" />
           <span>Saved on device</span>
         </span>
       )}
       {effectiveStatus === 'offline' && (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 text-xs font-mono">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 text-xs tabular-nums">
           <WifiOff className="w-3 h-3 text-amber-500 shrink-0" />
           <span>Offline</span>
         </span>
@@ -157,7 +157,7 @@ const NavbarSaveIndicator = React.memo(() => {
           type="button"
           onClick={() => retrySave()}
           title="Click to retry saving pending changes"
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/25 hover:bg-rose-500/20 text-xs font-mono cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/25 hover:bg-rose-500/20 text-xs tabular-nums cursor-pointer"
         >
           <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
           <span>Couldn't save — <span className="underline font-bold">Retry</span></span>
@@ -197,31 +197,31 @@ const MobileNavbarSaveIndicator = React.memo(() => {
       }}
     >
       {effectiveStatus === 'saving' && (
-        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-mono">
+        <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 tabular-nums">
           <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
           <span>Saving…</span>
         </span>
       )}
       {effectiveStatus === 'unsaved' && (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-mono font-medium">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] tabular-nums font-medium">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
           <span>Unsaved changes</span>
         </span>
       )}
       {effectiveStatus === 'saved_cloud' && (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-mono">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[11px] tabular-nums">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
           <span>Saved to cloud · {relativeTime}</span>
         </span>
       )}
       {effectiveStatus === 'saved_local' && (
-        <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 font-mono text-[11px]">
-          <HardDrive className="w-3 h-3 text-stone-400 shrink-0" />
+        <span className="flex items-center gap-1.5 text-(--j-ink2) tabular-nums text-[11px]">
+          <HardDrive className="w-3 h-3 text-(--j-ink2) shrink-0" />
           <span>Saved on device</span>
         </span>
       )}
       {effectiveStatus === 'offline' && (
-        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-mono text-[11px]">
+        <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 tabular-nums text-[11px]">
           <WifiOff className="w-3 h-3 text-amber-500 shrink-0" />
           <span>Offline</span>
         </span>
@@ -230,7 +230,7 @@ const MobileNavbarSaveIndicator = React.memo(() => {
         <button
           type="button"
           onClick={() => retrySave()}
-          className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:underline cursor-pointer font-mono text-[11px]"
+          className="flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:underline cursor-pointer tabular-nums text-[11px]"
         >
           <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
           <span>Couldn't save — <span className="font-semibold underline">Retry</span></span>
@@ -483,7 +483,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
         {/* Center: Search */}
         <div className="relative flex-1 max-w-lg md:max-w-[240px] lg:max-w-xs xl:max-w-sm mx-1 sm:mx-3" ref={searchContainerRef}>
           <div className="relative flex items-center">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-400 pointer-events-none" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-(--j-ink2) pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
@@ -507,14 +507,14 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   searchInputRef.current?.blur();
                 }
               }}
-              className="w-full pl-10 pr-14 sm:pr-16 py-2 text-base sm:text-xs bg-black/5 dark:bg-white/5 hover:bg-black/[0.07] dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-(--sf-card-dk) border border-stone-200/80 dark:border-white/10 focus:border-amber-500/50 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-400 focus:outline-none transition-all min-h-[44px]"
+              className="w-full pl-10 pr-14 sm:pr-16 py-2 text-base sm:text-xs bg-(--j-soft) hover:bg-black/[0.07] dark:hover:bg-white/[0.08] focus:bg-white dark:focus:bg-(--sf-card-dk) border border-(--j-line) focus:border-amber-500/50 rounded-xl text-(--j-ink) placeholder-stone-400 dark:placeholder-stone-400 focus:outline-none transition-all min-h-[44px]"
             />
 
             {/* In-Search Controls */}
             {searchInputValue ? (
               <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                 {totalMatches > 0 && (
-                  <span className="text-[10px] text-stone-500 dark:text-stone-400 font-mono mr-1">
+                  <span className="text-[10px] text-(--j-ink2) tabular-nums mr-1">
                     {activeMatchIndex + 1}/{totalMatches}
                   </span>
                 )}
@@ -522,7 +522,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   type="button"
                   onClick={handlePrevMatch}
                   disabled={totalMatches === 0}
-                  className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center rounded text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                  className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center rounded text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200"
                 >
                   <ChevronUp className="w-3 h-3" />
                 </button>
@@ -530,20 +530,20 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   type="button"
                   onClick={handleNextMatch}
                   disabled={totalMatches === 0}
-                  className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center rounded text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                  className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center rounded text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200"
                 >
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center rounded text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                  className="min-h-[32px] min-w-[32px] p-1 flex items-center justify-center rounded text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200"
                 >
                   <X className="w-3 h-3" />
                 </button>
               </div>
             ) : (
-              <span className="hidden sm:inline absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-stone-400 dark:text-stone-500 font-mono pointer-events-none">
+              <span className="hidden sm:inline absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-(--j-ink2) tabular-nums pointer-events-none">
                 ⌘K
               </span>
             )}
@@ -551,8 +551,8 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
 
           {/* Quick Search Popover */}
           {isSearchDropdownOpen && searchInputValue.trim().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in duration-100 max-h-[70vh] flex flex-col p-2 space-y-1">
-              <div className="px-2 py-1 text-[11px] font-semibold text-stone-400">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-(--j-field) border border-(--j-line) rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in duration-100 max-h-[70vh] flex flex-col p-2 space-y-1">
+              <div className="px-2 py-1 text-[11px] font-semibold text-(--j-ink2)">
                 {searchResults.totalCount === 0
                   ? 'No results'
                   : `${searchResults.totalCount} result${searchResults.totalCount === 1 ? '' : 's'}`}
@@ -569,7 +569,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   className="w-full text-left p-2.5 min-h-[44px] rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-2"
                 >
                   <Calendar className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span className="text-xs font-medium text-stone-900 dark:text-stone-100 truncate">
+                  <span className="text-xs font-medium text-(--j-ink) truncate">
                     {week.weekTitle}
                   </span>
                 </button>
@@ -587,11 +587,11 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <Folder className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                    <span className="text-xs font-medium text-stone-900 dark:text-stone-100 truncate">
+                    <span className="text-xs font-medium text-(--j-ink) truncate">
                       {item.title}
                     </span>
                   </div>
-                  <span className="text-[10px] text-stone-400 truncate shrink-0">
+                  <span className="text-[10px] text-(--j-ink2) truncate shrink-0">
                     {categoryTitle}
                   </span>
                 </button>
@@ -615,14 +615,14 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                 className={`min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all cursor-pointer shadow-2xs ${
                   previewGuest
                     ? 'bg-amber-500/15 border-amber-500/40 text-amber-900 dark:text-amber-300 hover:bg-amber-500/25'
-                    : 'bg-black/5 dark:bg-white/5 border-stone-200/80 dark:border-white/10 text-stone-700 dark:text-stone-300 hover:bg-black/10 dark:hover:bg-white/10'
+                    : 'bg-(--j-soft) border-(--j-line) text-(--j-ink2) hover:bg-black/10 dark:hover:bg-white/10'
                 }`}
               >
                 <Eye className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span className="truncate max-w-[130px] lg:max-w-[170px]">
                   {previewGuest ? `Viewing as: ${previewGuest.email.split('@')[0]}` : 'Viewing as: Owner'}
                 </span>
-                <ChevronDown className="w-3 h-3 text-stone-400 shrink-0" />
+                <ChevronDown className="w-3 h-3 text-(--j-ink2) shrink-0" />
               </button>
 
               {isGuestPickerOpen && (
@@ -632,11 +632,11 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                     onClick={() => setIsGuestPickerOpen(false)}
                   />
                   <div
-                    className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-(--sf-card-dk) border border-stone-200/90 dark:border-white/10 rounded-[14px] shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2.5"
+                    className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-(--j-field) border border-(--j-line) rounded-[14px] shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2.5"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-white/10">
-                      <span className="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider">
+                    <div className="flex items-center justify-between pb-2 border-b border-(--j-line)">
+                      <span className="text-xs font-bold text-(--j-ink) ">
                         Guest Preview Picker
                       </span>
                       {previewGuest && (
@@ -663,26 +663,26 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       className={`w-full text-left p-2.5 rounded-xl text-xs flex items-center justify-between min-h-[44px] transition-colors cursor-pointer ${
                         !previewGuest
                           ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 font-semibold border border-amber-500/30'
-                          : 'hover:bg-black/5 dark:hover:bg-white/5 text-stone-700 dark:text-stone-300'
+                          : 'hover:bg-black/5 dark:hover:bg-white/5 text-(--j-ink2)'
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                         <div>
-                          <span className="font-semibold text-stone-900 dark:text-stone-100">Owner</span>
-                          <span className="text-[11px] text-stone-400 dark:text-stone-400 font-mono ml-1.5">(Full Access)</span>
+                          <span className="font-semibold text-(--j-ink)">Owner</span>
+                          <span className="text-[11px] text-(--j-ink2) tabular-nums ml-1.5">(Full Access)</span>
                         </div>
                       </div>
                       {!previewGuest && <Check className="w-4 h-4 text-amber-500 shrink-0" />}
                     </button>
 
                     {/* Invited Guests list */}
-                    <div className="space-y-1 pt-1.5 border-t border-stone-100 dark:border-white/10 max-h-56 overflow-y-auto">
-                      <span className="text-[10px] uppercase font-mono tracking-wider text-stone-400 px-1 block mb-1">
+                    <div className="space-y-1 pt-1.5 border-t border-(--j-line) max-h-56 overflow-y-auto">
+                      <span className="text-[10px]  tabular-nums tracking-wider text-(--j-ink2) px-1 block mb-1">
                         Preview as Invited Guest
                       </span>
                       {invitedGuests.length === 0 ? (
-                        <div className="p-3 text-center text-xs text-stone-400 italic">
+                        <div className="p-3 text-center text-xs text-(--j-ink2) italic">
                           No invited guests yet
                         </div>
                       ) : (
@@ -699,21 +699,21 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                               className={`w-full text-left p-2.5 rounded-xl text-xs flex items-center justify-between min-h-[44px] transition-colors cursor-pointer ${
                                 isSelected
                                   ? 'bg-amber-500/15 text-amber-900 dark:text-amber-200 font-semibold border border-amber-500/30'
-                                  : 'hover:bg-black/5 dark:hover:bg-white/5 text-stone-700 dark:text-stone-300'
+                                  : 'hover:bg-black/5 dark:hover:bg-white/5 text-(--j-ink2)'
                               }`}
                             >
                               <div className="min-w-0 pr-2">
-                                <div className="truncate font-medium text-stone-900 dark:text-stone-100">
+                                <div className="truncate font-medium text-(--j-ink)">
                                   {guest.email}
                                 </div>
-                                <div className="text-[10px] font-mono text-stone-400 capitalize">
+                                <div className="text-[10px] tabular-nums text-(--j-ink2) capitalize">
                                   {guest.role}
                                 </div>
                               </div>
                               {isSelected ? (
                                 <Check className="w-4 h-4 text-amber-500 shrink-0" />
                               ) : (
-                                <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 shrink-0 px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800">
+                                <span className="text-[11px] font-semibold text-(--j-ink2) shrink-0 px-2 py-0.5 rounded-md bg-(--j-soft)">
                                   Preview
                                 </span>
                               )}
@@ -733,7 +733,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             <button
               onClick={() => setIsAppearanceOpen(true)}
               title="Appearance"
-              className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1"
+              className="min-h-[44px] min-w-[44px] p-2 rounded-full text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1"
             >
               {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500" />}
             </button>
@@ -742,7 +742,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
               <>
                 <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsThemeMenuOpen(false)} />
                 <div
-                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-(--sf-raised-dk) border border-black/5 dark:border-white/10 rounded-2xl shadow-xl p-3 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 mt-2 w-56 bg-(--j-field) border border-(--j-line) rounded-2xl shadow-xl p-3 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-100"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center justify-between p-1 bg-neutral-200/50 dark:bg-white/5 rounded-xl">
@@ -770,8 +770,8 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                     </button>
                   </div>
 
-                  <div className="pt-2 border-t border-black/5 dark:border-white/5">
-                    <span className="block text-[11px] font-semibold text-stone-400 mb-1.5">
+                  <div className="pt-2 border-t border-(--j-line)">
+                    <span className="block text-[11px] font-semibold text-(--j-ink2) mb-1.5">
                       Color Palette
                     </span>
                     <div className="space-y-0.5 max-h-[45dvh] overflow-y-auto">
@@ -791,15 +791,15 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                               }}
                               className={`w-full min-h-[40px] px-2 py-1.5 rounded-xl flex items-center gap-2.5 text-left text-xs font-medium transition-colors ${
                                 isSelected
-                                  ? 'bg-black/5 dark:bg-white/10 text-stone-900 dark:text-stone-100'
-                                  : 'text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10'
+                                  ? 'bg-(--j-soft) text-(--j-ink)'
+                                  : 'text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10'
                               }`}
                             >
                               <span className="flex -space-x-1.5 shrink-0" aria-hidden="true">
                                 {[p.dark, p.accent, p.light].map((c) => (
                                   <span
                                     key={c}
-                                    className="w-5 h-5 rounded-full border border-black/10 dark:border-white/20"
+                                    className="w-5 h-5 rounded-full border border-(--j-line)"
                                     style={{ backgroundColor: c }}
                                   />
                                 ))}
@@ -811,7 +811,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                         })}
                     </div>
 
-                    <span className="block text-[11px] font-semibold text-stone-400 mt-2.5 mb-1.5">
+                    <span className="block text-[11px] font-semibold text-(--j-ink2) mt-2.5 mb-1.5">
                       Classic Accent
                     </span>
                     <div className="grid grid-cols-4 gap-1.5">
@@ -842,7 +842,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-black/5 dark:border-white/5 space-y-1">
+                  <div className="pt-2 border-t border-(--j-line) space-y-1">
                     {onOpenQuotesModal && (
                       <button
                         type="button"
@@ -850,7 +850,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                           setIsThemeMenuOpen(false);
                           onOpenQuotesModal();
                         }}
-                        className="w-full py-1.5 px-2.5 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-1.5 px-2.5 rounded-xl text-xs font-medium text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
                       >
                         <Quote className="w-3.5 h-3.5 text-amber-500" />
                         <span>Customize Intro Quotes</span>
@@ -862,7 +862,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                         setIsThemeMenuOpen(false);
                         window.dispatchEvent(new CustomEvent('replay-intro'));
                       }}
-                      className="w-full py-1.5 px-2.5 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-1.5 px-2.5 rounded-xl text-xs font-medium text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                       <span>Replay Intro Quote</span>
@@ -881,8 +881,8 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             className={`min-h-[44px] min-w-[44px] p-2 rounded-full flex items-center justify-center transition-colors ${
               isMobileMenuOpen
-                ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100'
-                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10'
+                ? 'bg-(--j-soft) text-(--j-ink)'
+                : 'text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10'
             }`}
             title="Options Menu"
           >
@@ -899,48 +899,48 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
               />
 
               <div
-                className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/15 rounded-2xl p-4 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 max-h-[calc(100dvh-4.5rem)] overflow-y-auto space-y-3"
+                className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-(--j-field) border border-(--j-line) rounded-2xl p-4 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 max-h-[calc(100dvh-4.5rem)] overflow-y-auto space-y-3"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header with User and Close button */}
-                <div className="flex items-center justify-between pb-2.5 border-b border-black/5 dark:border-white/10">
+                <div className="flex items-center justify-between pb-2.5 border-b border-(--j-line)">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-stone-200 flex items-center justify-center text-xs font-bold shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-stone-200 dark:bg-stone-800 text-(--j-ink) flex items-center justify-center text-xs font-bold shrink-0">
                       {userInitial}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
+                      <p className="text-xs font-semibold text-(--j-ink) truncate">
                         {currentUser.displayName || currentUser.email}
                       </p>
-                      <p className="text-[10px] text-stone-400 capitalize">{currentUser.role}</p>
+                      <p className="text-[10px] text-(--j-ink2) capitalize">{currentUser.role}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="min-h-[36px] min-w-[36px] p-1.5 flex items-center justify-center rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 shrink-0"
+                    className="min-h-[36px] min-w-[36px] p-1.5 flex items-center justify-center rounded-full text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 shrink-0"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Cloud & Local Sync Status Banner (Mobile) */}
-                <div className="flex items-center justify-between px-3 py-2 bg-black/5 dark:bg-white/5 rounded-xl text-xs">
+                <div className="flex items-center justify-between px-3 py-2 bg-(--j-soft) rounded-xl text-xs">
                   <div className="flex items-center gap-2">
-                    <Cloud className="w-4 h-4 text-stone-400" />
-                    <span className="font-medium text-stone-700 dark:text-stone-300">Sync Status</span>
+                    <Cloud className="w-4 h-4 text-(--j-ink2)" />
+                    <span className="font-medium text-(--j-ink2)">Sync Status</span>
                   </div>
                   <MobileNavbarSaveIndicator />
                 </div>
 
                 {/* Reminder alerts on this device */}
                 <div className="space-y-2">
-                  <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Reminder alerts</span>
+                  <span className="text-[11px] font-semibold text-(--j-ink2) ">Reminder alerts</span>
                   <AlertsButton />
                 </div>
 
                 {/* Appearance / Theme Options */}
                 <div className="space-y-2">
-                  <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Appearance</span>
+                  <span className="text-[11px] font-semibold text-(--j-ink2) ">Appearance</span>
                   <div className="flex bg-neutral-200/50 dark:bg-white/10 p-1 rounded-xl">
                     <button
                       onClick={() => setTheme('light')}
@@ -989,32 +989,32 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                 </div>
 
                 {/* Navigation & Action Links */}
-                <div className="space-y-1.5 pt-2 border-t border-black/5 dark:border-white/10">
+                <div className="space-y-1.5 pt-2 border-t border-(--j-line)">
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       setIsAppearanceOpen(true);
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-(--j-soft) flex items-center justify-between text-xs font-semibold text-(--j-ink) shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <Palette className="w-4 h-4 text-amber-500" />
                       <span>Appearance &amp; app icon</span>
                     </div>
-                    <span className="text-stone-400 text-xs">›</span>
+                    <span className="text-(--j-ink2) text-xs">›</span>
                   </button>
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       setViewMode?.('home');
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-(--j-soft) flex items-center justify-between text-xs font-semibold text-(--j-ink) shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <Home className="w-4 h-4 text-amber-500" />
                       <span>Overview</span>
                     </div>
-                    <span className="text-stone-400 text-xs">›</span>
+                    <span className="text-(--j-ink2) text-xs">›</span>
                   </button>
                   {onToggleFullScreen && (
                     <div className="hidden md:block">
@@ -1023,13 +1023,13 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       setIsMobileMenuOpen(false);
                       onToggleFullScreen();
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-(--j-soft) flex items-center justify-between text-xs font-semibold text-(--j-ink) shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       {isFullScreen ? <Minimize2 className="w-4 h-4 text-amber-500" /> : <Maximize2 className="w-4 h-4 text-amber-500" />}
                       <span>{isFullScreen ? 'Exit full screen' : 'Full screen'}</span>
                     </div>
-                    <span className="text-stone-400 text-xs">›</span>
+                    <span className="text-(--j-ink2) text-xs">›</span>
                   </button>
                     </div>
                   )}
@@ -1039,13 +1039,13 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                         setIsMobileMenuOpen(false);
                         onOpenQuotesModal();
                       }}
-                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-(--j-soft) flex items-center justify-between text-xs font-semibold text-(--j-ink) shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
                         <Quote className="w-4 h-4 text-amber-500" />
                         <span>Intro Screen Quotes</span>
                       </div>
-                      <span className="text-stone-400 text-xs">›</span>
+                      <span className="text-(--j-ink2) text-xs">›</span>
                     </button>
                   )}
 
@@ -1054,13 +1054,13 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       setIsMobileMenuOpen(false);
                       onOpenAccessManagement();
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-(--j-soft) flex items-center justify-between text-xs font-semibold text-(--j-ink) shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <Shield className="w-4 h-4 text-blue-500" />
                       <span>Access & Sharing</span>
                     </div>
-                    <span className="text-stone-400 text-xs">›</span>
+                    <span className="text-(--j-ink2) text-xs">›</span>
                   </button>
 
                   <button
@@ -1068,13 +1068,13 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                       setIsMobileMenuOpen(false);
                       onOpenExportModal();
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-(--j-soft) flex items-center justify-between text-xs font-semibold text-(--j-ink) shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       <Share2 className="w-4 h-4 text-purple-500" />
                       <span>Export & Share</span>
                     </div>
-                    <span className="text-stone-400 text-xs">›</span>
+                    <span className="text-(--j-ink2) text-xs">›</span>
                   </button>
 
                   {onLogout && (

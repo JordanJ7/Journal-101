@@ -318,7 +318,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
       <div
         id={item?.id ? `topic-item-modal-${item.id}` : 'topic-item-modal'}
         data-item-id={item?.id}
-        className="relative w-full max-w-lg bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
+        className="relative w-full max-w-lg bg-(--j-field) border border-(--j-line) rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90dvh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',
@@ -326,14 +326,14 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-stone-600 mx-auto sm:hidden mb-2 shrink-0" />
-        <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+        <div className="flex items-center justify-between border-b border-(--j-line) pb-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+            <h3 className="text-base font-bold text-(--j-ink)">
               {item ? (canEdit ? 'Edit Entry' : 'View Entry') : 'Add New Entry'}
             </h3>
             {!canEdit && (
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
-                <Eye className="w-3 h-3 text-stone-400" />
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-(--j-soft) text-(--j-ink2) border border-(--j-line) flex items-center gap-1">
+                <Eye className="w-3 h-3 text-(--j-ink2)" />
                 <span>{isCommenter ? 'Commenting only' : 'View only'}</span>
               </span>
             )}
@@ -347,7 +347,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           </div>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 rounded-full"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 rounded-full"
           >
             <X className="w-5 h-5" />
           </button>
@@ -370,7 +370,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           {/* Target Topic Folder Selection */}
           <div>
-            <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1 flex items-center gap-1.5">
+            <label className="block font-semibold text-(--j-ink2) mb-1 flex items-center gap-1.5">
               <Folder className="w-3.5 h-3.5 text-blue-500" />
               <span>Topic Folder</span>
             </label>
@@ -378,7 +378,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               value={selectedCategoryId}
               disabled={!canEdit}
               onChange={(e) => setSelectedCategoryId(e.target.value as CoreCategoryId)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold focus:outline-none disabled:opacity-75"
+              className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs font-semibold focus:outline-none disabled:opacity-75"
             >
               {coreCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -390,7 +390,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
 
           {/* Title */}
           <div>
-            <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block font-semibold text-(--j-ink2) mb-1">
               Title <span className="text-rose-500">*</span>
             </label>
             <input
@@ -401,13 +401,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               placeholder="e.g., Mom's Birthday Gift Idea, Book Recommendation..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs font-semibold disabled:opacity-75"
+              className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs font-semibold disabled:opacity-75"
             />
           </div>
 
           {/* Content / Details with Bulleted Note Editor */}
           <div>
-            <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block font-semibold text-(--j-ink2) mb-1">
               Details & Notes (Type - or • to start bullet points)
             </label>
             <BulletedNoteEditor
@@ -426,13 +426,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           <div className="grid grid-cols-2 gap-3">
             {categoryConfig?.hasDraftTracking ? (
               <div>
-                <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block font-semibold text-(--j-ink2) mb-1">
                   Status
                 </label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full p-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+                  className="w-full p-2 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs"
                 >
                   <option value="Draft">Draft</option>
                   <option value="In Progress">In Progress</option>
@@ -442,13 +442,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               </div>
             ) : (
               <div>
-                <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+                <label className="block font-semibold text-(--j-ink2) mb-1">
                   Activity Status
                 </label>
                 <select
                   value={status || 'Active'}
                   onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full p-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+                  className="w-full p-2 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs"
                 >
                   <option value="Active">Active / Planned</option>
                   <option value="Done">Completed</option>
@@ -458,13 +458,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
             )}
 
             <div>
-              <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+              <label className="block font-semibold text-(--j-ink2) mb-1">
                 Priority
               </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as any)}
-                className="w-full p-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+                className="w-full p-2 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs"
               >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -475,7 +475,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
 
           {/* Date & Time Log Tag */}
           <div>
-            <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block font-semibold text-(--j-ink2) mb-1">
               Date / Time Tag
             </label>
             <input
@@ -483,13 +483,13 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               placeholder="e.g. May 14, 2024 at 3:15 PM"
               value={dateTag}
               onChange={(e) => setDateTag(e.target.value)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+              className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs"
             />
           </div>
 
           {/* Location (optional) */}
           <div>
-            <label className="block font-semibold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block font-semibold text-(--j-ink2) mb-1">
               Location / Context (optional)
             </label>
             <input
@@ -497,17 +497,17 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
               placeholder="e.g., Downtown Cafe, Phone call..."
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+              className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs"
             />
           </div>
 
           {/* Therapist Notes / Answers (if questions or reflections) */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="font-semibold text-stone-700 dark:text-stone-300">
+              <label className="font-semibold text-(--j-ink2)">
                 Answers / Therapist Notes / Insights (optional)
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer text-stone-600 dark:text-stone-300 text-[11px] min-h-[36px]">
+              <label className="flex items-center gap-1.5 cursor-pointer text-(--j-ink2) text-[11px] min-h-[36px]">
                 <input
                   type="checkbox"
                   checked={isHighlightedAnswer}
@@ -533,7 +533,7 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                   setAnswers(e.target.value);
                 }}
                 rows={2}
-                className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs leading-relaxed resize-none overflow-hidden min-h-[56px]"
+                className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs leading-relaxed resize-none overflow-hidden min-h-[56px]"
               />
             </div>
           </div>
@@ -541,10 +541,10 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           {/* Media Attachments (Photos / Videos) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block font-semibold text-stone-700 dark:text-stone-300">
+              <label className="block font-semibold text-(--j-ink2)">
                 Media Attachments ({draftAttachments.length})
                 {attachmentSizeKB > 0 && (
-                  <span className={`ml-1.5 text-[11px] font-mono font-normal ${isOverSizeLimit ? 'text-rose-600 font-bold' : 'text-stone-400'}`}>
+                  <span className={`ml-1.5 text-[11px] tabular-nums font-normal ${isOverSizeLimit ? 'text-rose-600 font-bold' : 'text-(--j-ink2)'}`}>
                     ({attachmentSizeKB} KB / 700 KB max)
                   </span>
                 )}
@@ -576,12 +576,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                     handleAddUrl();
                   }
                 }}
-                className="flex-1 min-w-[180px] p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 text-base sm:text-xs"
+                className="flex-1 min-w-[180px] p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) text-base sm:text-xs"
               />
               <button
                 type="button"
                 onClick={handleAddUrl}
-                className="min-h-[44px] px-3 py-2 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-xl font-bold text-xs"
+                className="min-h-[44px] px-3 py-2 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 text-(--j-ink) rounded-xl font-bold text-xs"
               >
                 Add URL
               </button>
@@ -629,12 +629,12 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
                   return (
                     <div
                       key={att.id}
-                      className="relative group rounded-xl overflow-hidden border border-stone-300 dark:border-stone-700 aspect-square bg-stone-950"
+                      className="relative group rounded-xl overflow-hidden border border-(--j-line) aspect-square bg-stone-950"
                     >
                       {isPdf ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-1 text-center select-none">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-(--j-soft) text-rose-500 p-1 text-center select-none">
                           <FileText className="w-5 h-5 mb-0.5" />
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 truncate w-full px-0.5">
+                          <span className="text-[9px] font-bold  text-(--j-ink2) truncate w-full px-0.5">
                             PDF
                           </span>
                         </div>
@@ -692,11 +692,11 @@ export const TopicItemModal: React.FC<TopicItemModalProps> = React.memo(({
           )}
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-(--j-line)">
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] px-4 py-2 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl font-bold text-sm sm:text-xs cursor-pointer"
+              className="min-h-[44px] px-4 py-2 text-(--j-ink2) hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl font-bold text-sm sm:text-xs cursor-pointer"
             >
               {canEdit ? 'Cancel' : 'Close'}
             </button>

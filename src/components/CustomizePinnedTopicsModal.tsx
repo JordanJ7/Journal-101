@@ -153,7 +153,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200/80 dark:border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 max-h-[90vh] flex flex-col"
+        className="bg-(--j-field) border border-(--j-line) rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6 max-h-[90vh] flex flex-col"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',
@@ -170,17 +170,17 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${currentAccent.iconBox}`}>
                 <Pin className="w-4 h-4" />
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100">
+              <h2 className="text-base sm:text-lg font-bold text-(--j-ink)">
                 Customize Pinned Topics
               </h2>
             </div>
-            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+            <p className="text-xs text-(--j-ink2) mt-1">
               Select and order the folders you want featured on the Home overview.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-(--j-ink2) hover:text-stone-600 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -189,13 +189,13 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
         {/* Search Bar & Reset */}
         <div className="flex items-center gap-2 shrink-0">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-(--j-ink2)" />
             <input
               type="text"
               placeholder="Search topic folders..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 pr-3 py-2 text-xs bg-stone-100 dark:bg-white/5 border border-stone-200/80 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 ${currentAccent.ring}`}
+              className={`w-full pl-9 pr-3 py-2 text-xs bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) placeholder-stone-400 focus:outline-none focus:ring-1 ${currentAccent.ring}`}
             />
           </div>
 
@@ -203,7 +203,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
             type="button"
             onClick={handleResetToDefault}
             title="Reset to 4 Default Topics"
-            className="px-2.5 py-2 rounded-xl text-xs font-medium text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/10 border border-stone-200/80 dark:border-white/10 flex items-center gap-1 shrink-0 transition-colors"
+            className="px-2.5 py-2 rounded-xl text-xs font-medium text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/10 border border-(--j-line) flex items-center gap-1 shrink-0 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Reset Defaults</span>
@@ -211,12 +211,12 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
         </div>
 
         {/* Selected Count Badge */}
-        <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 px-1 shrink-0">
+        <div className="flex items-center justify-between text-xs text-(--j-ink2) px-1 shrink-0">
           <span>
-            <strong className="text-stone-900 dark:text-stone-100 font-semibold">{selectedIds.length}</strong>{' '}
+            <strong className="text-(--j-ink) font-semibold">{selectedIds.length}</strong>{' '}
             {selectedIds.length === 1 ? 'folder pinned' : 'folders pinned'}
           </span>
-          <span className="text-[11px] text-stone-400">
+          <span className="text-[11px] text-(--j-ink2)">
             Use arrows to reorder
           </span>
         </div>
@@ -224,7 +224,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
         {/* Categories List */}
         <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1 min-h-[220px]">
           {filteredCategories.length === 0 ? (
-            <div className="p-8 text-center text-stone-400 text-xs">
+            <div className="p-8 text-center text-(--j-ink2) text-xs">
               No folders found matching "{searchQuery}".
             </div>
           ) : (
@@ -240,8 +240,8 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                   onClick={() => handleToggle(category.id)}
                   className={`w-full h-auto min-h-[52px] py-2.5 px-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 box-border group select-none ${
                     isPinned
-                      ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} text-stone-900 dark:text-stone-100 shadow-2xs`
-                      : 'bg-stone-50/80 dark:bg-white/[0.02] border-stone-200/80 dark:border-white/5 text-stone-600 dark:text-stone-300 hover:bg-stone-100/90 dark:hover:bg-white/[0.05]'
+                      ? `${currentAccent.activeBorder} ${currentAccent.iconBoxSelected} text-(--j-ink) shadow-2xs`
+                      : 'bg-stone-50/80 dark:bg-white/[0.02] border-(--j-line) text-(--j-ink2) hover:bg-stone-100/90 dark:hover:bg-white/[0.05]'
                   }`}
                 >
                   {/* Left: Icon, Title, Badge */}
@@ -250,7 +250,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                       className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center transition-colors ${
                         isPinned
                           ? `${currentAccent.bg500} text-white shadow-2xs`
-                          : `bg-black/5 dark:bg-white/10 text-stone-500 dark:text-stone-400 ${currentAccent.groupHoverText}`
+                          : `bg-(--j-soft) text-(--j-ink2) ${currentAccent.groupHoverText}`
                       }`}
                     >
                       <IconComp className="w-4 h-4 shrink-0" />
@@ -267,7 +267,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-stone-400 leading-snug break-words whitespace-normal mt-0.5">
+                      <p className="text-[11px] text-(--j-ink2) leading-snug break-words whitespace-normal mt-0.5">
                         {noteCount} {noteCount === 1 ? 'note' : 'notes'}
                         {category.description ? ` • ${category.description}` : ''}
                       </p>
@@ -277,13 +277,13 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                   {/* Right: Reorder Arrows + Checkbox/Pin Button */}
                   <div className="flex items-center gap-1 shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
                     {isPinned && (
-                      <div className="flex items-center gap-0.5 mr-1 bg-black/5 dark:bg-white/5 rounded-lg p-0.5">
+                      <div className="flex items-center gap-0.5 mr-1 bg-(--j-soft) rounded-lg p-0.5">
                         <button
                           type="button"
                           onClick={(e) => handleMoveUp(category.id, e)}
                           disabled={pinIndex === 0}
                           title="Move up"
-                          className="p-1 rounded text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20 disabled:hover:text-stone-400"
+                          className="p-1 rounded text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20 disabled:hover:text-stone-400"
                         >
                           <ArrowUp className="w-3.5 h-3.5" />
                         </button>
@@ -292,7 +292,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                           onClick={(e) => handleMoveDown(category.id, e)}
                           disabled={pinIndex === selectedIds.length - 1}
                           title="Move down"
-                          className="p-1 rounded text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20 disabled:hover:text-stone-400"
+                          className="p-1 rounded text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 disabled:opacity-20 disabled:hover:text-stone-400"
                         >
                           <ArrowDown className="w-3.5 h-3.5" />
                         </button>
@@ -305,7 +305,7 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
                       className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
                         isPinned
                           ? `${currentAccent.bg500} text-white shadow-2xs`
-                          : 'bg-black/5 dark:bg-white/10 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200'
+                          : 'bg-(--j-soft) text-(--j-ink2) hover:text-stone-600 dark:hover:text-stone-200'
                       }`}
                       title={isPinned ? 'Unpin from Home' : 'Pin to Home'}
                     >
@@ -319,11 +319,11 @@ export const CustomizePinnedTopicsModal: React.FC<CustomizePinnedTopicsModalProp
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200/80 dark:border-white/10 shrink-0">
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-(--j-line) shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-(--j-ink2) hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
           >
             Cancel
           </button>

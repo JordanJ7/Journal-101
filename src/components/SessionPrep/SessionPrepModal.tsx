@@ -136,9 +136,9 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-(--sf-raised-dk) rounded-2xl sm:rounded-3xl shadow-2xl border border-stone-200 dark:border-white/10 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 z-10">
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-(--j-field) rounded-2xl sm:rounded-3xl shadow-2xl border border-(--j-line) flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 z-10">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-200/80 dark:border-white/10 shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-(--j-line) shrink-0">
           <div className="flex items-center gap-2.5">
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center text-white ${currentAccent.bg500}`}
@@ -146,10 +146,10 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <h2 className="text-base font-bold text-(--j-ink) flex items-center gap-2">
                 <span>Session Prep</span>
               </h2>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
+              <p className="text-xs text-(--j-ink2)">
                 Prepare topics to discuss in your upcoming session
               </p>
             </div>
@@ -159,7 +159,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
             <button
               type="button"
               onClick={handleExportPDF}
-              className="px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-stone-700 text-(--j-ink2) text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
               title="Export as PDF"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -168,7 +168,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[36px] min-w-[36px] p-2 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              className="min-h-[36px] min-w-[36px] p-2 flex items-center justify-center rounded-xl text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -179,9 +179,9 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
         {/* Modal Content Scroll Area */}
         <div className="p-4 sm:p-5 overflow-y-auto space-y-5 flex-1">
           {/* Next Session Date Card */}
-          <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200/80 dark:border-white/5 space-y-2">
+          <div className="p-3.5 rounded-2xl bg-(--j-soft) border border-(--j-line) space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+              <span className="text-xs font-bold text-(--j-ink2) flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-amber-500" />
                 <span>Next Session</span>
               </span>
@@ -203,7 +203,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
                   type="datetime-local"
                   value={dateTimeInput}
                   onChange={(e) => setDateTimeInput(e.target.value)}
-                  className="w-full text-xs p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full text-xs p-2 rounded-xl bg-(--j-field) border border-(--j-line) text-(--j-ink) focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
                 <div className="flex items-center justify-end gap-2">
                   {nextSessionAt && (
@@ -228,14 +228,14 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
                   <button
                     type="button"
                     onClick={handleSaveDateTime}
-                    className={`px-3 py-1 text-xs font-semibold text-white rounded-lg ${currentAccent.buttonPrimary}`}
+                    className={`px-3 py-1 text-xs font-semibold  rounded-lg ${currentAccent.buttonPrimary}`}
                   >
                     Save
                   </button>
                 </div>
               </div>
             ) : (
-              <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+              <p className="text-sm font-semibold text-(--j-ink)">
                 {nextSessionAt ? formatSessionDateTime(nextSessionAt) : 'No session scheduled yet'}
               </p>
             )}
@@ -245,21 +245,21 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-sm font-bold text-(--j-ink)">
                   Bring to session ({toDiscussEntries.length})
                 </h3>
               </div>
-              <span className="text-[11px] text-stone-400">
+              <span className="text-[11px] text-(--j-ink2)">
                 Check off once discussed
               </span>
             </div>
 
             {toDiscussEntries.length === 0 ? (
-              <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/30 border border-dashed border-stone-200 dark:border-stone-800 text-center">
-                <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+              <div className="p-4 rounded-2xl bg-(--j-soft) border border-dashed border-(--j-line) text-center">
+                <p className="text-xs text-(--j-ink2) italic">
                   No items tagged for this session yet.
                 </p>
-                <p className="text-[11px] text-stone-400 mt-1">
+                <p className="text-[11px] text-(--j-ink2) mt-1">
                   Tag entries using the "Bring to session" toggle chip on any entry or new reflection composer.
                 </p>
               </div>
@@ -268,22 +268,22 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
                 {toDiscussEntries.map(({ weekId, weekTitle, bullet }) => (
                   <div
                     key={bullet.id}
-                    className="flex items-start gap-3 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/40 hover:bg-stone-100/80 dark:hover:bg-stone-800/80 border border-stone-200/80 dark:border-white/5 transition-colors"
+                    className="flex items-start gap-3 p-3 rounded-2xl bg-(--j-soft) hover:bg-stone-100/80 dark:hover:bg-stone-800/80 border border-(--j-line) transition-colors"
                   >
                     <button
                       type="button"
                       onClick={() => onToggleDiscussed(weekId, bullet.id, true)}
-                      className="mt-0.5 text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
+                      className="mt-0.5 text-(--j-ink2) hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
                       title="Mark as discussed"
                     >
                       <Square className="w-4 h-4" />
                     </button>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm text-stone-900 dark:text-stone-100 leading-relaxed break-words whitespace-pre-wrap">
+                      <p className="text-xs sm:text-sm text-(--j-ink) leading-relaxed break-words whitespace-pre-wrap">
                         {bullet.text}
                       </p>
-                      <div className="flex items-center gap-2 mt-1 text-[11px] text-stone-400 dark:text-stone-500 font-mono">
-                        <span className="font-medium text-stone-500 dark:text-stone-400 truncate max-w-[150px]">
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-(--j-ink2) tabular-nums">
+                        <span className="font-medium text-(--j-ink2) truncate max-w-[150px]">
                           {weekTitle}
                         </span>
                         {bullet.timestamp && <span>· {bullet.timestamp}</span>}
@@ -297,7 +297,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
 
           {/* Notes Box: "Anything else to remember to say?" */}
           <div className="space-y-2 pt-1">
-            <label className="block text-sm font-bold text-stone-900 dark:text-stone-100">
+            <label className="block text-sm font-bold text-(--j-ink)">
               Anything else to remember to say?
             </label>
             <textarea
@@ -305,13 +305,13 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
               onChange={(e) => onSetSessionPrepNotes(e.target.value)}
               placeholder="e.g. Questions to ask, breakthroughs, updates on homework, thoughts that came up this week..."
               rows={4}
-              className="w-full p-3 text-xs sm:text-sm leading-relaxed bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-white/10 rounded-2xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 resize-none"
+              className="w-full p-3 text-xs sm:text-sm leading-relaxed bg-(--j-soft) border border-(--j-line) rounded-2xl text-(--j-ink) placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 resize-none"
             />
           </div>
 
           {/* Discussed History Accordion */}
           {discussedEntries.length > 0 && (
-            <div className="pt-2 border-t border-stone-200/80 dark:border-white/5">
+            <div className="pt-2 border-t border-(--j-line)">
               <button
                 type="button"
                 onClick={() => setShowDiscussedHistory(!showDiscussedHistory)}
@@ -327,7 +327,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
                   {discussedEntries.map(({ weekId, weekTitle, bullet }) => (
                     <div
                       key={bullet.id}
-                      className="flex items-start gap-2.5 p-2.5 rounded-xl bg-stone-100/60 dark:bg-stone-800/20 text-stone-500 dark:text-stone-400 border border-stone-200/40 dark:border-white/5"
+                      className="flex items-start gap-2.5 p-2.5 rounded-xl bg-(--j-soft) text-(--j-ink2) border border-(--j-line)"
                     >
                       <button
                         type="button"
@@ -341,7 +341,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
                         <p className="text-xs line-through truncate">
                           {bullet.text}
                         </p>
-                        <p className="text-[10px] text-stone-400 font-mono truncate mt-0.5">
+                        <p className="text-[10px] text-(--j-ink2) tabular-nums truncate mt-0.5">
                           {weekTitle} · Discussed
                         </p>
                       </div>
@@ -354,11 +354,11 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 sm:p-5 border-t border-stone-200/80 dark:border-white/10 bg-stone-50/50 dark:bg-stone-900/30 flex items-center justify-between gap-3 shrink-0">
+        <div className="p-4 sm:p-5 border-t border-(--j-line) bg-(--j-soft) flex items-center justify-between gap-3 shrink-0">
           <button
             type="button"
             onClick={handleExportPDF}
-            className="px-3.5 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-xl border border-(--j-line) bg-(--j-field) text-(--j-ink2) hover:bg-stone-50 dark:hover:bg-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Export as PDF</span>
@@ -367,7 +367,7 @@ export const SessionPrepModal: React.FC<SessionPrepModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className={`px-5 py-2 rounded-xl text-white font-semibold text-xs shadow-2xs transition-all cursor-pointer ${currentAccent.buttonPrimary}`}
+            className={`px-5 py-2 rounded-xl  font-semibold text-xs shadow-2xs transition-all cursor-pointer ${currentAccent.buttonPrimary}`}
           >
             Done
           </button>

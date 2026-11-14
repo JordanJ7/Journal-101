@@ -112,7 +112,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
   };
 
   return (
-    <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl shadow-xs overflow-hidden transition-all duration-200">
+    <div className="bg-(--j-field) border border-(--j-line) rounded-3xl shadow-xs overflow-hidden transition-all duration-200">
       {/* Topic Folder Header */}
       <div
         onClick={onToggleExpand}
@@ -126,7 +126,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
           {/* Animated Chevron */}
           <button
             type="button"
-            className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 rounded-lg shrink-0 mt-0.5 sm:mt-0"
+            className="p-1 text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 rounded-lg shrink-0 mt-0.5 sm:mt-0"
           >
             <ChevronDown
               className={`w-5 h-5 transition-transform duration-200 ${
@@ -153,13 +153,13 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
           {/* Title & Description */}
           <div className="min-w-0 flex-1 py-0.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100 leading-snug break-words whitespace-normal">
+              <h3 className="text-base sm:text-lg font-extrabold text-(--j-ink) leading-snug break-words whitespace-normal">
                 <HighlightText text={category.title} searchQuery={searchQuery} />
               </h3>
 
               {/* Items Counter Badge */}
               <span
-                className="text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 shadow-2xs font-mono"
+                className="text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 shadow-2xs tabular-nums"
                 style={{
                   backgroundColor: `${currentAccent.colorHex}20`,
                   color: currentAccent.colorHex,
@@ -170,7 +170,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
             </div>
 
             {category.description && (
-              <p className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5 break-words whitespace-normal leading-relaxed">
+              <p className="text-xs text-(--j-ink2) font-medium mt-0.5 break-words whitespace-normal leading-relaxed">
                 <HighlightText text={category.description} searchQuery={searchQuery} />
               </p>
             )}
@@ -184,7 +184,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
             type="button"
             onClick={handleExportPDF}
             title={`Export ${category.title} to PDF`}
-            className="p-2 rounded-xl text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-xs font-semibold flex items-center gap-1"
+            className="p-2 rounded-xl text-(--j-ink2) hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-xs font-semibold flex items-center gap-1"
           >
             <FileDown className={`w-4 h-4 ${currentAccent.textPrimary}`} />
             <span className="hidden md:inline">Export PDF</span>
@@ -210,7 +210,7 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
               type="button"
               onClick={handleDeleteCategory}
               title="Delete this topic folder"
-              className="p-2 rounded-xl text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+              className="p-2 rounded-xl text-(--j-ink2) hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -220,14 +220,14 @@ export const TopicFolderCard: React.FC<TopicFolderCardProps> = React.memo(({
 
       {/* Expanded Topic Folder Contents */}
       {isExpanded && (
-        <div className="p-4 sm:p-6 bg-stone-50/50 dark:bg-stone-900/40 border-t border-stone-100 dark:border-stone-800/80 animate-in fade-in duration-150">
+        <div className="p-4 sm:p-6 bg-(--j-soft) border-t border-(--j-line) animate-in fade-in duration-150">
           {categoryItems.length === 0 ? (
-            <div className="text-center py-10 px-4 bg-white/70 dark:bg-stone-800/40 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700">
+            <div className="text-center py-10 px-4 bg-(--j-field) rounded-2xl border border-dashed border-(--j-line)">
               <Folder className="w-10 h-10 text-stone-300 dark:text-stone-600 mx-auto mb-2" />
-              <p className="text-sm font-bold text-stone-700 dark:text-stone-300">
+              <p className="text-sm font-bold text-(--j-ink2)">
                 This topic folder is currently empty.
               </p>
-              <p className="text-xs text-stone-400 mt-1 max-w-sm mx-auto">
+              <p className="text-xs text-(--j-ink2) mt-1 max-w-sm mx-auto">
                 Add your first reflection, question, or thought to keep it organized in this topic.
               </p>
               {canEdit && (

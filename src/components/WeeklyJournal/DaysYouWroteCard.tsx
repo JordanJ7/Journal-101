@@ -55,7 +55,7 @@ export const DaysYouWroteCard: React.FC<DaysYouWroteCardProps> = React.memo(({
 
   return (
     <div
-      className={`w-full bg-white dark:bg-(--sf-card-dk) rounded-[14px] border border-stone-200/80 dark:border-white/10 p-4 shadow-xs space-y-3 ${className}`}
+      className={`w-full bg-(--j-field) rounded-[14px] border border-(--j-line) p-4 shadow-xs space-y-3 ${className}`}
     >
       {/* Seven small circles M–S */}
       <div className="flex items-center justify-between gap-1.5 sm:gap-2 px-1">
@@ -65,10 +65,10 @@ export const DaysYouWroteCard: React.FC<DaysYouWroteCardProps> = React.memo(({
             <div
               key={`${day.label}-${idx}`}
               title={`${day.fullName}: ${isFilled ? 'Entry written' : 'No entries'}`}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono select-none transition-colors ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs tabular-nums select-none transition-colors ${
                 isFilled
                   ? 'bg-amber-500 text-stone-900 font-medium border border-amber-500 shadow-2xs'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-400 border border-stone-200/80 dark:border-white/10 font-medium'
+                  : 'bg-(--j-soft) text-(--j-ink2) border border-(--j-line) font-medium'
               }`}
             >
               {day.label}
@@ -78,7 +78,7 @@ export const DaysYouWroteCard: React.FC<DaysYouWroteCardProps> = React.memo(({
       </div>
 
       {/* Caption without streak counts or warnings */}
-      <p className="text-xs font-medium text-stone-600 dark:text-stone-300 text-center pt-2.5 border-t border-stone-100 dark:border-white/5">
+      <p className="text-xs font-medium text-(--j-ink2) text-center pt-2.5 border-t border-(--j-line)">
         Days you wrote this week
       </p>
     </div>

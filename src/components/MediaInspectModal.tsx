@@ -181,7 +181,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                 </span>
               </div>
               {subtitle && (
-                <p className="text-xs text-stone-400 truncate mt-0.5">
+                <p className="text-xs text-(--j-ink2) truncate mt-0.5">
                   {subtitle}
                 </p>
               )}
@@ -199,7 +199,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     viewMode === 'focused'
                       ? 'bg-stone-700 text-white shadow-xs'
-                      : 'text-stone-400 hover:text-stone-200'
+                      : 'text-(--j-ink2) hover:text-stone-200'
                   }`}
                 >
                   Viewer
@@ -210,7 +210,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     viewMode === 'grid'
                       ? 'bg-stone-700 text-white shadow-xs'
-                      : 'text-stone-400 hover:text-stone-200'
+                      : 'text-(--j-ink2) hover:text-stone-200'
                   }`}
                 >
                   Grid
@@ -279,12 +279,12 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
 
         {/* Content Area */}
         {attachments.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-stone-400">
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-(--j-ink2)">
             <div className="w-16 h-16 rounded-2xl bg-stone-800 flex items-center justify-center text-stone-500 mb-3">
               <ImageIcon className="w-8 h-8" />
             </div>
             <p className="text-base font-semibold text-stone-200">No attachments found</p>
-            <p className="text-xs text-stone-400 mt-1 max-w-sm">
+            <p className="text-xs text-(--j-ink2) mt-1 max-w-sm">
               Upload photos, videos, or PDF documents from your device to keep memories and notes safely attached.
             </p>
             {canEdit && onAddAttachments && (
@@ -326,7 +326,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                       <span className="text-xs font-semibold text-stone-200 truncate max-w-full px-1">
                         {att.name || 'PDF Document'}
                       </span>
-                      <span className="mt-1 px-1.5 py-0.5 rounded bg-rose-500/20 text-[10px] font-bold text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+                      <span className="mt-1 px-1.5 py-0.5 rounded bg-rose-500/20 text-[10px] font-bold text-rose-300 border border-rose-500/30 ">
                         PDF
                       </span>
                     </div>
@@ -455,7 +455,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
             {currentAttachment && (
               <div className="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shrink-0">
                 <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto">
-                  <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg shrink-0">
+                  <span className="text-xs tabular-nums font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg shrink-0">
                     {selectedIndex + 1} / {attachments.length}
                   </span>
                   
@@ -490,7 +490,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setEditingCaption(false)}
-                        className="px-2 py-1.5 text-xs text-stone-400 hover:text-stone-200 cursor-pointer"
+                        className="px-2 py-1.5 text-xs text-(--j-ink2) hover:text-stone-200 cursor-pointer"
                       >
                         Cancel
                       </button>

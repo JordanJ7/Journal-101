@@ -41,30 +41,30 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-(--sf-panel-dk) rounded-3xl p-6 border border-stone-200 dark:border-white/10 shadow-2xl max-w-md w-full space-y-4 relative"
+        className="bg-(--j-field) rounded-3xl p-6 border border-(--j-line) shadow-2xl max-w-md w-full space-y-4 relative"
         style={{
           contain: 'layout paint',
           transform: 'translateZ(0)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+        <div className="flex items-center justify-between border-b border-(--j-line) pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Pencil className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-stone-900 dark:text-stone-100">
+              <h3 className="text-base font-extrabold text-(--j-ink)">
                 Edit Sub-Folder
               </h3>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400">
+              <p className="text-[11px] text-(--j-ink2)">
                 Inside {category.title}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+            className="p-1.5 text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -72,7 +72,7 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block font-bold text-(--j-ink2) mb-1">
               Sub-Folder Name <span className="text-rose-500">*</span>
             </label>
             <input
@@ -81,12 +81,12 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
               autoFocus
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) font-medium focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
+            <label className="block font-bold text-(--j-ink2) mb-1">
               Description / Notes (Optional)
             </label>
             <div
@@ -104,16 +104,16 @@ export const EditSubFolderModal: React.FC<EditSubFolderModalProps> = ({
                 onChange={(e) => {
                   setDescription(e.target.value);
                 }}
-                className="w-full p-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden min-h-[56px]"
+                className="w-full p-2.5 bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) font-medium focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden min-h-[56px]"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-(--j-line)">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 font-bold rounded-xl transition-colors"
+              className="px-4 py-2 bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-stone-700 text-(--j-ink2) font-bold rounded-xl transition-colors"
             >
               Cancel
             </button>

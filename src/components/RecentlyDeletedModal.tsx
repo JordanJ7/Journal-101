@@ -98,11 +98,11 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-(--sf-panel-dk) border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden text-stone-900 dark:text-stone-100"
+        className="bg-(--j-field) border border-(--j-line) rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden text-(--j-ink)"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 dark:border-white/10 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-(--j-line) shrink-0">
           <div>
             <div className="flex items-center gap-2">
               <Trash2 className="w-4 h-4 text-rose-500" />
@@ -111,7 +111,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
                 {totalCount}
               </span>
             </div>
-            <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+            <p className="text-xs text-(--j-ink2) mt-0.5">
               Items are kept for 30 days before permanent deletion.
             </p>
           </div>
@@ -119,20 +119,20 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close recently deleted dialog"
-            className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-(--j-ink2) hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Filters */}
-        <div className="flex items-center gap-1.5 px-5 py-2.5 border-b border-black/5 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.02] overflow-x-auto shrink-0">
+        <div className="flex items-center gap-1.5 px-5 py-2.5 border-b border-(--j-line) bg-stone-50/50 dark:bg-white/[0.02] overflow-x-auto shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'all'
-                ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100 font-semibold'
+                ? 'bg-(--j-soft) text-(--j-ink) font-semibold'
                 : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200'
             }`}
           >
@@ -143,7 +143,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
             onClick={() => setActiveTab('weeks')}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'weeks'
-                ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100 font-semibold'
+                ? 'bg-(--j-soft) text-(--j-ink) font-semibold'
                 : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200'
             }`}
           >
@@ -154,7 +154,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
             onClick={() => setActiveTab('entries')}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'entries'
-                ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100 font-semibold'
+                ? 'bg-(--j-soft) text-(--j-ink) font-semibold'
                 : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200'
             }`}
           >
@@ -165,7 +165,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
             onClick={() => setActiveTab('folders')}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'folders'
-                ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100 font-semibold'
+                ? 'bg-(--j-soft) text-(--j-ink) font-semibold'
                 : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200'
             }`}
           >
@@ -176,7 +176,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
             onClick={() => setActiveTab('notes')}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'notes'
-                ? 'bg-black/10 dark:bg-white/15 text-stone-900 dark:text-stone-100 font-semibold'
+                ? 'bg-(--j-soft) text-(--j-ink) font-semibold'
                 : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200'
             }`}
           >
@@ -187,10 +187,10 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
         {/* Content List */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           {totalCount === 0 ? (
-            <div className="text-center py-12 text-stone-400 dark:text-stone-500">
+            <div className="text-center py-12 text-(--j-ink2)">
               <Trash2 className="w-10 h-10 mx-auto mb-2 opacity-30" />
               <p className="text-sm font-medium">No recently deleted items</p>
-              <p className="text-xs text-stone-400 mt-1">
+              <p className="text-xs text-(--j-ink2) mt-1">
                 Deleted items will appear here for 30 days before permanent deletion.
               </p>
             </div>
@@ -199,7 +199,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
               {/* Weeks Group */}
               {(activeTab === 'all' || activeTab === 'weeks') && deletedWeeks.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 ">
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Weeks ({deletedWeeks.length})</span>
                   </div>
@@ -207,11 +207,11 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
                     {deletedWeeks.map((week) => (
                       <div
                         key={week.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 hover:border-black/10 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-(--j-line) hover:border-black/10 transition-colors"
                       >
                         <div className="min-w-0 flex-1 pr-3">
                           <p className="text-xs font-bold truncate">{week.weekTitle}</p>
-                          <p className="text-[11px] text-stone-400 truncate mt-0.5">
+                          <p className="text-[11px] text-(--j-ink2) truncate mt-0.5">
                             {week.startDate} {week.endDate && `– ${week.endDate}`} · {week.bullets?.length || 0} entries · Deleted {formatDate(week.deletedAt)}
                           </p>
                         </div>
@@ -248,7 +248,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
               {/* Journal Entries Group */}
               {(activeTab === 'all' || activeTab === 'entries') && deletedEntries.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 ">
                     <FileText className="w-3.5 h-3.5" />
                     <span>Journal Entries ({deletedEntries.length})</span>
                   </div>
@@ -256,13 +256,13 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
                     {deletedEntries.map(({ bullet, weekId, weekTitle }) => (
                       <div
                         key={bullet.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 hover:border-black/10 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-(--j-line) hover:border-black/10 transition-colors"
                       >
                         <div className="min-w-0 flex-1 pr-3">
-                          <p className="text-xs font-medium text-stone-800 dark:text-stone-200 line-clamp-2">
+                          <p className="text-xs font-medium text-(--j-ink) line-clamp-2">
                             {bullet.text || '(Empty entry)'}
                           </p>
-                          <p className="text-[11px] text-stone-400 truncate mt-0.5">
+                          <p className="text-[11px] text-(--j-ink2) truncate mt-0.5">
                             From: {weekTitle} · Deleted {formatDate(bullet.deletedAt)}
                           </p>
                         </div>
@@ -300,7 +300,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
               {/* Folders Group */}
               {(activeTab === 'all' || activeTab === 'folders') && deletedFolders.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 ">
                     <Folder className="w-3.5 h-3.5" />
                     <span>Topic Folders ({deletedFolders.length})</span>
                   </div>
@@ -308,11 +308,11 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
                     {deletedFolders.map((folder) => (
                       <div
                         key={folder.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 hover:border-black/10 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-(--j-line) hover:border-black/10 transition-colors"
                       >
                         <div className="min-w-0 flex-1 pr-3">
                           <p className="text-xs font-bold truncate">{folder.title}</p>
-                          <p className="text-[11px] text-stone-400 truncate mt-0.5">
+                          <p className="text-[11px] text-(--j-ink2) truncate mt-0.5">
                             Deleted {formatDate(folder.deletedAt)}
                           </p>
                         </div>
@@ -349,7 +349,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
               {/* Topic Notes Group */}
               {(activeTab === 'all' || activeTab === 'notes') && deletedNotes.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 ">
                     <BookOpen className="w-3.5 h-3.5" />
                     <span>Topic Notes ({deletedNotes.length})</span>
                   </div>
@@ -357,16 +357,16 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
                     {deletedNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 hover:border-black/10 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-white/[0.03] border border-(--j-line) hover:border-black/10 transition-colors"
                       >
                         <div className="min-w-0 flex-1 pr-3">
                           <p className="text-xs font-bold truncate">{note.title || 'Untitled Note'}</p>
                           {note.content && (
-                            <p className="text-xs text-stone-600 dark:text-stone-300 line-clamp-1 mt-0.5">
+                            <p className="text-xs text-(--j-ink2) line-clamp-1 mt-0.5">
                               {note.content}
                             </p>
                           )}
-                          <p className="text-[11px] text-stone-400 truncate mt-0.5">
+                          <p className="text-[11px] text-(--j-ink2) truncate mt-0.5">
                             Deleted {formatDate(note.deletedAt)}
                           </p>
                         </div>
@@ -410,14 +410,14 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
             onClick={() => setConfirmDeleteTarget(null)}
           >
             <div
-              className="bg-white dark:bg-(--sf-raised-dk) border border-stone-200 dark:border-white/10 rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 text-stone-900 dark:text-stone-100"
+              className="bg-(--j-field) border border-(--j-line) rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4 text-(--j-ink)"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
                 <h3 className="text-sm font-bold">Delete Forever?</h3>
               </div>
-              <p className="text-xs text-stone-600 dark:text-stone-300">
+              <p className="text-xs text-(--j-ink2)">
                 Are you sure you want to permanently delete{' '}
                 <span className="font-semibold">"{confirmDeleteTarget.title}"</span>? This action cannot be undone.
               </p>
@@ -425,7 +425,7 @@ export const RecentlyDeletedModal: React.FC<RecentlyDeletedModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setConfirmDeleteTarget(null)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-stone-600 dark:text-stone-300 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-(--j-ink2) hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>

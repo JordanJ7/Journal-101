@@ -263,18 +263,18 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
       {/* 1. Greeting & Quick Overview Header */}
       <section className="space-y-1.5 pt-1 sm:pt-2">
         <div className="flex items-center justify-between gap-2">
-          <span className={`text-[11px] font-semibold tracking-wider uppercase ${currentAccent.textPrimary}`}>
+          <span className={`text-[11px] font-semibold tracking-wider  ${currentAccent.textPrimary}`}>
             Overview
           </span>
           <div className="flex flex-col items-end gap-0.5">
             <span
-              className="text-[11px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500 font-mono"
+              className="text-[11px] font-medium tracking-wide text-(--j-ink2) tabular-nums"
               title="Continuous time since October 25, 2021"
             >
               {timeElapsed}
             </span>
             <span
-              className="text-[11px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500 font-mono"
+              className="text-[11px] font-medium tracking-wide text-(--j-ink2) tabular-nums"
               title="Continuous time since June 11, 2026"
             >
               {timeElapsed2}
@@ -282,10 +282,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
           </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Welcome Back
+          <h1 className="j-display text-[40px] sm:text-[52px] leading-[1.05] text-(--j-ink)">
+            {new Date().toLocaleDateString([], { weekday: 'long' })}
           </h1>
-          <p className="text-xs sm:text-sm font-medium text-neutral-500 dark:text-neutral-400">
+          <p className="text-xs sm:text-sm font-medium text-(--j-ink2)">
             {todayFormatted}
           </p>
         </div>
@@ -295,10 +295,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
       <section>
         <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider uppercase">
+            <h2 className="text-xs font-semibold text-(--j-ink2) tracking-wider ">
               Pinned Topics
             </h2>
-            <span className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400 bg-neutral-200/70 dark:bg-white/10 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-semibold text-(--j-ink2) bg-neutral-200/70 dark:bg-white/10 px-2 py-0.5 rounded-full">
               {pinnedFolders.length}
             </span>
           </div>
@@ -335,7 +335,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                 <div
                   key={folder.id}
                   onClick={() => onNavigateToCoreCategory(folder.id as CoreCategoryId)}
-                  className={`w-full min-h-[58px] py-3 px-3.5 rounded-[14px] bg-white dark:bg-(--sf-card-dk) hover:bg-neutral-50 dark:hover:bg-white/[0.06] border border-neutral-200/80 dark:border-white/10 flex items-start justify-between gap-3 box-border transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative ${currentAccent.hoverBorder}`}
+                  className={`w-full min-h-[58px] py-3 px-3.5 rounded-[14px] bg-(--j-field) hover:bg-neutral-50 dark:hover:bg-white/[0.06] border border-(--j-line) flex items-start justify-between gap-3 box-border transition-all duration-150 ease-out cursor-pointer group shadow-2xs active:scale-[0.99] relative ${currentAccent.hoverBorder}`}
                 >
                   {/* Left side: Matching icon + title with note count on its own line */}
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -343,10 +343,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                       <IconComponent className="w-4 h-4 shrink-0" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 text-left leading-snug break-words whitespace-normal group-hover:text-neutral-950 dark:group-hover:text-white transition-colors">
+                      <p className="text-sm font-semibold text-(--j-ink) text-left leading-snug break-words whitespace-normal group-hover:text-neutral-950 dark:group-hover:text-white transition-colors">
                         {folder.title}
                       </p>
-                      <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 leading-tight mt-1">
+                      <p className="text-[11px] tabular-nums text-(--j-ink2) leading-tight mt-1">
                         {folder.count} {folder.count === 1 ? 'note' : 'notes'}
                       </p>
                     </div>
@@ -357,13 +357,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                     <button
                       type="button"
                       onClick={(e) => handleUnpinSingle(folder.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all shrink-0 cursor-pointer"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-(--j-ink2) hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all shrink-0 cursor-pointer"
                       title="Unpin from Home"
                     >
                       <PinOff className="w-3.5 h-3.5" />
                     </button>
 
-                    <ChevronRight className="w-4 h-4 text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-700 dark:group-hover:text-neutral-300 transition-transform group-hover:translate-x-0.5 shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-(--j-ink2) group-hover:text-neutral-700 dark:group-hover:text-neutral-300 transition-transform group-hover:translate-x-0.5 shrink-0" />
                   </div>
                 </div>
               );
@@ -374,24 +374,24 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
               <button
                 type="button"
                 onClick={() => setIsCustomizeModalOpen(true)}
-                className={`w-full min-h-[58px] py-3 px-3.5 rounded-[14px] border border-dashed border-neutral-300 dark:border-white/10 text-neutral-500 flex items-center justify-center gap-2 text-xs font-medium transition-all group box-border cursor-pointer ${currentAccent.hoverBorder} ${currentAccent.hoverText}`}
+                className={`w-full min-h-[58px] py-3 px-3.5 rounded-[14px] border border-dashed border-(--j-line) text-neutral-500 flex items-center justify-center gap-2 text-xs font-medium transition-all group box-border cursor-pointer ${currentAccent.hoverBorder} ${currentAccent.hoverText}`}
               >
-                <Plus className="w-4 h-4 text-neutral-400 group-hover:currentColor transition-colors shrink-0" />
+                <Plus className="w-4 h-4 text-(--j-ink2) group-hover:currentColor transition-colors shrink-0" />
                 <span>Add Pinned Topic</span>
               </button>
             )}
           </div>
         ) : (
           /* Empty state for pinned topics */
-          <div className="p-6 rounded-2xl border border-dashed border-neutral-300 dark:border-white/10 text-center space-y-3 bg-white dark:bg-(--sf-card-dk)">
+          <div className="p-6 rounded-2xl border border-dashed border-(--j-line) text-center space-y-3 bg-(--j-field)">
             <div className={`w-9 h-9 rounded-full mx-auto flex items-center justify-center ${currentAccent.iconBox}`}>
               <Pin className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-medium text-neutral-800 dark:text-neutral-200">
+              <p className="text-xs sm:text-sm font-medium text-(--j-ink)">
                 No topics pinned yet
               </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              <p className="text-xs text-(--j-ink2) mt-0.5">
                 Pin your favorite folders to access them directly from Home.
               </p>
             </div>
@@ -410,7 +410,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
       {/* 3. Latest Weekly Entry Section */}
       <section className="pt-2">
         <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider uppercase">
+          <h2 className="text-xs font-semibold text-(--j-ink2) tracking-wider ">
             Latest Entry
           </h2>
           <button
@@ -426,34 +426,34 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
         {latestWeeklyData ? (
           <div
             onClick={() => onNavigateToWeek(latestWeeklyData.week.id)}
-            className={`w-full rounded-[14px] bg-white dark:bg-(--sf-card-dk) border border-neutral-200 dark:border-white/10 p-5 sm:p-6 hover:bg-neutral-50/80 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4 ${currentAccent.hoverBorder}`}
+            className={`w-full rounded-[14px] bg-(--j-field) border border-(--j-line) p-5 sm:p-6 hover:bg-neutral-50/80 dark:hover:bg-white/[0.06] transition-all duration-150 ease-out cursor-pointer group shadow-xs space-y-4 ${currentAccent.hoverBorder}`}
           >
             {/* Header: Entry Title & Time */}
-            <div className="flex items-start justify-between gap-2 border-b border-neutral-100 dark:border-white/5 pb-3">
+            <div className="flex items-start justify-between gap-2 border-b border-(--j-line) pb-3">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className={`text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-md ${currentAccent.tagBadge}`}>
+                  <span className={`text-[11px] font-semibold tracking-wider  px-2 py-0.5 rounded-md ${currentAccent.tagBadge}`}>
                     Week Reflection
                   </span>
-                  <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+                  <div className="flex items-center gap-1 text-xs text-(--j-ink2) tabular-nums">
                     <Clock className="w-3 h-3" />
                     <span>{latestWeeklyData.displayTime}</span>
                   </div>
                 </div>
-                <h3 className={`text-base sm:text-lg font-bold text-neutral-900 dark:text-neutral-100 transition-colors truncate ${currentAccent.groupHoverText}`}>
+                <h3 className={`text-base sm:text-lg font-bold text-(--j-ink) transition-colors truncate ${currentAccent.groupHoverText}`}>
                   {latestWeeklyData.week.weekTitle}
                 </h3>
               </div>
 
               <div className="text-right shrink-0">
-                <span className="text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-white/5 px-2.5 py-1 rounded-full font-medium border border-neutral-200/60 dark:border-white/5">
+                <span className="text-xs text-(--j-ink2) bg-(--j-soft) px-2.5 py-1 rounded-full font-medium border border-(--j-line)">
                   {latestWeeklyData.totalItems} {latestWeeklyData.totalItems === 1 ? 'bullet' : 'bullets'}
                 </span>
               </div>
             </div>
 
             {/* Body: Reflection Previews or Bullets */}
-            <div className="space-y-2 text-neutral-700 dark:text-neutral-300">
+            <div className="space-y-2 text-(--j-ink2)">
               {latestWeeklyData.bullets.length > 0 ? (
                 <div className="space-y-2">
                   {latestWeeklyData.bullets.map((bullet, idx) => (
@@ -466,19 +466,19 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
                   ))}
                 </div>
               ) : latestWeeklyData.therapistNotes ? (
-                <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 italic line-clamp-3 leading-relaxed">
+                <p className="text-xs sm:text-sm text-(--j-ink2) italic line-clamp-3 leading-relaxed">
                   "{latestWeeklyData.therapistNotes}"
                 </p>
               ) : (
-                <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 italic">
+                <p className="text-xs sm:text-sm text-(--j-ink2) italic">
                   Entry created. Tap below to write down your thoughts and reflections for this week.
                 </p>
               )}
             </div>
 
             {/* Action / Footer */}
-            <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-white/5 text-xs">
-              <span className="text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
+            <div className="flex items-center justify-between pt-3 border-t border-(--j-line) text-xs">
+              <span className="text-(--j-ink2) flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5" />
                 <span>Jump straight into editor</span>
               </span>
@@ -491,15 +491,15 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = React.memo(({
           </div>
         ) : (
           /* Empty placeholder */
-          <div className="w-full rounded-2xl bg-white dark:bg-(--sf-card-dk) border border-dashed border-neutral-300 dark:border-white/10 p-8 text-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-white/5 mx-auto flex items-center justify-center text-neutral-400">
+          <div className="w-full rounded-2xl bg-(--j-field) border border-dashed border-(--j-line) p-8 text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-(--j-soft) mx-auto flex items-center justify-center text-(--j-ink2)">
               <Calendar className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              <p className="text-xs sm:text-sm font-medium text-(--j-ink2)">
                 No recent entries yet.
               </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
+              <p className="text-xs text-(--j-ink2) max-w-sm mx-auto">
                 Tap below to start your first weekly reflection block.
               </p>
             </div>

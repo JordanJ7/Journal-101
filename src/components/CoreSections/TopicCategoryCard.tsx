@@ -114,7 +114,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
           ? 'bg-sky-50/70 dark:bg-sky-950/60 border-sky-300 dark:border-sky-700 ring-2 ring-sky-400/50 shadow-md'
           : item.isHighlightedAnswer
           ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-xs`
-          : 'bg-white dark:bg-(--sf-card-dk) border-stone-200/80 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20'
+          : 'bg-(--j-field) border-(--j-line) hover:border-stone-300 dark:hover:border-white/20'
       }`}
     >
       {/* Pinned From Weekly Journal Header Badge */}
@@ -140,7 +140,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
       <div className="flex flex-wrap items-start justify-between gap-2 mb-2 min-w-0 max-w-full">
         <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
           <h3
-            className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]"
+            className="text-sm sm:text-base font-bold text-(--j-ink) min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]"
             style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
           >
             <HighlightText text={item.title} highlight={searchQuery} />
@@ -160,7 +160,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
           )}
 
           {item.priority && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-(--j-soft) text-(--j-ink2)">
               Priority: {item.priority}
             </span>
           )}
@@ -173,7 +173,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             <button
               onClick={handleCopyText}
               title="Copy entry text to clipboard"
-              className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2 py-1 bg-(--j-soft) border border-(--j-line) text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
             >
               {copied ? (
                 <>
@@ -194,7 +194,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             <button
               onClick={() => onToggleComplete(item)}
               title="Toggle mark complete"
-              className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2 py-1 bg-(--j-soft) border border-(--j-line) text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
             >
               <CheckCircle2 className={`w-3.5 h-3.5 ${item.status === 'Completed' ? 'text-emerald-600 dark:text-emerald-400' : ''}`} />
               <span className="text-[10px]">{item.status === 'Completed' ? 'Done' : 'Mark Done'}</span>
@@ -205,9 +205,9 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             <button
               onClick={() => onOpenCommentSection(`Item: "${item.title.slice(0, 25)}"`, item.id, 'core', item.categoryId)}
               title="Add comment or feedback for this item"
-              className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2 py-1 bg-(--j-soft) border border-(--j-line) text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+              <MessageSquare className="w-3.5 h-3.5 text-(--j-ink2)" />
               <span className="text-[10px]">Comment</span>
             </button>
           )}
@@ -216,7 +216,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             <button
               onClick={() => onEdit(item)}
               title="Edit this entry"
-              className="px-2 py-1 bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2 py-1 bg-(--j-soft) border border-(--j-line) text-stone-700 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span className="text-[10px]">Edit</span>
@@ -238,9 +238,9 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
 
       {/* Interactive Watchlist / Reading Status Tag Selector (Requirement 4) */}
       {isWatchlistCategory && (
-        <div className="flex flex-wrap items-center gap-1.5 my-2.5 p-2 bg-stone-50 dark:bg-stone-800/60 rounded-xl border border-stone-200/80 dark:border-stone-700">
-          <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 mr-1 flex items-center gap-1">
-            <Bookmark className="w-3 h-3 text-stone-400" />
+        <div className="flex flex-wrap items-center gap-1.5 my-2.5 p-2 bg-(--j-soft) rounded-xl border border-(--j-line)">
+          <span className="text-[11px] font-bold text-(--j-ink2) mr-1 flex items-center gap-1">
+            <Bookmark className="w-3 h-3 text-(--j-ink2)" />
             Status:
           </span>
 
@@ -250,7 +250,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               item.status === 'To Watch/Read'
                 ? 'bg-sky-600 text-white shadow-2xs scale-102'
-                : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-sky-50 border border-stone-200 dark:border-stone-700'
+                : 'bg-(--j-field) text-(--j-ink2) hover:bg-sky-50 border border-(--j-line)'
             }`}
           >
             <Bookmark className="w-3 h-3" />
@@ -263,7 +263,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               item.status === 'Done Alone'
                 ? 'bg-indigo-600 text-white shadow-2xs scale-102'
-                : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-stone-200 dark:border-stone-700'
+                : 'bg-(--j-field) text-(--j-ink2) hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-(--j-line)'
             }`}
           >
             <User className="w-3 h-3" />
@@ -276,7 +276,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               item.status === 'Done Together'
                 ? 'bg-emerald-600 text-white shadow-2xs scale-102'
-                : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-emerald-50 border border-stone-200 dark:border-stone-700'
+                : 'bg-(--j-field) text-(--j-ink2) hover:bg-emerald-50 border border-(--j-line)'
             }`}
           >
             <HeartHandshake className="w-3 h-3" />
@@ -305,8 +305,8 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
         <div
           className={`p-3 rounded-xl mb-3 text-xs border min-w-0 max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word] ${
             item.isHighlightedAnswer
-              ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} text-stone-900 dark:text-stone-100 font-medium`
-              : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-200'
+              ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} text-(--j-ink) font-medium`
+              : 'bg-(--j-soft) border-(--j-line) text-(--j-ink)'
           }`}
           style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
         >
@@ -326,7 +326,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
       {/* Compact Multi-Media Attachments Trigger / Carousel */}
       {attachments.length > 0 && (
         <div className="mb-3">
-          <div className="flex flex-wrap items-center gap-2 p-2 bg-stone-50 dark:bg-stone-900/60 rounded-xl border border-stone-200/80 dark:border-stone-800">
+          <div className="flex flex-wrap items-center gap-2 p-2 bg-(--j-soft) rounded-xl border border-(--j-line)">
             {/* Direct Inspect Button */}
             <button
               type="button"
@@ -334,7 +334,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
                 e.stopPropagation();
                 setShowInspectModal(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 shadow-2xs transition-colors cursor-pointer pointer-events-auto"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--j-field) hover:bg-stone-100 dark:hover:bg-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-200 border border-(--j-line) shadow-2xs transition-colors cursor-pointer pointer-events-auto"
             >
               <Eye className="w-3.5 h-3.5 text-amber-500" />
               <span>Inspect Media ({attachments.length})</span>
@@ -353,13 +353,13 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
                       e.stopPropagation();
                       setShowInspectModal(true);
                     }}
-                    className="relative w-9 h-9 rounded-lg overflow-hidden border border-stone-300 dark:border-stone-700 bg-stone-950 shrink-0 group hover:opacity-90 transition-opacity cursor-pointer pointer-events-auto"
+                    className="relative w-9 h-9 rounded-lg overflow-hidden border border-(--j-line) bg-stone-950 shrink-0 group hover:opacity-90 transition-opacity cursor-pointer pointer-events-auto"
                     title={att.caption || 'Click to view'}
                   >
                     {isPdf ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-0.5 text-center">
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-(--j-soft) text-rose-500 p-0.5 text-center">
                         <FileText className="w-3.5 h-3.5" />
-                        <span className="text-[7px] font-bold text-stone-600 dark:text-stone-300">
+                        <span className="text-[7px] font-bold text-(--j-ink2)">
                           PDF
                         </span>
                       </div>
@@ -402,7 +402,7 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
                     e.stopPropagation();
                     setShowInspectModal(true);
                   }}
-                  className="px-2 h-9 rounded-lg bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-[11px] font-bold flex items-center justify-center transition-colors cursor-pointer pointer-events-auto"
+                  className="px-2 h-9 rounded-lg bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-(--j-ink2) text-[11px] font-bold flex items-center justify-center transition-colors cursor-pointer pointer-events-auto"
                 >
                   +{attachments.length - 3} more
                 </button>
@@ -413,14 +413,14 @@ export const TopicCategoryCard: React.FC<TopicCategoryCardProps> = React.memo(({
       )}
 
       {/* Footer Meta (Timestamp, Location, Tags) */}
-      <div className="flex flex-wrap items-center justify-between text-[11px] text-stone-400 font-mono gap-2 pt-1 border-t border-stone-100 dark:border-stone-800">
+      <div className="flex flex-wrap items-center justify-between text-[11px] text-(--j-ink2) tabular-nums gap-2 pt-1 border-t border-(--j-line)">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
             <Calendar className="w-3 h-3 opacity-70" />
             {item.timestamp}
           </span>
           {item.location && (
-            <span className="flex items-center gap-1 text-stone-500 dark:text-stone-400 font-sans">
+            <span className="flex items-center gap-1 text-(--j-ink2) font-sans">
               <MapPin className="w-3 h-3 opacity-70" />
               {item.location}
             </span>

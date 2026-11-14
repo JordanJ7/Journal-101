@@ -342,7 +342,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
         } ${
           bullet.isAnswerHighlight
             ? `${currentAccent.iconBoxSelected} ${currentAccent.activeBorder} shadow-xs`
-            : 'bg-white dark:bg-neutral-900 border-stone-200/80 dark:border-white/5 shadow-2xs'
+            : 'bg-(--j-field) border-(--j-line) shadow-2xs'
         }`}
       >
         {/* Highlight Callout Badge, Pinned Badge & Session Prep Badge */}
@@ -354,7 +354,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                 <Sparkles className="w-3 h-3 text-violet-600 dark:text-violet-400 shrink-0" />
                 <span>For session</span>
                 {bullet.discussedAt && (
-                  <span className="text-[10px] text-stone-500 dark:text-stone-400 font-mono ml-0.5">
+                  <span className="text-[10px] text-(--j-ink2) tabular-nums ml-0.5">
                     (discussed)
                   </span>
                 )}
@@ -387,8 +387,8 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
             disabled={!canEdit}
             className={`mt-0.5 transition-colors shrink-0 ${
               canEdit
-                ? `text-stone-400 hover:${currentAccent.textPrimary} cursor-pointer`
-                : 'text-stone-400 cursor-default'
+                ? `text-(--j-ink2) hover:${currentAccent.textPrimary} cursor-pointer`
+                : 'text-(--j-ink2) cursor-default'
             }`}
             title={canEdit ? 'Toggle completed state' : 'Completed status'}
           >
@@ -404,7 +404,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
           </button>
 
           {/* Full-Width Content Container */}
-          <div className="w-full flex-1 min-w-0 break-words whitespace-pre-wrap text-sm text-neutral-800 dark:text-neutral-200">
+          <div className="w-full flex-1 min-w-0 break-words whitespace-pre-wrap text-sm text-(--j-ink)">
             {isEditing && canEdit ? (
               <div className="space-y-3 w-full">
                 <div
@@ -426,7 +426,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                         handleTextSubmit();
                       }
                     }}
-                    className="w-full p-2.5 text-sm leading-relaxed bg-stone-50 dark:bg-neutral-800 border border-stone-300 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 focus:outline-none whitespace-pre-wrap break-words resize-none overflow-hidden min-h-[68px]"
+                    className="w-full p-2.5 text-sm leading-relaxed bg-(--j-soft) border border-(--j-line) rounded-xl text-(--j-ink) focus:outline-none whitespace-pre-wrap break-words resize-none overflow-hidden min-h-[68px]"
                     rows={3}
                     autoFocus
                   />
@@ -434,9 +434,9 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
 
                 {/* Inline Media Uploader Section */}
                 {showMediaUploader && (
-                  <div className="p-3 bg-stone-100 dark:bg-stone-800/90 rounded-xl space-y-3 text-xs border border-stone-200 dark:border-stone-700">
+                  <div className="p-3 bg-(--j-soft) rounded-xl space-y-3 text-xs border border-(--j-line)">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-stone-700 dark:text-stone-300">
+                      <span className="font-bold text-(--j-ink2)">
                         Multi-Media Attachments ({draftAttachments.length})
                       </span>
                       {draftAttachments.length > 0 && (
@@ -485,7 +485,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                         className="hidden"
                         disabled={isProcessingUpload}
                       />
-                      <span className="text-[10px] text-stone-400 dark:text-stone-500 font-medium">
+                      <span className="text-[10px] text-(--j-ink2) font-medium">
                         OR add URL:
                       </span>
                       <div className="flex items-center gap-1 flex-1 min-w-[200px]">
@@ -497,7 +497,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleAddUrlAttachment();
                           }}
-                          className="flex-1 p-1.5 text-xs bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100"
+                          className="flex-1 p-1.5 text-xs bg-(--j-field) border border-(--j-line) rounded-lg text-(--j-ink)"
                         />
                         <button
                           type="button"
@@ -518,12 +518,12 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                           return (
                             <div
                               key={att.id}
-                              className="relative group/att rounded-lg overflow-hidden border border-stone-300 dark:border-stone-700 bg-black aspect-square"
+                              className="relative group/att rounded-lg overflow-hidden border border-(--j-line) bg-black aspect-square"
                             >
                               {isPdf ? (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-1 text-center select-none">
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-(--j-soft) text-rose-500 p-1 text-center select-none">
                                   <FileText className="w-5 h-5 mb-0.5" />
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 truncate w-full px-0.5">
+                                  <span className="text-[9px] font-bold  text-(--j-ink2) truncate w-full px-0.5">
                                     PDF
                                   </span>
                                 </div>
@@ -586,7 +586,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => setShowMediaUploader(!showMediaUploader)}
-                      className="px-2.5 py-1.5 bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-medium rounded-lg flex items-center gap-1 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
+                      className="px-2.5 py-1.5 bg-stone-200 dark:bg-stone-700 text-(--j-ink2) text-xs font-medium rounded-lg flex items-center gap-1 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
                     >
                       <ImageIcon className="w-3.5 h-3.5" />
                       <span>{showMediaUploader ? 'Hide Media' : 'Attach Photos / Videos'}</span>
@@ -615,14 +615,14 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                 className={`space-y-1.5 ${canEdit ? 'cursor-pointer hover:opacity-95' : 'cursor-default'}`}
               >
                 <p
-                  className={`flex-1 w-full text-sm leading-relaxed whitespace-pre-wrap break-words text-stone-800 dark:text-stone-200 ${
+                  className={`flex-1 w-full text-sm leading-relaxed whitespace-pre-wrap break-words text-(--j-ink) ${
                     bullet.completed ? 'line-through opacity-60' : ''
                   }`}
                 >
                   {bullet.text ? (
                     <HighlightText text={bullet.text} highlight={searchQuery} />
                   ) : (
-                    <span className="italic text-stone-400">Empty entry...</span>
+                    <span className="italic text-(--j-ink2)">Empty entry...</span>
                   )}
                 </p>
               </div>
@@ -643,13 +643,13 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                           e.stopPropagation();
                           setIsInspectOpen(true);
                         }}
-                        className="relative w-11 h-11 rounded-lg overflow-hidden border border-stone-300 dark:border-white/10 bg-stone-900 cursor-pointer pointer-events-auto shadow-2xs hover:scale-105 transition-transform"
+                        className="relative w-11 h-11 rounded-lg overflow-hidden border border-(--j-line) bg-stone-900 cursor-pointer pointer-events-auto shadow-2xs hover:scale-105 transition-transform"
                         title="Click to inspect all attachments"
                       >
                         {isPdf ? (
-                          <div className="w-full h-full flex flex-col items-center justify-center bg-stone-100 dark:bg-stone-800 text-rose-500 p-0.5 text-center select-none">
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-(--j-soft) text-rose-500 p-0.5 text-center select-none">
                             <FileText className="w-4 h-4" />
-                            <span className="text-[8px] font-bold tracking-tight text-stone-600 dark:text-stone-300">
+                            <span className="text-[8px] font-bold tracking-tight text-(--j-ink2)">
                               PDF
                             </span>
                           </div>
@@ -689,7 +689,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                         e.stopPropagation();
                         setIsInspectOpen(true);
                       }}
-                      className="w-11 h-11 rounded-lg border border-stone-300 dark:border-white/10 bg-stone-100 dark:bg-white/5 flex items-center justify-center text-xs font-bold text-stone-600 dark:text-stone-300 cursor-pointer pointer-events-auto hover:bg-stone-200 dark:hover:bg-white/10 transition-colors"
+                      className="w-11 h-11 rounded-lg border border-(--j-line) bg-(--j-soft) flex items-center justify-center text-xs font-bold text-(--j-ink2) cursor-pointer pointer-events-auto hover:bg-stone-200 dark:hover:bg-white/10 transition-colors"
                       title="Inspect all attachments"
                     >
                       +{extraCount}
@@ -704,7 +704,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     e.stopPropagation();
                     setIsInspectOpen(true);
                   }}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-stone-700 dark:text-neutral-200 border border-stone-200 dark:border-white/10 cursor-pointer pointer-events-auto transition-all shadow-2xs"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-stone-700 dark:text-neutral-200 border border-(--j-line) cursor-pointer pointer-events-auto transition-all shadow-2xs"
                 >
                   <Eye className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
                   <span>Inspect Media ({activeAttachments.length})</span>
@@ -713,7 +713,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
             )}
 
             {/* Bottom Row: Responsive Non-Stacking Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-2.5 border-t border-stone-200/80 dark:border-white/5 w-full">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-2.5 border-t border-(--j-line) w-full">
               {/* Left Side: Date Badge with Natural Width (No Vertical Word Stacking) */}
               <div className={`relative ${showTimestampPicker ? 'z-[9999]' : 'z-10'}`}>
                 <div
@@ -722,10 +722,10 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     setShowTimestampPicker((prev) => !prev);
                   }}
                   title="Click to edit date or timestamp"
-                  className="flex items-center gap-2 bg-stone-100/90 dark:bg-neutral-800/60 border border-stone-200 dark:border-white/10 rounded-lg px-2.5 py-1.5 min-w-fit cursor-pointer hover:bg-stone-200 dark:hover:bg-white/10 transition-colors group/time"
+                  className="flex items-center gap-2 bg-(--j-soft) border border-(--j-line) rounded-lg px-2.5 py-1.5 min-w-fit cursor-pointer hover:bg-stone-200 dark:hover:bg-white/10 transition-colors group/time"
                 >
                   <Clock className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0 group-hover/time:scale-110 transition-transform" />
-                  <span className="text-xs text-stone-800 dark:text-neutral-200 whitespace-nowrap font-mono font-medium">
+                  <span className="text-xs text-(--j-ink) whitespace-nowrap tabular-nums font-medium">
                     <HighlightText
                       text={bullet.timestamp || formatTimestamp()}
                       highlight={searchQuery}
@@ -739,7 +739,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                       Custom
                     </button>
                   )}
-                  <Edit2 className="w-3 h-3 text-stone-400 dark:text-stone-500 shrink-0 ml-0.5" />
+                  <Edit2 className="w-3 h-3 text-(--j-ink2) shrink-0 ml-0.5" />
                 </div>
 
                 {/* Timestamp Picker Popover */}
@@ -760,7 +760,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   <button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-stone-700 dark:text-neutral-300 border border-stone-200 dark:border-white/5 transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-(--j-ink2) border border-(--j-line) transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <Edit3 className="w-3 h-3" />
                     <span>Edit</span>
@@ -772,10 +772,10 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   <button
                     type="button"
                     onClick={() => onOpenCommentSection('Journal Bullets', bullet.id, 'weekly', weekId)}
-                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-stone-700 dark:text-neutral-300 border border-stone-200 dark:border-white/5 transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-(--j-ink2) border border-(--j-line) transition-colors cursor-pointer flex items-center gap-1"
                     title="Comment on this entry"
                   >
-                    <MessageSquare className="w-3 h-3 text-stone-400" />
+                    <MessageSquare className="w-3 h-3 text-(--j-ink2)" />
                     <span>Comment</span>
                   </button>
                 )}
@@ -787,7 +787,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${
                     bullet.isAnswerHighlight
                       ? `${currentAccent.bg500} text-white ${currentAccent.activeBorder}`
-                      : 'bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/5'
+                      : 'bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-(--j-ink2) border-(--j-line)'
                   }`}
                 >
                   <MessageSquare
@@ -803,7 +803,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   <button
                     type="button"
                     onClick={() => onIndentChange(bullet.indent - 1)}
-                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-stone-700 dark:text-neutral-300 border border-stone-200 dark:border-white/5 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-(--j-ink2) border border-(--j-line) transition-colors cursor-pointer"
                     title="Outdent"
                   >
                     ← Outdent
@@ -814,7 +814,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   <button
                     type="button"
                     onClick={() => onIndentChange(bullet.indent + 1)}
-                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-stone-700 dark:text-neutral-300 border border-stone-200 dark:border-white/5 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-xs font-medium text-(--j-ink2) border border-(--j-line) transition-colors cursor-pointer"
                     title="Indent"
                   >
                     Indent →
@@ -845,13 +845,13 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${
                       bullet.forSession
                         ? 'bg-violet-100 text-violet-800 border-violet-300 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-700 shadow-2xs font-semibold'
-                        : 'bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/5'
+                        : 'bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-(--j-ink2) border-(--j-line)'
                     }`}
                     title={bullet.forSession ? 'Tagged for session (click to untag)' : 'Bring to session'}
                   >
                     <Sparkles
                       className={`w-3 h-3 ${
-                        bullet.forSession ? 'text-violet-600 dark:text-violet-400' : 'text-stone-400'
+                        bullet.forSession ? 'text-violet-600 dark:text-violet-400' : 'text-(--j-ink2)'
                       }`}
                     />
                     <span>{bullet.forSession ? 'For session' : 'Bring to session'}</span>
@@ -867,7 +867,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${
                       bullet.remindAt
                         ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700 font-semibold'
-                        : 'bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/5'
+                        : 'bg-(--j-soft) hover:bg-stone-200 dark:hover:bg-white/10 text-(--j-ink2) border-(--j-line)'
                     }`}
                     title={bullet.remindAt ? 'Change or clear the reminder' : 'Add a reminder with an alarm'}
                   >
@@ -881,7 +881,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   <button
                     type="button"
                     onClick={() => setIsMoveModalOpen(true)}
-                    className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 border border-stone-200 dark:border-stone-700 hover:bg-stone-200/60 dark:hover:bg-stone-700/60 text-xs font-medium transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg bg-(--j-soft) text-(--j-ink2) hover:text-stone-900 dark:hover:text-stone-100 border border-(--j-line) hover:bg-stone-200/60 dark:hover:bg-stone-700/60 text-xs font-medium transition-colors cursor-pointer flex items-center gap-1"
                     title="Move to another week…"
                   >
                     <ArrowRightLeft className="w-3 h-3" />
@@ -912,7 +912,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
 
         {/* Therapist Comments: small inset box ("Therapist · commented Fri" + text) with Reply button */}
         {entryComments.length > 0 && (
-          <div className="space-y-2 pt-1 border-t border-stone-200/80 dark:border-white/5 w-full">
+          <div className="space-y-2 pt-1 border-t border-(--j-line) w-full">
             {entryComments.map((comment) => (
               <div
                 key={comment.id}
@@ -934,7 +934,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                     <span>Reply</span>
                   </button>
                 </div>
-                <p className="text-stone-800 dark:text-stone-200 text-xs leading-relaxed whitespace-pre-wrap">
+                <p className="text-(--j-ink) text-xs leading-relaxed whitespace-pre-wrap">
                   {comment.content}
                 </p>
               </div>
