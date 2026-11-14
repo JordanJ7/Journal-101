@@ -45,12 +45,18 @@ function printHtmlDocument(title: string, subtitle: string, bodyContentHtml: str
     return;
   }
 
+  // Titles come from user-editable week and category names; escape them so they can't inject markup
+  // (the export window shares the app's origin).
+  const safeTitle = escapeHtml(title);
+  const safeSubtitle = escapeHtml(subtitle);
+
   const fullHtml = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
-        <title>${title} - Therapy Review PDF</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <title>${safeTitle} - Therapy Review PDF</title>
         <style>
           @page {
             size: letter;
@@ -117,18 +123,51 @@ function printHtmlDocument(title: string, subtitle: string, bodyContentHtml: str
             color: #44403c;
             margin-top: 6px;
           }
-          .media-loading {
+          /* On screen (e.g. the iPad home-screen app, which has no browser controls) the export
+             shows a toolbar to save or close it, and the page is centered like a sheet of paper. */
+          .pdf-toolbar {
             position: fixed;
-            top: 8px;
-            right: 8px;
-            font-size: 9pt;
-            background: #1c1917;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: calc(env(safe-area-inset-top, 0px) + 10px) calc(env(safe-area-inset-right, 0px) + 16px) 10px calc(env(safe-area-inset-left, 0px) + 16px);
+            background: rgba(28, 25, 23, 0.94);
             color: #ffffff;
-            padding: 4px 10px;
+            font-size: 14px;
+          }
+          .pdf-toolbar button {
+            font: inherit;
+            font-weight: 600;
+            border: 0;
             border-radius: 999px;
+            padding: 9px 18px;
+            min-height: 40px;
+            cursor: pointer;
+          }
+          .pdf-toolbar .tb-close { background: rgba(255, 255, 255, 0.16); color: #ffffff; }
+          .pdf-toolbar .tb-save { background: #2563eb; color: #ffffff; }
+          .pdf-toolbar .tb-status { flex: 1; text-align: center; opacity: 0.85; font-size: 13px; }
+          .page {
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: calc(env(safe-area-inset-top, 0px) + 84px) 28px 40px;
+          }
+          @media screen {
+            html { background: #e7e5e4; }
+            .page {
+              background: #ffffff;
+              min-height: 100vh;
+              box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.08);
+            }
           }
           @media print {
-            .media-loading { display: none; }
+            .pdf-toolbar { display: none; }
+            .page { max-width: none; margin: 0; padding: 0; }
           }
           .header {
             border-bottom: 2.5px solid #2563eb;
@@ -268,10 +307,16 @@ function printHtmlDocument(title: string, subtitle: string, bodyContentHtml: str
         </style>
       </head>
       <body>
+        <div class="pdf-toolbar">
+          <button type="button" class="tb-close" id="tb-close">Close</button>
+          <span class="tb-status" id="tb-status"></span>
+          <button type="button" class="tb-save" id="tb-save">Save as PDF</button>
+        </div>
+        <main class="page">
         <div class="header">
           <div>
-            <h1 class="header-title">${title}</h1>
-            <p class="header-subtitle">${subtitle}</p>
+            <h1 class="header-title">${safeTitle}</h1>
+            <p class="header-subtitle">${safeSubtitle}</p>
           </div>
           <div class="doc-badge">Therapy Review Document</div>
         </div>
@@ -283,6 +328,7 @@ function printHtmlDocument(title: string, subtitle: string, bodyContentHtml: str
           <span>Exported on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           <span>Confidential</span>
         </div>
+        </main>
 
         <script>
           // Print only once photos and video frames have loaded (or failed), so they appear in the PDF.
@@ -299,18 +345,25 @@ function printHtmlDocument(title: string, subtitle: string, bodyContentHtml: str
               }
             });
           }
+          var statusEl = document.getElementById('tb-status');
+          var saveBtn = document.getElementById('tb-save');
+          saveBtn.addEventListener('click', function() { window.print(); });
+          document.getElementById('tb-close').addEventListener('click', function() {
+            window.close();
+            // Some browsers refuse to close the window; say how to get back instead of doing nothing.
+            setTimeout(function() {
+              if (!window.closed) statusEl.textContent = 'Close this window (or swipe it away) to return to your journal.';
+            }, 300);
+          });
           window.onload = function() {
             var els = Array.prototype.slice.call(document.querySelectorAll('img, video'));
-            var banner = null;
             if (els.length) {
-              banner = document.createElement('div');
-              banner.className = 'media-loading';
-              banner.textContent = 'Loading ' + els.length + ' photo' + (els.length === 1 ? '' : 's') + ' and videos…';
-              document.body.appendChild(banner);
+              // The button stays usable; printing early just means some media may be missing.
+              statusEl.textContent = 'Loading ' + els.length + ' attachment' + (els.length === 1 ? '' : 's') + '…';
             }
             var timeout = new Promise(function(resolve) { setTimeout(resolve, 20000); });
             Promise.race([Promise.all(els.map(mediaReady)), timeout]).then(function() {
-              if (banner) banner.remove();
+              statusEl.textContent = '';
               setTimeout(function() { window.print(); }, 300);
             });
           };
