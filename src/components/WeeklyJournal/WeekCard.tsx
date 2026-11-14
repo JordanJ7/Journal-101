@@ -454,7 +454,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
         <WeekStrip week={week} bullets={activeBullets} />
       </header>
 
-      <div className="lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-10 xl:gap-14">
+      <div className="xl:grid xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:gap-12">
         <div className="min-w-0">
         {/* Section 1: Journal Entries */}
         <div
@@ -520,7 +520,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
         </div>
 
         </div>
-        <aside className="mt-10 lg:mt-1 space-y-6 min-w-0">
+        <aside className="mt-10 xl:mt-1 space-y-6 min-w-0">
         <SessionPanel />
 
         {/* Section 2: Therapist Highlights & Media */}
@@ -757,7 +757,7 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
     };
 
     return (
-      <div className="sticky bottom-[-5rem] md:bottom-[-2rem] z-20 mt-3 pt-5 pb-3 md:pb-4 bg-gradient-to-t from-(--j-ground) from-80% to-transparent after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-16 after:bg-(--j-ground)">
+      <div className="[@media(min-height:600px)]:sticky [@media(min-height:600px)]:bottom-[-5rem] md:[@media(min-height:600px)]:bottom-[-2rem] z-20 mt-3 pt-5 pb-3 md:pb-4 bg-gradient-to-t from-(--j-ground) from-80% to-transparent [@media(min-height:600px)]:after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-16 after:bg-(--j-ground)">
         {customTs && (
           <div className="flex items-center justify-between gap-2 text-[12px] mb-2 px-3 py-1.5 rounded-xl bg-(--j-chip) text-(--j-tag) font-semibold">
             <span className="flex items-center gap-1.5 min-w-0">

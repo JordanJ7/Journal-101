@@ -239,3 +239,10 @@ img {
 @media (prefers-reduced-motion: reduce) {
   .intro-rail, .intro-now, .intro-dest { animation: none; stroke-dashoffset: 0; transform: none; }
 }
+
+/* Home Screen app in landscape on a touch device: keep the right end of the top bar clear.
+   On iPhone Duo's open (inner) screen the clock and status sit in the top-right corner without
+   being reported as a safe area, and would cover header buttons. */
+@media (display-mode: standalone) and (pointer: coarse) and (orientation: landscape) {
+  .app-header { padding-right: max(env(safe-area-inset-right, 0px), 6.5rem) !important; }
+}

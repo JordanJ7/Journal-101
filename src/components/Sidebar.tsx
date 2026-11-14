@@ -936,21 +936,21 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
   return (
     <>
-      {/* Desktop Sidebar (hidden on screens < 1280px / xl) with spacious width for 2-column grid */}
+      {/* Docked sidebar from md (iPhone Duo inner screen, iPad, laptop): sits beside the content and pushes it over */}
       <aside
         id="main-desktop-sidebar"
-        className={`hidden xl:flex border-r border-(--j-line) bg-(--j-side) text-(--j-ink) h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex border-r border-(--j-line) bg-(--j-side) text-(--j-ink) h-[calc(100dvh-3.5rem)] sticky top-14 flex-col shrink-0 overflow-y-auto transition-all duration-300 ease-in-out ${
           isSidebarOpen
-            ? 'w-80 lg:w-88 xl:w-96 p-3 opacity-100 translate-x-0'
+            ? 'w-72 lg:w-80 xl:w-96 p-3 opacity-100 translate-x-0'
             : 'w-0 p-0 opacity-0 -translate-x-full border-r-0 overflow-hidden pointer-events-none'
         }`}
       >
         {renderSidebarContent(false)}
       </aside>
 
-      {/* Slide-Over Drawer (visible on screens < 1280px when isOpenMobile is true) */}
+      {/* Slide-over drawer below md (phones, the Duo's outer screen) */}
       {isOpenMobile && (
-        <div className="fixed inset-0 z-50 xl:hidden flex">
+        <div className="fixed inset-0 z-50 md:hidden flex">
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/75 transition-opacity duration-200"

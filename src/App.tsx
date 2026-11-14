@@ -660,7 +660,7 @@ export default function App() {
             <button
               onClick={toggleSidebar}
               title="Expand Sidebar (Ctrl+B / ⌘B)"
-              className={`hidden xl:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold animate-in fade-in zoom-in-95 duration-150 cursor-pointer`}
+              className={`hidden md:flex fixed left-3 top-20 z-20 min-h-[44px] px-3.5 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all items-center gap-2 text-xs font-bold animate-in fade-in zoom-in-95 duration-150 cursor-pointer`}
             >
               <PanelLeftOpen className={`w-4 h-4 ${currentAccent.textPrimary}`} />
               <span>Sidebar</span>
