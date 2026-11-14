@@ -63,6 +63,9 @@ export const ACCENT_THEMES: Record<AccentTheme, ThemeColorDef> = {
   crimson: paletteTheme('crimson', 'Crimson Violet', { dark: '#470B24', accent: '#B5BEDD', light: '#FFEDD5' }),
   lavender: paletteTheme('lavender', 'Lavender Steel', { dark: '#8E93CB', accent: '#F8769C', light: '#FFDBED' }),
   bloom: paletteTheme('bloom', 'Obsidian Bloom', { dark: '#4C1413', accent: '#EA6B7E', light: '#FFDBED' }),
+  lagoon: paletteTheme('lagoon', 'Sunbaked Lagoon', { dark: '#CD853F', accent: '#75DDDD', light: '#FFF8DC' }),
+  boreal: paletteTheme('boreal', 'Boreal Citrus', { dark: '#038A3B', accent: '#E9DB00', light: '#FBF9E4' }),
+  velvet: paletteTheme('velvet', 'Velvet Petal', { dark: '#890105', accent: '#FEEAF6', light: '#F6F5E1' }),
   amber: {
     id: 'amber',
     name: 'Warm Amber',

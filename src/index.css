@@ -41,7 +41,7 @@ html {
 }
 
 body {
-  @apply bg-(--sf-app-lt) text-neutral-900;
+  @apply bg-(--j-ground,var(--sf-app-lt)) text-neutral-900;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -56,7 +56,7 @@ body {
 }
 
 html.dark body {
-  @apply bg-(--sf-app-dk) text-neutral-100;
+  @apply bg-(--j-ground,var(--sf-app-dk)) text-neutral-100;
 }
 
 /* Apple Journal styled form controls */
@@ -202,4 +202,13 @@ img {
     padding-bottom: 50dvh !important;
     transition-property: opacity !important; /* add the room at once, not animated */
   }
+}
+
+/* Redesign display type: SF Pro Expanded where the system font has a width axis (Apple
+   platforms); elsewhere the bold system face. Used for the day hero and session heading. */
+.j-display {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 700;
+  font-stretch: 130%;
+  letter-spacing: -0.028em;
 }

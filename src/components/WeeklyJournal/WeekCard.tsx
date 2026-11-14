@@ -29,6 +29,7 @@ import { formatReminder } from '../../utils/reminderTime';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
 import { ReminderPicker } from '../ReminderControls';
+import { LogRow, SessionPanel, WeekStrip } from './LogParts';
 import { HighlightText } from '../HighlightText';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 import { AssignmentBox } from './AssignmentBox';
@@ -70,6 +71,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 
   const themeConfig = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const [isJournalOpen, setIsJournalOpen] = useState(true);
+  const [openEntryId, setOpenEntryId] = useState<string | null>(null);
   const [newLinkTitle, setNewLinkTitle] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newShowItemText, setNewShowItemText] = useState('');
@@ -335,216 +337,157 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
   const isCurrent = isCurrentWeek(week);
 
   return (
-    <div
-      id={`week-card-${week.id}`}
-      className={`bg-white dark:bg-(--sf-card-dk) rounded-[14px] border shadow-xs overflow-visible mb-6 transition-colors ${
-        isCurrent
-          ? 'border-amber-500/50 ring-1 ring-amber-500/30'
-          : 'border-stone-200/80 dark:border-white/10'
-      }`}
-    >
-      {/* Week Header */}
-      <div className="p-4 sm:p-5 border-b border-stone-100 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-              <HighlightText text={week.weekTitle} highlight={searchQuery} />
-              {week.isPinned && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold font-mono bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                  <Pin className="w-3 h-3 fill-current" />
-                  Pinned
-                </span>
-              )}
-              {isCurrent && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold font-mono bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
-                  Current week
-                </span>
-              )}
-            </h2>
-            <span className="text-[11px] font-mono text-stone-400">
-              ({week.bullets.length} entries)
+    <div id={`week-card-${week.id}`} className="text-(--j-ink) mb-6">
+      {/* Week header: the week, its actions, the day as the hero, and the strip */}
+      <header className="mb-1">
+        <div className="flex items-center justify-between gap-2 min-h-[44px]">
+          <p className="text-[13px] leading-4 font-semibold text-(--j-ink2) m-0 flex items-center gap-2 min-w-0">
+            <span className="truncate">
+              <HighlightText text={`Week of ${formatWeekDateRange(week.startDate, week.endDate)}`} highlight={searchQuery} />
+              {` · ${activeBullets.length} ${activeBullets.length === 1 ? 'entry' : 'entries'}`}
             </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
-            {(week.startDate || week.endDate) && (
-              <p className="text-[11px] text-stone-400 font-mono">
-                {formatWeekDateRange(week.startDate, week.endDate)}
-              </p>
-            )}
-
-            {/* Overarching Entry Header Timestamp */}
-            <button
-              type="button"
-              onClick={() => canEdit && setShowWeeklyTimestampModal(true)}
-              disabled={!canEdit}
-              title={canEdit ? 'Click to edit overarching weekly entry timestamp' : `Created: ${parentFormattedTimestamp}`}
-              className={`flex items-center gap-1.5 text-xs text-neutral-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors ${
-                canEdit ? 'cursor-pointer group' : 'cursor-default'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
-              <span className="font-mono text-[11px] underline decoration-neutral-300 dark:decoration-neutral-700 underline-offset-2 group-hover:decoration-amber-500">
-                Created: {parentFormattedTimestamp}
-              </span>
-              {week.isCustomDate && (
-                <span className="text-[9px] font-sans font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400">
-                  Custom
-                </span>
-              )}
-              {canEdit && (
-                <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 text-stone-400 group-hover:text-amber-500 transition-opacity" />
-              )}
-            </button>
-          </div>
-        </div>
-
+            {week.isPinned && <Pin className="w-3.5 h-3.5 fill-current shrink-0" aria-label="Pinned" />}
+          </p>
         <div className="flex items-center gap-1">
-          {canEdit && (
-            <button
-              type="button"
-              onClick={handleTogglePin}
-              title={week.isPinned ? 'Unpin week (currently pinned to top)' : 'Pin week to top'}
-              aria-label={week.isPinned ? 'Unpin week' : 'Pin week'}
-              className={`min-h-[44px] min-w-[44px] p-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 text-xs ${
-                week.isPinned
-                  ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
-                  : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
-              }`}
-            >
-              <Pin className={`w-4 h-4 ${week.isPinned ? 'fill-current' : ''}`} />
-              <span className="hidden sm:inline font-medium">
-                {week.isPinned ? 'Pinned' : 'Pin'}
-              </span>
-            </button>
-          )}
-
-          {onOpenCommentSection && (
-            <button
-              onClick={() => onOpenCommentSection('General', undefined, 'weekly', week.id)}
-              title="Comments"
-              className="min-h-[44px] min-w-[44px] p-2 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center gap-1 text-xs"
-            >
-              <MessageSquare className="w-4 h-4" />
-              {commentsCount > 0 && <span className="font-mono">{commentsCount}</span>}
-            </button>
-          )}
-
-          <button
-            onClick={() => exportWeekToPDF(week)}
-            title="Export PDF"
-            className="min-h-[44px] min-w-[44px] p-2 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center"
-          >
-            <FileDown className="w-4 h-4" />
-          </button>
-
-          {canEdit && (
-            <div className="relative">
+            {canEdit && (
               <button
                 type="button"
-                onClick={() => setShowMoreMenu((prev) => !prev)}
-                className="min-h-[44px] min-w-[44px] p-2 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
-                title="More week options"
+                onClick={handleTogglePin}
+                title={week.isPinned ? 'Unpin week (currently pinned to top)' : 'Pin week to top'}
+                aria-label={week.isPinned ? 'Unpin week' : 'Pin week'}
+                className={`min-h-[44px] min-w-[44px] p-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 text-xs ${
+                  week.isPinned
+                    ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                    : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
+                }`}
               >
-                <MoreVertical className="w-4 h-4" />
+                <Pin className={`w-4 h-4 ${week.isPinned ? 'fill-current' : ''}`} />
+                <span className="hidden sm:inline font-medium">
+                  {week.isPinned ? 'Pinned' : 'Pin'}
+                </span>
               </button>
-              {showMoreMenu && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setShowMoreMenu(false)} />
-                  <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[160px] text-xs">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMoreMenu(false);
-                        setIsMergeModalOpen(true);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
-                    >
-                      <GitMerge className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Merge into…</span>
-                    </button>
-                    {isOwner && (
+            )}
+  
+            {onOpenCommentSection && (
+              <button
+                onClick={() => onOpenCommentSection('General', undefined, 'weekly', week.id)}
+                title="Comments"
+                className="min-h-[44px] min-w-[44px] p-2 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center gap-1 text-xs"
+              >
+                <MessageSquare className="w-4 h-4" />
+                {commentsCount > 0 && <span className="font-mono">{commentsCount}</span>}
+              </button>
+            )}
+  
+            <button
+              onClick={() => exportWeekToPDF(week)}
+              title="Export PDF"
+              className="min-h-[44px] min-w-[44px] p-2 text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center"
+            >
+              <FileDown className="w-4 h-4" />
+            </button>
+  
+            {canEdit && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowMoreMenu((prev) => !prev)}
+                  className="min-h-[44px] min-w-[44px] p-2 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                  title="More week options"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                {showMoreMenu && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setShowMoreMenu(false)} />
+                    <div className="absolute right-0 top-full mt-1 z-40 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-200 dark:border-stone-800 p-1 min-w-[160px] text-xs">
                       <button
                         type="button"
                         onClick={() => {
                           setShowMoreMenu(false);
-                          confirmDelete({
-                            title: `Delete "${week.weekTitle}"?`,
-                            message: `Delete this week and all entries inside it?`,
-                            confirmText: 'Delete',
-                            onConfirm: () => onDeleteWeek(),
-                          });
+                          setIsMergeModalOpen(true);
                         }}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 text-rose-600 dark:text-rose-400 cursor-pointer"
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete Week</span>
+                        <GitMerge className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Merge into…</span>
                       </button>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMoreMenu(false);
+                          setShowWeeklyTimestampModal(true);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center gap-2 text-stone-700 dark:text-stone-200 cursor-pointer"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Change week date…</span>
+                      </button>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowMoreMenu(false);
+                            confirmDelete({
+                              title: `Delete "${week.weekTitle}"?`,
+                              message: `Delete this week and all entries inside it?`,
+                              confirmText: 'Delete',
+                              onConfirm: () => onDeleteWeek(),
+                            });
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 text-rose-600 dark:text-rose-400 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete Week</span>
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+        <h1 className="j-display text-[46px] sm:text-[58px] leading-[1.02] mt-1 mb-4 break-words">
+          {isCurrent ? new Date().toLocaleDateString([], { weekday: 'long' }) : formatWeekDateRange(week.startDate, week.endDate)}
+        </h1>
+        <WeekStrip week={week} bullets={activeBullets} />
+      </header>
 
-      <div className="p-4 sm:p-5 space-y-4">
+      <div className="lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-10 xl:gap-14">
+        <div className="min-w-0">
         {/* Section 1: Journal Entries */}
         <div
           id="section-journal-bullets"
           onDragOver={handleEntriesDragOver}
           onDragLeave={handleEntriesDragLeave}
           onDrop={handleEntriesDrop}
-          className={`space-y-3 rounded-xl p-3.5 border transition-all ${
+          className={`transition-all rounded-2xl ${
             isDropTarget
-              ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-500 border-dashed'
+              ? 'outline-2 outline-dashed outline-offset-4 outline-(--j-tag) bg-(--j-chip)'
               : isJournalHighlighted
-              ? 'bg-blue-50/40 dark:bg-blue-950/20 border-blue-400 dark:border-blue-600'
-              : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5'
+              ? 'outline-2 outline-offset-4 outline-(--j-tag)'
+              : ''
           }`}
         >
-          <div className="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => setIsJournalOpen(!isJournalOpen)}
-              className="flex items-center gap-2 text-left cursor-pointer focus:outline-none"
-            >
-              {isJournalOpen ? (
-                <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
-              ) : (
-                <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-              )}
-              <h3 className="text-xs font-bold text-stone-900 dark:text-stone-100">
-                Journal Entries
-              </h3>
-              <span className="text-[10px] font-mono text-stone-400">
-                ({activeBullets.length})
-              </span>
-            </button>
-
-            {onOpenCommentSection && (
-              <button
-                type="button"
-                onClick={() => onOpenCommentSection('Journal Bullets', undefined, 'weekly', week.id)}
-                className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
-                title="Comment"
-              >
-                <MessageSquare className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
           {isJournalOpen && (
-            <div className="pt-1 space-y-2 animate-in fade-in duration-100">
-              {/* Bullets */}
-              <div className="space-y-1">
+            <div>
+              {/* Entries, newest first */}
+              <div>
                 {activeBullets.length === 0 ? (
-                  <p className="text-xs text-stone-400 py-2 text-center">
-                    No entries yet
+                  <p className="text-[15px] text-(--j-ink2) py-6">
+                    Nothing yet this week. Write the first line below.
                   </p>
                 ) : (
-                  activeBullets.map((bullet) => (
+                  [...activeBullets].reverse().map((bullet) => (
+                    <LogRow
+                      key={bullet.id}
+                      bullet={bullet}
+                      expanded={openEntryId === bullet.id}
+                      onToggle={() => setOpenEntryId(openEntryId === bullet.id ? null : bullet.id)}
+                      onToggleComplete={canEdit ? () => handleUpdateBullet({ ...bullet, completed: !bullet.completed }) : undefined}
+                      searchQuery={searchQuery}
+                    >
                     <BulletItem
                       key={bullet.id}
                       bullet={bullet}
@@ -560,6 +503,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                       canDelete={canDelete}
                       searchQuery={searchQuery}
                     />
+                    </LogRow>
                   ))
                 )}
               </div>
@@ -574,6 +518,10 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
             </div>
           )}
         </div>
+
+        </div>
+        <aside className="mt-10 lg:mt-1 space-y-6 min-w-0">
+        <SessionPanel />
 
         {/* Section 2: Therapist Highlights & Media */}
         <div
@@ -747,6 +695,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
           searchQuery={searchQuery}
           accentTheme={accentTheme}
         />
+        </aside>
       </div>
 
       <MediaLightboxModal media={previewMedia} onClose={() => setPreviewMedia(null)} />
@@ -808,111 +757,101 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
     };
 
     return (
-      <div className="pt-1 space-y-1.5">
+      <div className="sticky bottom-[-5rem] md:bottom-[-2rem] z-20 mt-3 pt-5 pb-3 md:pb-4 bg-gradient-to-t from-(--j-ground) from-80% to-transparent after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-16 after:bg-(--j-ground)">
         {customTs && (
-          <div className="flex items-center justify-between text-[11px] px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 rounded-lg border border-amber-200 dark:border-amber-800/60 font-mono">
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-              <span>
-                Backdating entry to: <strong>{customTs}</strong>
-              </span>
+          <div className="flex items-center justify-between gap-2 text-[12px] mb-2 px-3 py-1.5 rounded-xl bg-(--j-chip) text-(--j-tag) font-semibold">
+            <span className="flex items-center gap-1.5 min-w-0">
+              <Clock className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Dated {customTs}</span>
             </span>
-            <button
-              type="button"
-              onClick={() => {
-                setCustomTs(null);
-                setCustomIso(null);
-              }}
-              className="text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 flex items-center gap-0.5"
-            >
-              <X className="w-3 h-3" /> Reset
+            <button type="button" onClick={() => { setCustomTs(null); setCustomIso(null); }} className="flex items-center gap-0.5 shrink-0 min-h-[32px]">
+              <X className="w-3.5 h-3.5" /> Reset
             </button>
           </div>
         )}
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className={`relative flex-1 ${showDatePicker ? 'z-[9999]' : 'z-10'}`}>
-            <input
-              type="text"
-              placeholder={customTs ? 'New reflection for custom date...' : 'New reflection...'}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              className="w-full pl-3 pr-11 py-2.5 sm:py-2 text-base sm:text-xs min-h-[44px] sm:min-h-[38px] bg-white dark:bg-(--sf-raised-dk) border border-black/10 dark:border-white/10 rounded-xl text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
-            />
-
-            {/* Custom Date / Time Button */}
-            <button
-              type="button"
-              onClick={() => setShowDatePicker(!showDatePicker)}
-              title="Set custom/backdated date before creating entry"
-              aria-label="Set custom or backdated timestamp"
-              className={`absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] p-2.5 rounded-xl transition-all flex items-center justify-center ${
-                customTs
-                  ? 'text-amber-600 bg-amber-100 dark:bg-amber-900/50'
-                  : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-black/5 dark:hover:bg-white/10'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-            </button>
-
-            {/* Date Picker Popover */}
-            {showDatePicker && (
-              <TimestampPickerPopover
-                currentTimestamp={customTs || formatTimestamp()}
-                isoDate={customIso || undefined}
-                onSave={(timestamp, iso) => {
-                  setCustomTs(timestamp);
-                  setCustomIso(iso);
-                  setShowDatePicker(false);
-                }}
-                onClose={() => setShowDatePicker(false)}
-                title="Backdate New Entry"
-                align="right"
-              />
-            )}
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            className={`min-h-[44px] sm:min-h-[38px] px-3.5 py-2 active:scale-95 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 shrink-0 ${buttonPrimaryClass}`}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add</span>
-          </button>
-        </div>
-
-        {/* Bring to session toggle chip */}
-        <div className="flex items-center gap-2 px-0.5">
-          <button
-            type="button"
-            onClick={() => setForSession(!forSession)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all flex items-center gap-1.5 cursor-pointer select-none ${
-              forSession
-                ? 'bg-violet-100 text-violet-800 border-violet-300 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-700 shadow-2xs'
-                : 'bg-black/5 dark:bg-white/5 text-stone-500 dark:text-stone-400 border-transparent hover:text-stone-800 dark:hover:text-stone-200'
-            }`}
-            title="Tag to bring up in your next therapy session"
-          >
-            <Sparkles className="w-3 h-3 text-violet-500 shrink-0" />
-            <span>Bring to session</span>
-          </button>
+        <div className={`relative flex items-end gap-1 rounded-[28px] bg-(--j-field) border border-(--j-fieldline) pl-5 pr-1.5 py-1.5 ${showDatePicker ? 'z-[9999]' : ''}`}>
+          <textarea
+            rows={1}
+            aria-label="New entry"
+            placeholder="Log a thought"
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
+            }}
+            className="flex-1 min-w-0 resize-none bg-transparent py-[11px] text-[17px] leading-[22px] text-(--j-ink) placeholder:text-(--j-ink2) focus:outline-none"
+          />
           <button
             type="button"
             onClick={() => setShowReminder(!showReminder)}
-            aria-expanded={showReminder}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all flex items-center gap-1.5 cursor-pointer select-none ${
-              remindAt
-                ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700 shadow-2xs'
-                : 'bg-black/5 dark:bg-white/5 text-stone-500 dark:text-stone-400 border-transparent hover:text-stone-800 dark:hover:text-stone-200'
-            }`}
+            aria-pressed={!!remindAt}
+            aria-label={remindAt ? `Reminder ${formatReminder(remindAt)}` : 'Add a reminder'}
             title="Add a reminder with an alarm"
+            className={`shrink-0 w-11 h-11 rounded-full grid place-items-center ${remindAt ? 'bg-(--j-chip) text-(--j-tag)' : 'text-(--j-ink2) hover:text-(--j-ink)'}`}
           >
-            <Bell className="w-3 h-3 shrink-0" />
-            <span>{remindAt ? formatReminder(remindAt) : 'Remind me'}</span>
+            <Bell className="w-5 h-5" />
           </button>
+          <button
+            type="button"
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            aria-label="Set a custom or backdated time"
+            title="Backdate this entry"
+            className={`shrink-0 w-11 h-11 rounded-full grid place-items-center ${customTs ? 'bg-(--j-chip) text-(--j-tag)' : 'text-(--j-ink2) hover:text-(--j-ink)'}`}
+          >
+            <Calendar className="w-5 h-5" />
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!text.trim()}
+            aria-label="Add entry"
+            className="shrink-0 w-11 h-11 rounded-full grid place-items-center bg-(--j-sig) text-(--j-onsig) disabled:opacity-40 active:scale-95 transition-transform"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+          </button>
+
+          {showDatePicker && (
+            <TimestampPickerPopover
+              currentTimestamp={customTs || formatTimestamp()}
+              isoDate={customIso || undefined}
+              onSave={(timestamp, iso) => {
+                setCustomTs(timestamp);
+                setCustomIso(iso);
+                setShowDatePicker(false);
+              }}
+              onClose={() => setShowDatePicker(false)}
+              title="Backdate New Entry"
+              align="right"
+              placement="above"
+            />
+          )}
         </div>
-        {showReminder && <ReminderPicker value={remindAt} onChange={setRemindAt} />}
+
+        <div className="flex flex-wrap items-center gap-2 mt-2 px-1">
+          <button
+            type="button"
+            onClick={() => setForSession(!forSession)}
+            aria-pressed={forSession}
+            className={`min-h-[32px] px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 ${
+              forSession ? 'bg-(--j-sig) text-(--j-onsig)' : 'text-(--j-ink2) border border-(--j-fieldline)'
+            }`}
+            title="Tag to bring up in your next session"
+          >
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            For session
+          </button>
+          {remindAt && (
+            <span className="min-h-[32px] px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 bg-(--j-chip) text-(--j-tag)">
+              <Bell className="w-3.5 h-3.5" />{formatReminder(remindAt)}
+            </span>
+          )}
+        </div>
+        {showReminder && <div className="mt-2"><ReminderPicker value={remindAt} onChange={setRemindAt} /></div>}
       </div>
     );
   }

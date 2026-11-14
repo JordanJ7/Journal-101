@@ -1,5 +1,5 @@
 export type ViewMode = 'home' | 'weekly' | 'core' | 'media' | 'shared';
-export type AccentTheme = 'espresso' | 'nox' | 'crimson' | 'lavender' | 'bloom' | 'amber' | 'blue' | 'emerald';
+export type AccentTheme = 'espresso' | 'nox' | 'crimson' | 'lavender' | 'bloom' | 'lagoon' | 'boreal' | 'velvet' | 'amber' | 'blue' | 'emerald';
 export type UserRole = 'owner' | 'editor' | 'commenter' | 'viewer';
 
 export interface CommentItem {

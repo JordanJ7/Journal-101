@@ -55,6 +55,7 @@ import {
 import { canUserViewItem } from './hooks/usePermissions';
 import { useKeepCaretAboveKeyboard } from './hooks/useKeepCaretAboveKeyboard';
 import { useReminderSync } from './hooks/useReminderSync';
+import { applySchemeTokens } from './utils/schemes';
 import { sortFolders } from './utils/folderSort';
 
 // Lazy-loaded heavy modals and slide-overs for minimal initial bundle & fast TTI
@@ -467,6 +468,11 @@ export default function App() {
     }
   }, [accentTheme]);
 
+  // Redesign colour tokens (--j-*), designed separately for dark and light.
+  useEffect(() => {
+    applySchemeTokens(accentTheme, theme === 'dark');
+  }, [accentTheme, theme]);
+
   // Modal open/close handlers
   const handleOpenExportModal = useCallback(() => setIsExportModalOpen(true), [setIsExportModalOpen]);
   const handleCloseExportModal = useCallback(() => setIsExportModalOpen(false), [setIsExportModalOpen]);
@@ -544,7 +550,7 @@ export default function App() {
     <ErrorBoundary>
       <ConfirmDeleteProvider>
         <div
-          className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-(--sf-app-lt) dark:bg-(--sf-sunken-dk) text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
+          className="w-full h-full min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-(--j-ground,var(--sf-app-lt)) text-neutral-900 dark:text-neutral-100 font-sans antialiased flex flex-col"
         >
         {/* Preview Mode Sticky Banner (Read-only safe view) */}
         {previewGuest && (
@@ -773,7 +779,7 @@ export default function App() {
           </main>
 
           {/* Right-Side Panel on Wide Screens (>= 1280px) */}
-          <aside className="hidden xl:flex flex-col w-80 2xl:w-84 h-full border-l border-stone-200/80 dark:border-white/10 bg-(--sf-soft-lt)/80 dark:bg-(--sf-header-dk) backdrop-blur-md overflow-y-auto shrink-0 p-4 space-y-4">
+          <aside className={`${viewMode === 'weekly' ? 'hidden' : 'hidden xl:flex'} flex-col w-80 2xl:w-84 h-full border-l border-stone-200/80 dark:border-white/10 bg-(--sf-soft-lt)/80 dark:bg-(--sf-header-dk) backdrop-blur-md overflow-y-auto shrink-0 p-4 space-y-4`}>
             <NextSessionCard
               weeks={weeks}
               nextSessionAt={nextSessionAt}
@@ -807,50 +813,46 @@ export default function App() {
         {/* Authentic iOS Bottom Tab Bar (Only on mobile < md) */}
         <nav
           aria-label="Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-(--sf-grouped-lt) dark:bg-[#000000] border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
+          className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-(--j-glass) backdrop-blur-xl backdrop-saturate-150 border-t border-(--j-line) text-(--j-ink2) pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] flex items-center justify-around h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] px-1 shadow-lg"
         >
           <button
             onClick={() => handleSetViewMode('home')}
             className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'home' ? 'font-bold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
+              viewMode === 'home' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
             }`}
-            style={{ color: viewMode === 'home' ? currentAccent.colorHex : undefined }}
           >
             <Home className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Home</span>
+            <span className="text-[11px] tracking-tight">Home</span>
           </button>
 
           <button
             onClick={() => handleSetViewMode('weekly')}
             className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'weekly' ? 'font-bold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
+              viewMode === 'weekly' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
             }`}
-            style={{ color: viewMode === 'weekly' ? currentAccent.colorHex : undefined }}
           >
             <Calendar className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Weekly</span>
+            <span className="text-[11px] tracking-tight">Weekly</span>
           </button>
 
           <button
             onClick={() => handleSetViewMode('core')}
             className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'core' ? 'font-bold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
+              viewMode === 'core' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
             }`}
-            style={{ color: viewMode === 'core' ? currentAccent.colorHex : undefined }}
           >
             <FolderOpen className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Topics</span>
+            <span className="text-[11px] tracking-tight">Topics</span>
           </button>
 
           <button
             onClick={() => handleSetViewMode('media')}
             className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-all ${
-              viewMode === 'media' ? 'font-bold' : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
+              viewMode === 'media' ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
             }`}
-            style={{ color: viewMode === 'media' ? currentAccent.colorHex : undefined }}
           >
             <Film className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Media</span>
+            <span className="text-[11px] tracking-tight">Media</span>
           </button>
 
           <button
@@ -858,7 +860,7 @@ export default function App() {
             className="flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-all"
           >
             <Menu className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] tracking-tight">Folders</span>
+            <span className="text-[11px] tracking-tight">Folders</span>
           </button>
         </nav>
 

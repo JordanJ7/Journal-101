@@ -9,6 +9,8 @@ interface TimestampPickerPopoverProps {
   onClose: () => void;
   title?: string;
   align?: 'left' | 'right' | 'center';
+  /** Open above the trigger (for controls near the bottom of the screen). */
+  placement?: 'below' | 'above';
 }
 
 export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
@@ -18,6 +20,7 @@ export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
   onClose,
   title = 'Edit Entry Date & Time',
   align = 'left',
+  placement = 'below',
 }) => {
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -84,7 +87,7 @@ export const TimestampPickerPopover: React.FC<TimestampPickerPopoverProps> = ({
   return (
     <div
       ref={popoverRef}
-      className={`absolute z-[9999] mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 sm:p-4 bg-white dark:bg-(--sf-raised2-dk) rounded-2xl border border-black/15 dark:border-white/20 shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
+      className={`absolute z-[9999] ${placement === 'above' ? 'bottom-full mb-1.5' : 'mt-1.5'} w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 sm:p-4 bg-white dark:bg-(--sf-raised2-dk) rounded-2xl border border-black/15 dark:border-white/20 shadow-2xl animate-in fade-in zoom-in-95 duration-150 ${
         align === 'right' ? 'right-0' : align === 'center' ? 'left-1/2 -translate-x-1/2' : 'left-0'
       }`}
       onClick={(e) => e.stopPropagation()}

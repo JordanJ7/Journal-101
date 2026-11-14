@@ -140,6 +140,9 @@ const THEME_COLOR_MAP: Record<AccentTheme, ThemeColorTokens> = {
   crimson: paletteTokens('#B5BEDD'),
   lavender: paletteTokens('#F8769C'),
   bloom: paletteTokens('#EA6B7E'),
+  lagoon: paletteTokens('#75DDDD'),
+  boreal: paletteTokens('#E9DB00'),
+  velvet: paletteTokens('#FEEAF6'),
 };
 
 export const EntranceOverlay: React.FC<EntranceOverlayProps> = ({

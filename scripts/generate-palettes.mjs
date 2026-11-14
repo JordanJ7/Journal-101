@@ -14,6 +14,10 @@ export const PALETTES = [
   // Lavender Steel has no truly dark color, so its dark end is a deep indigo derived from it.
   { id: 'lavender', name: 'Lavender Steel', dark: '#8E93CB', deriveDark: true, accent: '#F8769C', light: '#FFDBED', onAccent: 'dark' },
   { id: 'bloom', name: 'Obsidian Bloom', dark: '#4C1413', accent: '#EA6B7E', light: '#FFDBED', onAccent: 'dark' },
+  // Sunbaked Lagoon and Boreal Citrus have no truly dark colour either; their dark ends are derived.
+  { id: 'lagoon', name: 'Sunbaked Lagoon', dark: '#CD853F', deriveDark: true, accent: '#75DDDD', light: '#FFF8DC', onAccent: 'dark' },
+  { id: 'boreal', name: 'Boreal Citrus', dark: '#038A3B', deriveDark: true, accent: '#E9DB00', light: '#FBF9E4', onAccent: 'dark' },
+  { id: 'velvet', name: 'Velvet Petal', dark: '#890105', deriveDark: true, accent: '#FEEAF6', light: '#F6F5E1', onAccent: 'dark' },
 ];
 
 // ---- color math (OKLab / OKLCH) ----

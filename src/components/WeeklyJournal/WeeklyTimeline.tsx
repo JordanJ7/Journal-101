@@ -140,14 +140,14 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
   const isLast = activeIndex === filteredWeeks.length - 1;
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
+    <div className="space-y-2 max-w-6xl mx-auto">
       {/* Top Single-Week Navigation Bar */}
-      <div className="flex items-center justify-between gap-2 bg-white dark:bg-(--sf-card-dk) px-3 sm:px-4 py-2.5 rounded-[14px] border border-stone-200/80 dark:border-white/10 shadow-xs">
+      <nav aria-label="Weeks" className="flex items-center justify-between gap-2 -mx-2 -mt-1 text-(--j-ink2)">
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={handlePrevWeek}
             disabled={isFirst}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full hover:text-(--j-ink) hover:bg-(--j-chip) disabled:opacity-30 transition-colors cursor-pointer"
             title="Previous Week"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -155,29 +155,17 @@ export const WeeklyTimeline: React.FC<WeeklyTimelineProps> = React.memo(({
           <button
             onClick={handleNextWeek}
             disabled={isLast}
-            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+            className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-full hover:text-(--j-ink) hover:bg-(--j-chip) disabled:opacity-30 transition-colors cursor-pointer"
             title="Next Week"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Center / Right: Week title and date range wrapping onto two lines on mobile */}
-        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between px-1.5 gap-0.5 sm:gap-2 text-right sm:text-left">
-          <div className="flex items-center justify-end sm:justify-start gap-1.5 flex-wrap">
-            <span className="text-xs sm:text-sm font-semibold text-stone-800 dark:text-stone-200 break-words">
-              {currentWeek.weekTitle}
-            </span>
-            <span className="text-[10px] sm:text-[11px] text-stone-400 font-mono shrink-0">
-              ({activeIndex + 1}/{filteredWeeks.length})
-            </span>
-          </div>
-
-          <div className="text-[10px] sm:text-[11px] text-stone-500 dark:text-stone-400 font-mono text-right whitespace-normal leading-tight">
-            {formatWeekDateRange(currentWeek.startDate, currentWeek.endDate)}
-          </div>
-        </div>
-      </div>
+        <span className="text-[13px] font-semibold tabular-nums pr-2">
+          Week {filteredWeeks.length - activeIndex} of {filteredWeeks.length}
+        </span>
+      </nav>
 
       {/* Render ONLY the single active week block */}
       <WeekCard
