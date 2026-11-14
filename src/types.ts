@@ -45,6 +45,7 @@ export interface BulletPoint {
   mediaCaption?: string;
   attachments?: Attachment[]; // Multi-media persistent attachments
   completed?: boolean;
+  remindAt?: string; // ISO time of the reminder alarm; the entry is a reminder while set and not completed
   pinnedToLearned?: boolean;
   pinnedLearnedId?: string;
   forSession?: boolean; // Tagged for therapy session prep ("Bring to session")

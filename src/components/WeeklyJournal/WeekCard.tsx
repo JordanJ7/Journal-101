@@ -1,4 +1,5 @@
 import {
+  Bell,
   Calendar,
   ChevronDown,
   ChevronRight,
@@ -24,8 +25,10 @@ import { exportWeekToPDF } from '../../utils/pdfExport';
 import { sanitizeUrl } from '../../utils/security';
 import { formatTimestamp, parseDateFromTimestamp } from '../../utils/storage';
 import { formatWeekDateRange, isCurrentWeek } from '../../utils/dateUtils';
+import { formatReminder } from '../../utils/reminderTime';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { useConfirmDelete } from '../ConfirmDeleteModal';
+import { ReminderPicker } from '../ReminderControls';
 import { HighlightText } from '../HighlightText';
 import { LightboxMedia, MediaLightboxModal } from '../MediaLightboxModal';
 import { AssignmentBox } from './AssignmentBox';
@@ -96,7 +99,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 
   // Bullet Handlers
   const handleAddBulletSubmit = useCallback(
-    (text: string, customTs: string | null, customIso: string | null, forSession?: boolean) => {
+    (text: string, customTs: string | null, customIso: string | null, forSession?: boolean, remindAt?: string | null) => {
       const finalTimestamp = customTs || formatTimestamp();
       const newBullet: BulletPoint = {
         id: 'b-' + Date.now(),
@@ -107,6 +110,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
         isoDate: customIso || undefined,
         isCustomDate: !!customTs,
         forSession: !!forSession,
+        ...(remindAt ? { remindAt, completed: false } : {}),
       };
 
       // If custom backdated date was picked, use store helper which auto-places in the right week & sorts chronologically
@@ -777,7 +781,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
 });
 
 interface QuickAddBulletFormProps {
-  onAdd: (text: string, customTs: string | null, customIso: string | null, forSession?: boolean) => void;
+  onAdd: (text: string, customTs: string | null, customIso: string | null, forSession?: boolean, remindAt?: string | null) => void;
   buttonPrimaryClass: string;
 }
 
@@ -788,15 +792,19 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
     const [customIso, setCustomIso] = useState<string | null>(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [forSession, setForSession] = useState(false);
+    const [showReminder, setShowReminder] = useState(false);
+    const [remindAt, setRemindAt] = useState<string | null>(null);
 
     const handleSubmit = () => {
       if (!text.trim()) return;
-      onAdd(text.trim(), customTs, customIso, forSession);
+      onAdd(text.trim(), customTs, customIso, forSession, remindAt);
       setText('');
       setCustomTs(null);
       setCustomIso(null);
       setShowDatePicker(false);
       setForSession(false);
+      setRemindAt(null);
+      setShowReminder(false);
     };
 
     return (
@@ -889,7 +897,22 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
             <Sparkles className="w-3 h-3 text-violet-500 shrink-0" />
             <span>Bring to session</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setShowReminder(!showReminder)}
+            aria-expanded={showReminder}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all flex items-center gap-1.5 cursor-pointer select-none ${
+              remindAt
+                ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700 shadow-2xs'
+                : 'bg-black/5 dark:bg-white/5 text-stone-500 dark:text-stone-400 border-transparent hover:text-stone-800 dark:hover:text-stone-200'
+            }`}
+            title="Add a reminder with an alarm"
+          >
+            <Bell className="w-3 h-3 shrink-0" />
+            <span>{remindAt ? formatReminder(remindAt) : 'Remind me'}</span>
+          </button>
         </div>
+        {showReminder && <ReminderPicker value={remindAt} onChange={setRemindAt} />}
       </div>
     );
   }

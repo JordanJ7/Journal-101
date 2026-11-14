@@ -54,6 +54,7 @@ import {
 } from './lib/firebase';
 import { canUserViewItem } from './hooks/usePermissions';
 import { useKeepCaretAboveKeyboard } from './hooks/useKeepCaretAboveKeyboard';
+import { useReminderSync } from './hooks/useReminderSync';
 import { sortFolders } from './utils/folderSort';
 
 // Lazy-loaded heavy modals and slide-overs for minimal initial bundle & fast TTI
@@ -97,6 +98,7 @@ export default function App() {
 
   // Real-time presence listener for the owner only
   useKeepCaretAboveKeyboard();
+  useReminderSync();
 
   useEffect(() => {
     if (!currentUser?.isLoggedIn || currentUser?.role !== 'owner') {

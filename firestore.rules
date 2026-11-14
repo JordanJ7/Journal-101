@@ -184,6 +184,19 @@ service cloud.firestore {
       allow write: if isSignedIn() && email == getUserEmail();
     }
 
+    // 9. Reminder alarms: the app mirrors each active reminder here; a scheduled Cloud Function
+    //    (admin SDK, not bound by these rules) sends the notification and stamps sentAt.
+    match /reminders/{reminderId} {
+      allow read, write: if canEditContent();
+    }
+
+    // 10. Push subscriptions: one per device that turned alerts on, owned by the signed-in user.
+    match /push_subscriptions/{subId} {
+      allow read, delete: if isSignedIn() && resource.data.email == getUserEmail();
+      allow create: if isSignedIn() && request.resource.data.email == getUserEmail();
+      allow update: if isSignedIn() && resource.data.email == getUserEmail() && request.resource.data.email == getUserEmail();
+    }
+
     // Default Fallback
     match /{document=**} {
       allow read, write: if false;

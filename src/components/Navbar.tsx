@@ -27,6 +27,7 @@ import {
   Eye,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertsButton } from './ReminderControls';
 import { CurrentUserProfile, PermissionsDoc, UserPermission, UserRole } from '../lib/firebase';
 import { useJournalStore, hasDirtyItems } from '../store/useJournalStore';
 import {
@@ -993,6 +994,12 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                     <span className="font-medium text-stone-700 dark:text-stone-300">Sync Status</span>
                   </div>
                   <MobileNavbarSaveIndicator />
+                </div>
+
+                {/* Reminder alerts on this device */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Reminder alerts</span>
+                  <AlertsButton />
                 </div>
 
                 {/* Appearance / Theme Options */}

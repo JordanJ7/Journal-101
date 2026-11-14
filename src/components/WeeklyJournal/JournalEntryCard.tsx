@@ -1,5 +1,6 @@
 import {
   ArrowRightLeft,
+  Bell,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useJournalStore } from '../../store/useJournalStore';
+import { ReminderChip, ReminderPicker } from '../ReminderControls';
 import { AccentTheme, Attachment, BulletPoint } from '../../types';
 import { ACCENT_THEMES } from '../../utils/theme';
 import { formatTimestamp, parseDateFromTimestamp } from '../../utils/storage';
@@ -103,6 +105,11 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
       ...bullet,
       forSession: !bullet.forSession,
     });
+  };
+
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
+  const setReminder = (iso: string | null) => {
+    onUpdate(iso ? { ...bullet, remindAt: iso, completed: false } : { ...bullet, remindAt: undefined });
   };
 
   const [isEditing, setIsEditing] = useState(false);
@@ -339,8 +346,9 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
         }`}
       >
         {/* Highlight Callout Badge, Pinned Badge & Session Prep Badge */}
-        {(bullet.isAnswerHighlight || bullet.pinnedToLearned || bullet.forSession) && (
+        {(bullet.isAnswerHighlight || bullet.pinnedToLearned || bullet.forSession || bullet.remindAt) && (
           <div className="flex flex-wrap items-center gap-1.5 w-full min-w-0">
+            {bullet.remindAt && <ReminderChip iso={bullet.remindAt} completed={bullet.completed} />}
             {bullet.forSession && (
               <div className="flex items-center gap-1 text-[11px] font-semibold text-violet-800 dark:text-violet-300 bg-violet-100/90 dark:bg-violet-950/70 border border-violet-200 dark:border-violet-800/60 px-2.5 py-0.5 rounded-full w-fit shadow-2xs">
                 <Sparkles className="w-3 h-3 text-violet-600 dark:text-violet-400 shrink-0" />
@@ -850,6 +858,24 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   </button>
                 )}
 
+                {/* Reminder: add, change or clear the alarm */}
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReminderPicker(!showReminderPicker)}
+                    aria-expanded={showReminderPicker}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${
+                      bullet.remindAt
+                        ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700 font-semibold'
+                        : 'bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/5'
+                    }`}
+                    title={bullet.remindAt ? 'Change or clear the reminder' : 'Add a reminder with an alarm'}
+                  >
+                    <Bell className="w-3 h-3" />
+                    <span>{bullet.remindAt ? 'Reminder' : 'Remind me'}</span>
+                  </button>
+                )}
+
                 {/* Move to another week */}
                 {canEdit && weekId && (
                   <button
@@ -875,6 +901,11 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = React.memo(({
                   </button>
                 )}
               </div>
+              {canEdit && showReminderPicker && (
+                <div className="pt-2">
+                  <ReminderPicker value={bullet.remindAt || null} onChange={setReminder} />
+                </div>
+              )}
             </div>
           </div>
         </div>
