@@ -30,6 +30,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertsButton } from './ReminderControls';
 import { MainTabs } from './MainTabs';
+import { AppearanceSheet } from './AppearanceSheet';
 import { CurrentUserProfile, PermissionsDoc, UserPermission, UserRole } from '../lib/firebase';
 import { useJournalStore, hasDirtyItems } from '../store/useJournalStore';
 import {
@@ -421,9 +422,12 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
     };
   }, [searchInputValue, weeks, coreItems, coreCategories]);
 
+  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
   const userInitial = (currentUser.displayName || currentUser.email || 'U')[0].toUpperCase();
 
   return (
+    <>
+    <AppearanceSheet open={isAppearanceOpen} onClose={() => setIsAppearanceOpen(false)} />
     <header className="shrink-0 w-full relative z-30 border-b border-(--j-line) bg-(--j-ground)/90 backdrop-blur-md text-(--j-ink) transition-colors pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
       <div className="w-full px-2.5 sm:px-6 h-14 flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left: Desktop Toggle / Mobile Menu Trigger & App Title */}
@@ -727,7 +731,7 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
           {/* Theme & Palette Button */}
           <div className="relative" ref={themeMenuRef}>
             <button
-              onClick={() => setIsThemeMenuOpen((prev) => !prev)}
+              onClick={() => setIsAppearanceOpen(true)}
               title="Appearance"
               className="min-h-[44px] min-w-[44px] p-2 rounded-full text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-1"
             >
@@ -989,6 +993,19 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
+                      setIsAppearanceOpen(true);
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Palette className="w-4 h-4 text-amber-500" />
+                      <span>Appearance &amp; app icon</span>
+                    </div>
+                    <span className="text-stone-400 text-xs">›</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
                       setViewMode?.('home');
                     }}
                     className="w-full min-h-[44px] px-3 py-2 rounded-xl bg-stone-50 dark:bg-(--sf-raised3-dk) flex items-center justify-between text-xs font-semibold text-stone-900 dark:text-stone-100 shadow-2xs active:bg-stone-100 dark:active:bg-stone-700 transition-colors"
@@ -1082,5 +1099,6 @@ export const Navbar: React.FC<NavbarProps> = React.memo(({
         </div>
       </div>
     </header>
+    </>
   );
 });

@@ -57,6 +57,7 @@ import { useKeepCaretAboveKeyboard } from './hooks/useKeepCaretAboveKeyboard';
 import { useReminderSync } from './hooks/useReminderSync';
 import { MainTabs } from './components/MainTabs';
 import { applySchemeTokens } from './utils/schemes';
+import { applyAppIcon, ICON_EVENT } from './utils/appIcon';
 import { sortFolders } from './utils/folderSort';
 
 // Lazy-loaded heavy modals and slide-overs for minimal initial bundle & fast TTI
@@ -473,6 +474,14 @@ export default function App() {
   useEffect(() => {
     applySchemeTokens(accentTheme, theme === 'dark');
   }, [accentTheme, theme]);
+
+  // App icon: its own per-device choice (Appearance), or the colour scheme when set to match.
+  useEffect(() => {
+    applyAppIcon(accentTheme);
+    const onChange = () => applyAppIcon(accentTheme);
+    window.addEventListener(ICON_EVENT, onChange);
+    return () => window.removeEventListener(ICON_EVENT, onChange);
+  }, [accentTheme]);
 
   // Modal open/close handlers
   const handleOpenExportModal = useCallback(() => setIsExportModalOpen(true), [setIsExportModalOpen]);

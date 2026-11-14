@@ -212,3 +212,30 @@ img {
   font-stretch: 130%;
   letter-spacing: -0.028em;
 }
+
+/* ---- Intro (EntranceOverlay): the train mark, laid out for each pose ---- */
+.intro-layout { display: flex; flex-direction: column; justify-content: flex-start; gap: 28px;
+  padding: calc(env(safe-area-inset-top, 0px) + 18vh) calc(env(safe-area-inset-right, 0px) + 28px) 0 calc(env(safe-area-inset-left, 0px) + 28px); }
+.intro-mark { width: 104px; height: 118px; flex: none; }
+.intro-quote { max-width: 34rem; }
+.intro-skip { left: calc(env(safe-area-inset-left, 0px) + 24px); bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); }
+/* Phones: the font choice sits on its own row above Skip. */
+.intro-fonts { left: calc(env(safe-area-inset-left, 0px) + 16px); right: calc(env(safe-area-inset-right, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); justify-content: flex-start; }
+@media (min-width: 640px) {
+  .intro-fonts { left: calc(env(safe-area-inset-left, 0px) + 120px); bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); justify-content: flex-end; }
+}
+/* Landscape (open like a book, tent, desktop): mark on the left half, quote on the right. */
+@media (min-aspect-ratio: 1/1) and (min-width: 640px) {
+  .intro-layout { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 64px; padding-top: 0; padding-bottom: 72px; }
+  .intro-mark { justify-self: center; width: 156px; height: 178px; }
+  .intro-quote { justify-self: start; }
+}
+.intro-rail { fill: none; stroke: var(--j-bar); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 130; stroke-dashoffset: 130;
+  animation: intro-draw 700ms cubic-bezier(.2, .8, .2, 1) 100ms forwards; }
+.intro-now { fill: var(--j-ink); transform-box: fill-box; transform-origin: center; transform: scale(0); animation: intro-pop 420ms cubic-bezier(.3, 1.4, .5, 1) 0ms forwards; }
+.intro-dest { fill: var(--j-sig); transform-box: fill-box; transform-origin: center; transform: scale(0); animation: intro-pop 460ms cubic-bezier(.3, 1.4, .5, 1) 760ms forwards; }
+@keyframes intro-draw { to { stroke-dashoffset: 0; } }
+@keyframes intro-pop { to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .intro-rail, .intro-now, .intro-dest { animation: none; stroke-dashoffset: 0; transform: none; }
+}
