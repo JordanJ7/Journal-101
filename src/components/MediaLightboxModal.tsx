@@ -102,7 +102,7 @@ export const MediaLightboxModal: React.FC<MediaLightboxModalProps> = ({ media, o
   return (
     <div
       id="media-lightbox-overlay"
-      className="fixed inset-0 z-50 bg-(--sf-app-dk)/95 flex items-center justify-center p-3 sm:p-6 transition-all animate-in fade-in duration-200"
+      className="safe-overlay fixed inset-0 z-50 bg-(--sf-app-dk)/95 flex items-center justify-center p-3 sm:p-6 transition-all animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div

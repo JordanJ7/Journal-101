@@ -155,7 +155,7 @@ export const MediaInspectModal: React.FC<MediaInspectModalProps> = ({
   const modalContent = (
     <div
       id="media-inspect-modal-overlay"
-      className="fixed inset-0 z-[99999] bg-(--sf-app-dk)/95 flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      className="safe-overlay fixed inset-0 z-[99999] bg-(--sf-app-dk)/95 flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
       onClick={(e) => {
         e.stopPropagation();
         onClose();

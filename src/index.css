@@ -245,4 +245,6 @@ img {
    being reported as a safe area, and would cover header buttons. */
 @media (display-mode: standalone) and (pointer: coarse) and (orientation: landscape) {
   .app-header { padding-right: max(env(safe-area-inset-right, 0px), 6.5rem) !important; }
+  /* Full-screen photo and video viewers: keep their close buttons out of that corner too. */
+  .safe-overlay { padding-right: max(env(safe-area-inset-right, 0px), 6.5rem) !important; padding-top: max(env(safe-area-inset-top, 0px), 0.75rem) !important; }
 }
