@@ -68,8 +68,10 @@ export const LogRow: React.FC<{
   onToggle: () => void;
   onToggleComplete?: () => void;
   searchQuery?: string;
+  /** Just written: the row slides in so you can see where it went. */
+  isNew?: boolean;
   children?: React.ReactNode;
-}> = ({ bullet, expanded, onToggle, onToggleComplete, searchQuery, children }) => {
+}> = ({ bullet, expanded, onToggle, onToggleComplete, searchQuery, isNew, children }) => {
   const d = entryDate(bullet);
   const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
   const day = d.toLocaleDateString([], { weekday: 'short' });
@@ -77,7 +79,7 @@ export const LogRow: React.FC<{
   const media = (bullet.attachments?.length || 0) + (bullet.mediaUrl ? 1 : 0);
 
   return (
-    <div className={`border-b border-(--j-line) ${expanded ? 'pb-3' : ''}`} style={{ paddingLeft: (bullet.indent || 0) * 18 }}>
+    <div className={`border-b border-(--j-line) ${expanded ? 'pb-3' : ''} ${isNew ? 'animate-in fade-in slide-in-from-top-2 duration-500' : ''}`} style={{ paddingLeft: (bullet.indent || 0) * 18 }}>
       <div
         role="button"
         tabIndex={0}
@@ -97,9 +99,9 @@ export const LogRow: React.FC<{
                 type="button"
                 aria-label={bullet.completed ? 'Mark not done' : 'Mark done'}
                 onClick={(e) => { e.stopPropagation(); onToggleComplete?.(); }}
-                className={`shrink-0 mt-[3px] w-[18px] h-[18px] rounded-[5px] border-[1.6px] border-current grid place-items-center ${bullet.completed ? 'bg-(--j-ink) text-(--j-ground)' : ''}`}
+                className={`m-press shrink-0 mt-[3px] w-[18px] h-[18px] rounded-[5px] border-[1.6px] border-current grid place-items-center ${bullet.completed ? 'bg-(--j-ink) text-(--j-ground)' : ''}`}
               >
-                {bullet.completed && <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}
+                {bullet.completed && <svg viewBox="0 0 24 24" className="m-tick w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}
               </button>
             )}
             <p className={`m-0 text-[17px] leading-[25px] whitespace-pre-wrap break-words ${bullet.completed ? 'line-through opacity-60' : ''} ${bullet.isAnswerHighlight ? 'font-medium' : ''}`}>
@@ -123,7 +125,7 @@ export const LogRow: React.FC<{
           )}
         </div>
       </div>
-      {expanded && <div className="mt-1">{children}</div>}
+      {expanded && <div className="mt-1 animate-in fade-in duration-200">{children}</div>}
     </div>
   );
 };

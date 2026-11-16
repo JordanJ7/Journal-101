@@ -675,6 +675,7 @@ export default function App() {
                 : 'p-3 sm:p-5 md:p-6 lg:p-8'
             } ${isPending ? 'opacity-70' : 'opacity-100'}`}
           >
+            <div key={viewMode} className="m-view">
             {viewMode === 'home' ? (
               <HomeDashboard
                 weeks={activeWeeks}
@@ -756,6 +757,7 @@ export default function App() {
                 }}
               />
             )}
+            </div>
 
             {/* Below 1280px (< xl): Move the right panel's cards below the main content */}
             <div className="xl:hidden mt-8 pt-6 border-t border-stone-200/80 dark:border-white/10 space-y-4 max-w-2xl mx-auto">

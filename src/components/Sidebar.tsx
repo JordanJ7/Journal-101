@@ -953,7 +953,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
         <div className="fixed inset-0 z-50 md:hidden flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/75 transition-opacity duration-200"
+            className="m-fade fixed inset-0 bg-black/75"
             style={{
               backdropFilter: 'none',
               WebkitBackdropFilter: 'none',
@@ -964,7 +964,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
 
           {/* Drawer Content with clean tablet & mobile width and safe area insets */}
           <div
-            className="relative w-full max-w-[340px] sm:max-w-[360px] bg-(--sf-grouped-lt) dark:bg-(--sf-raised-dk) h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] z-10"
+            className="m-sheet m-sheet-from-left relative w-full max-w-[340px] sm:max-w-[360px] bg-(--sf-grouped-lt) dark:bg-(--sf-raised-dk) h-full shadow-2xl p-3.5 sm:p-4 flex flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] z-10"
             style={{
               contain: 'layout paint',
               transform: 'translateZ(0)',

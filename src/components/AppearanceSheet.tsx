@@ -39,8 +39,8 @@ export const AppearanceSheet: React.FC<{ open: boolean; onClose: () => void }> =
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-label="Appearance">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-[28px] sm:rounded-[28px] bg-(--j-ground) text-(--j-ink) border border-(--j-line) shadow-2xl px-5 sm:px-7 pt-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+      <div className="m-fade absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="m-sheet m-sheet-from-bottom relative w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-[28px] sm:rounded-[28px] bg-(--j-ground) text-(--j-ink) border border-(--j-line) shadow-2xl px-5 sm:px-7 pt-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
         <div className="flex items-center justify-between">
           <h2 className="j-display text-[30px] leading-tight m-0">Appearance</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="w-11 h-11 rounded-full grid place-items-center bg-(--j-chip) text-(--j-ink)">

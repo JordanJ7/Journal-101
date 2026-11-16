@@ -35,7 +35,7 @@ export const MainTabs: React.FC<{ variant: 'bottom' | 'top'; viewMode: ViewMode;
             type="button"
             onClick={() => select(key)}
             aria-current={isActive(key) ? 'page' : undefined}
-            className={`min-h-[36px] px-3.5 lg:px-4 rounded-full text-[14px] font-semibold transition-colors ${
+            className={`m-press min-h-[36px] px-3.5 lg:px-4 rounded-full text-[14px] font-semibold transition-colors ${
               isActive(key) ? 'bg-(--j-ground) text-(--j-ink) shadow-xs' : 'text-(--j-ink2) hover:text-(--j-ink)'
             }`}
           >
@@ -54,7 +54,7 @@ export const MainTabs: React.FC<{ variant: 'bottom' | 'top'; viewMode: ViewMode;
           type="button"
           onClick={() => select(key)}
           aria-current={isActive(key) ? 'page' : undefined}
-          className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-colors ${
+          className={`m-press flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 transition-colors ${
             isActive(key) ? 'text-(--j-ink) font-semibold' : 'text-(--j-ink2) hover:text-(--j-ink)'
           }`}
         >

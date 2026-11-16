@@ -17,7 +17,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { CurrentUserProfile } from '../../lib/firebase';
 import { useJournalStore } from '../../store/useJournalStore';
 import { AccentTheme, AssignmentSwitches, BulletPoint, ExternalLink, WeeklyBlock } from '../../types';
@@ -72,6 +72,16 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
   const themeConfig = ACCENT_THEMES[accentTheme] || ACCENT_THEMES.amber;
   const [isJournalOpen, setIsJournalOpen] = useState(true);
   const [openEntryId, setOpenEntryId] = useState<string | null>(null);
+  // When each entry was first shown in this week, so only entries written just now animate in.
+  const firstSeen = useRef<{ weekId: string; at: Map<string, number> } | null>(null);
+  if (!firstSeen.current || firstSeen.current.weekId !== week.id) {
+    firstSeen.current = { weekId: week.id, at: new Map((week.bullets || []).map((b) => [b.id, 0])) };
+  }
+  const isNewEntry = (id: string) => {
+    const at = firstSeen.current!.at;
+    if (!at.has(id)) at.set(id, Date.now());
+    return Date.now() - at.get(id)! < 1500;
+  };
   const [newLinkTitle, setNewLinkTitle] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newShowItemText, setNewShowItemText] = useState('');
@@ -487,6 +497,7 @@ export const WeekCard: React.FC<WeekCardProps> = React.memo(({
                       onToggle={() => setOpenEntryId(openEntryId === bullet.id ? null : bullet.id)}
                       onToggleComplete={canEdit ? () => handleUpdateBullet({ ...bullet, completed: !bullet.completed }) : undefined}
                       searchQuery={searchQuery}
+                      isNew={isNewEntry(bullet.id)}
                     >
                     <BulletItem
                       key={bullet.id}
@@ -743,6 +754,20 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
     const [forSession, setForSession] = useState(false);
     const [showReminder, setShowReminder] = useState(false);
     const [remindAt, setRemindAt] = useState<string | null>(null);
+    const [focused, setFocused] = useState(false);
+    const fieldRef = useRef<HTMLTextAreaElement>(null);
+    const expanded = focused || text.length > 0 || forSession || !!remindAt || showReminder;
+
+    // Grow with the text, up to about a third of the screen (less on short screens), then scroll inside.
+    const fit = (el: HTMLTextAreaElement) => {
+      el.style.height = 'auto';
+      const cap = Math.max(96, Math.min(220, Math.round(window.innerHeight * 0.3)));
+      el.style.height = `${Math.min(el.scrollHeight, cap)}px`;
+    };
+    // The controls keep the keyboard up instead of taking focus from the text.
+    const keepFocus = (e: React.PointerEvent) => {
+      if (document.activeElement === fieldRef.current) e.preventDefault();
+    };
 
     const handleSubmit = () => {
       if (!text.trim()) return;
@@ -754,10 +779,11 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
       setForSession(false);
       setRemindAt(null);
       setShowReminder(false);
+      if (fieldRef.current) fieldRef.current.style.height = 'auto';
     };
 
     return (
-      <div className="[@media(min-height:600px)]:sticky [@media(min-height:600px)]:bottom-[-5rem] md:[@media(min-height:600px)]:bottom-[-2rem] z-20 mt-3 pt-5 pb-3 md:pb-4 bg-gradient-to-t from-(--j-ground) from-80% to-transparent [@media(min-height:600px)]:after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-16 after:bg-(--j-ground)">
+      <div className="[@media(min-height:600px)]:sticky [@media(min-height:600px)]:bottom-[-5rem] md:[@media(min-height:600px)]:bottom-[-2rem] z-20 mt-3 pt-5 pb-3 md:pb-4 bg-[linear-gradient(to_top,var(--j-ground)_calc(100%-1.25rem),transparent)] [@media(min-height:600px)]:after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-16 after:bg-(--j-ground)">
         {customTs && (
           <div className="flex items-center justify-between gap-2 text-[12px] mb-2 px-3 py-1.5 rounded-xl bg-(--j-chip) text-(--j-tag) font-semibold">
             <span className="flex items-center gap-1.5 min-w-0">
@@ -770,34 +796,55 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
           </div>
         )}
 
-        <div className={`relative flex items-end gap-1 rounded-[28px] bg-(--j-field) border border-(--j-fieldline) pl-5 pr-1.5 py-1.5 ${showDatePicker ? 'z-[9999]' : ''}`}>
+        {/* One field. Empty and idle it is a single line; once you start writing the text gets the
+            full width and the controls move to a row underneath, so narrow screens (the iPhone Duo's
+            outer display) keep long lines readable and nothing sits below the field, where iOS puts
+            its keyboard bar. */}
+        <div className={`relative flex flex-wrap items-end gap-1 rounded-[24px] bg-(--j-field) border border-(--j-fieldline) ${expanded ? 'pl-4 pr-1.5 pt-1 pb-1.5' : 'pl-5 pr-1.5 py-1.5'} ${showDatePicker ? 'z-[9999]' : ''}`}>
           <textarea
+            ref={fieldRef}
             rows={1}
             aria-label="New entry"
             placeholder="Log a thought"
             value={text}
-            onChange={(e) => {
-              setText(e.target.value);
-              e.target.style.height = 'auto';
-              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
-            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onChange={(e) => { setText(e.target.value); fit(e.target); }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
             }}
-            className="flex-1 min-w-0 resize-none bg-transparent py-[11px] text-[17px] leading-[22px] text-(--j-ink) placeholder:text-(--j-ink2) focus:outline-none"
+            className={`${expanded ? 'basis-full pr-2.5' : 'flex-1'} min-w-0 resize-none bg-transparent py-[11px] text-[17px] leading-[24px] text-(--j-ink) placeholder:text-(--j-ink2) focus:outline-none`}
           />
+          {expanded && (
+            <button
+              type="button"
+              onPointerDown={keepFocus}
+              onClick={() => setForSession(!forSession)}
+              aria-pressed={forSession}
+              className={`shrink-0 min-h-[36px] px-3 mb-1 rounded-full text-[13px] font-semibold flex items-center gap-1.5 ${
+                forSession ? 'bg-(--j-sig) text-(--j-onsig)' : 'text-(--j-ink2) border border-(--j-fieldline)'
+              }`}
+              title="Tag to bring up in your next session"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              For session
+            </button>
+          )}
           <button
             type="button"
+            onPointerDown={keepFocus}
             onClick={() => setShowReminder(!showReminder)}
             aria-pressed={!!remindAt}
             aria-label={remindAt ? `Reminder ${formatReminder(remindAt)}` : 'Add a reminder'}
             title="Add a reminder with an alarm"
-            className={`shrink-0 w-11 h-11 rounded-full grid place-items-center ${remindAt ? 'bg-(--j-chip) text-(--j-tag)' : 'text-(--j-ink2) hover:text-(--j-ink)'}`}
+            className={`shrink-0 h-11 rounded-full flex items-center justify-center gap-1.5 min-w-0 ${remindAt ? 'px-3 bg-(--j-chip) text-(--j-tag) text-[13px] font-semibold' : 'w-11 text-(--j-ink2) hover:text-(--j-ink)'}`}
           >
-            <Bell className="w-5 h-5" />
+            <Bell className="w-5 h-5 shrink-0" />
+            {remindAt && <span className="truncate">{formatReminder(remindAt)}</span>}
           </button>
           <button
             type="button"
+            onPointerDown={keepFocus}
             onClick={() => setShowDatePicker(!showDatePicker)}
             aria-label="Set a custom or backdated time"
             title="Backdate this entry"
@@ -805,12 +852,14 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
           >
             <Calendar className="w-5 h-5" />
           </button>
+          {expanded && <span className="flex-1" />}
           <button
             type="button"
+            onPointerDown={keepFocus}
             onClick={handleSubmit}
             disabled={!text.trim()}
             aria-label="Add entry"
-            className="shrink-0 w-11 h-11 rounded-full grid place-items-center bg-(--j-sig) text-(--j-onsig) disabled:opacity-40 active:scale-95 transition-transform"
+            className="m-press shrink-0 w-11 h-11 rounded-full grid place-items-center bg-(--j-sig) text-(--j-onsig) disabled:opacity-40"
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
           </button>
@@ -832,25 +881,6 @@ const QuickAddBulletForm: React.FC<QuickAddBulletFormProps> = React.memo(
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 mt-2 px-1">
-          <button
-            type="button"
-            onClick={() => setForSession(!forSession)}
-            aria-pressed={forSession}
-            className={`min-h-[32px] px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 ${
-              forSession ? 'bg-(--j-sig) text-(--j-onsig)' : 'text-(--j-ink2) border border-(--j-fieldline)'
-            }`}
-            title="Tag to bring up in your next session"
-          >
-            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            For session
-          </button>
-          {remindAt && (
-            <span className="min-h-[32px] px-3 rounded-full text-[13px] font-semibold flex items-center gap-1.5 bg-(--j-chip) text-(--j-tag)">
-              <Bell className="w-3.5 h-3.5" />{formatReminder(remindAt)}
-            </span>
-          )}
-        </div>
         {showReminder && <div className="mt-2"><ReminderPicker value={remindAt} onChange={setRemindAt} /></div>}
       </div>
     );
